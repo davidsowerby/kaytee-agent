@@ -3,6 +3,7 @@ import com.github.jengelman.gradle.plugins.shadow.*
 import org.gradle.api.*
 import org.gradle.plugins.ide.idea.*
 import org.gradle.plugins.ide.idea.model.*
+import org.gradle.api.tasks.wrapper.Wrapper
 
 buildscript {
     repositories {
@@ -51,4 +52,8 @@ dependencies {
 
 configure<ApplicationPluginConvention> {
     mainClassName = "uk.q3c.rest.app.Main"
+}
+
+task<Wrapper>("wrapper") {
+    gradleVersion = "3.2.1"
 }

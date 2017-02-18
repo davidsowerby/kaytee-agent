@@ -46,6 +46,7 @@ object Main {
             // Map to a dependency injected handler
             path("injected", MyHandler::class.java)
 
+
             // Bind the /static app path to the src/ratpack/assets/images dir
             prefix("static") {
                 fileSystem("assets/images") { files() }
