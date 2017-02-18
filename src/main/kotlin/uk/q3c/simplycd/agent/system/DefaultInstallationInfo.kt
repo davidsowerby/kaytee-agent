@@ -1,0 +1,49 @@
+package uk.q3c.simplycd.system
+
+import com.google.inject.Inject
+import com.google.inject.Singleton
+import uk.q3c.simplycd.build.Build
+import java.io.File
+
+/**
+ * Created by David Sowerby on 13 Jan 2017
+ */
+@Singleton
+class DefaultInstallationInfo @Inject constructor() : InstallationInfo {
+
+    override var dataDirRoot = File(System.getProperty("user.home"))
+    override var installDirRoot = File(System.getProperty("user.home"))
+
+
+    override fun gradleStdErrFile(build: Build): File {
+        return File(gradleOutputDir(build), "stderr.txt")
+    }
+
+    override fun gradleStdOutFile(build: Build): File {
+        return File(gradleOutputDir(build), "stdout.txt")
+    }
+
+    override fun projectDir(build: Build): File {
+        return File(dataDir(), build.buildRequest.project.name)
+    }
+
+    override fun dataDir(): File {
+        return File(dataDirRoot, "simplycd-data")
+    }
+
+    override fun installDir(): File {
+        return File(installDirRoot, "simplycd")
+    }
+
+    private fun projectVersionDir(build: Build): File {
+        return File(projectDir(build), build.buildNumber().toString())
+    }
+
+    override fun gradleOutputDir(build: Build): File {
+        return File(projectVersionDir(build), "build-output")
+    }
+
+    override fun codeDir(build: Build): File {
+        return File(projectVersionDir(build), "code")
+    }
+}

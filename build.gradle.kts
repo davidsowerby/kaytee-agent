@@ -22,6 +22,8 @@ if (!JavaVersion.current().isJava8Compatible()) {
     throw IllegalStateException("Must be built with Java 8 or higher")
 }
 
+val toolingApiVersion = gradle.gradleVersion
+
 apply {
     plugin<RatpackPlugin>()
     plugin<ShadowPlugin>()
@@ -32,6 +34,7 @@ apply {
 }
 
 repositories {
+    mavenLocal()
     jcenter()
     gradleScriptKotlin()
 }
@@ -41,17 +44,24 @@ dependencies {
     project.extensions.getByType(RatpackExtension::class.java).let { ratpack ->
         compile(ratpack.dependency("guice"))
     }
+    //krail for I18N only.  Reduce when I18N moved out of Krail
+    compile("uk.q3c.krail:krail:0.9.9")
+    compile("uk.q3c.simplycd:simplycd-lifecycle:0.7.3.19")
+    //gradle tooling api
+    compile("org.gradle:gradle-tooling-api:" + toolingApiVersion)
     runtime("org.apache.logging.log4j:log4j-slf4j-impl:2.6.1")
     runtime("org.apache.logging.log4j:log4j-api:2.6.1")
     runtime("org.apache.logging.log4j:log4j-core:2.6.1")
     runtime("com.lmax:disruptor:3.3.4")
     testCompile("junit:junit:4.+")
     testCompile("org.jetbrains.spek:spek:1.0.+")
+    testCompile("org.spockframework:spock-core:1.0-groovy-2.4")
     testCompile(kotlinModule("test"))
+    testCompile("uk.q3c:q3c-testUtil:0.8.2")
 }
 
 configure<ApplicationPluginConvention> {
-    mainClassName = "uk.q3c.rest.app.Main"
+    mainClassName = "uk.q3c.simplycd.agent.app.Main"
 }
 
 task<Wrapper>("wrapper") {
