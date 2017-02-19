@@ -44,12 +44,16 @@ dependencies {
     project.extensions.getByType(RatpackExtension::class.java).let { ratpack ->
         compile(ratpack.dependency("guice"))
     }
+    project.extensions.getByType(RatpackExtension::class.java).let { ratpack ->
+        testCompile(ratpack.dependency("test"))
+    }
     //krail for I18N only.  Reduce when I18N moved out of Krail
     compile("uk.q3c.krail:krail:0.9.9")
     compile("uk.q3c.simplycd:simplycd-lifecycle:0.7.3.19")
     //gradle tooling api
     compile("org.gradle:gradle-tooling-api:" + toolingApiVersion)
     compile("uk.q3c.rest:ion-json:0.0.1.5")
+    compile("me.drmaas:ratpack-kotlin-dsl:0.5.0")
 
 
     runtime("org.apache.logging.log4j:log4j-slf4j-impl:2.6.1")
