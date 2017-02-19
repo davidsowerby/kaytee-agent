@@ -32,7 +32,7 @@ class KChain(val delegate: Chain) : Chain by delegate {
     @Suppress("ReplaceGetOrSet")
     fun get(path: String = "", cb: Context.() -> Unit) = delegate.get(path) { it.cb() }
 
-    fun put(path: String = "", cb: Context.() -> Unit) = delegate.put(path) { it.cb() }
+    fun put(path: String = "", cb: Context.() -> Unit): Chain = delegate.put(path) { it.cb() }
     fun post(path: String = "", cb: Context.() -> Unit) = delegate.post(path) { it.cb() }
     fun delete(path: String = "", cb: Context.() -> Unit) = delegate.delete(path) { it.cb() }
     fun options(path: String = "", cb: Context.() -> Unit) = delegate.options(path) { it.cb() }

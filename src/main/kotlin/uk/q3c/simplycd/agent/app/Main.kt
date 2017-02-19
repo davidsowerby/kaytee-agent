@@ -44,15 +44,19 @@ object Main {
             }
 
             // Map to a dependency injected handler
-            path("injected", MyHandler::class.java)
+            path("buildRequests", RootHandler::class.java)
+//            path("", RootHandler::class.java)
 
 
             // Bind the /static app path to the src/ratpack/assets/images dir
             prefix("static") {
                 fileSystem("assets/images") { files() }
             }
-
-            all { render("root handler!") }
+//            path("", RootHandler::class.java)
+            get { render("GET") }
+            put { render("PUT") }
+            post { render("POST") }
+            all { render("ALL") }
         }
     }
 }

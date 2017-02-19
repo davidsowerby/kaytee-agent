@@ -4,6 +4,7 @@ build/*
 *.iws
 *.log
 *.log.gz
+classes
 
 
 

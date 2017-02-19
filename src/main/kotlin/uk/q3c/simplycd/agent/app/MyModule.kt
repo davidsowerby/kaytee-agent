@@ -13,11 +13,11 @@ class MyModule : AbstractModule() {
      * Registered implementations of {@link ratpack.handling.HandlerDecorator} are able to decorate the
      * application handler.
      *
-     * @see MyHandler
+     * @see RootHandler
      */
     override fun configure() {
         bind(MyService::class.java).to(MyServiceImpl::class.java)
-        bind(MyHandler::class.java)
+        bind(RootHandler::class.java)
         Multibinder.newSetBinder(binder(), HandlerDecorator::class.java)
                 .addBinding()
                 .toInstance(ratpack.handling.HandlerDecorator.prepend(LoggingHandler()))

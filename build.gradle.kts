@@ -49,6 +49,9 @@ dependencies {
     compile("uk.q3c.simplycd:simplycd-lifecycle:0.7.3.19")
     //gradle tooling api
     compile("org.gradle:gradle-tooling-api:" + toolingApiVersion)
+    compile("uk.q3c.rest:ion-json:0.0.1.5")
+
+
     runtime("org.apache.logging.log4j:log4j-slf4j-impl:2.6.1")
     runtime("org.apache.logging.log4j:log4j-api:2.6.1")
     runtime("org.apache.logging.log4j:log4j-core:2.6.1")
