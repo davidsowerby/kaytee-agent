@@ -10,7 +10,7 @@ import spock.lang.Specification
 class MainTest extends Specification {
 
     @AutoCleanup
-    def aut = new MainClassApplicationUnderTest(Main.class)
+            aut = new MainClassApplicationUnderTest(Main.class)
 
     def setup() {
 
@@ -21,6 +21,6 @@ class MainTest extends Specification {
         def response = aut.httpClient.get()
 
         then:
-        response.body.text == "GET"
+        response.body.text == "root"
     }
 }
