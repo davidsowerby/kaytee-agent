@@ -1,7 +1,6 @@
 package uk.q3c.simplycd.agent.project;
 
 import com.google.inject.AbstractModule;
-import uk.q3c.simplycd.project.DefaultProject;
 import uk.q3c.simplycd.project.Project;
 
 /**

@@ -47,6 +47,7 @@ repositories {
 
 dependencies {
     compile ratpack.dependency("guice")
+    compile 'uk.q3c.rest:hal-kotlin:0.5.0.11'
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.7.5"
     //krail for I18N only.  Reduce when I18N moved out of Krail
     compile "uk.q3c.krail:krail:0.9.9"

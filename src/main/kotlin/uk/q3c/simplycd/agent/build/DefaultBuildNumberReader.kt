@@ -1,7 +1,8 @@
-package uk.q3c.simplycd.build
+package uk.q3c.simplycd.agent.build
 
 import com.google.inject.Inject
 import com.google.inject.Singleton
+import uk.q3c.simplycd.build.BuildNumberReader
 
 /**
  * Created by David Sowerby on 16 Jan 2017

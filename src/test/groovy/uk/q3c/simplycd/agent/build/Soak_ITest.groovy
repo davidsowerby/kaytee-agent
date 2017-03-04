@@ -15,11 +15,11 @@ import uk.q3c.build.gitplus.GitSHA
 import uk.q3c.simplycd.agent.KrailBindingCollator
 import uk.q3c.simplycd.agent.i18n.I18NModule
 import uk.q3c.simplycd.agent.lifecycle.LifecycleModule
+import uk.q3c.simplycd.agent.project.DefaultProject
 import uk.q3c.simplycd.agent.queue.QueueModule
 import uk.q3c.simplycd.agent.system.SystemModule
 import uk.q3c.simplycd.build.BuildNumberReader
 import uk.q3c.simplycd.lifecycle.prepare.PreparationStage
-import uk.q3c.simplycd.project.DefaultProject
 import uk.q3c.simplycd.project.Project
 import uk.q3c.simplycd.queue.*
 import uk.q3c.simplycd.system.InstallationInfo
@@ -71,7 +71,7 @@ class Soak_ITest extends Specification {
             bind(QueueMessageReceiver)
             install(new FactoryModuleBuilder()
                     .implement(GradleTaskRequest.class, DefaultGradleTaskRequest.class)
-                    .build(GradleTaskRequestFactory.class));
+                    .build(GradleTaskRequestFactory.class))
         }
     }
 
