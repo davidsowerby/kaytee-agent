@@ -5,8 +5,8 @@ import uk.q3c.build.gitplus.local.CloneExistsResponse
 import uk.q3c.build.gitplus.local.GitLocal
 import uk.q3c.build.gitplus.local.GitLocalException
 import uk.q3c.build.gitplus.remote.GitRemote
+import uk.q3c.simplycd.agent.i18n.LabelKey
 import uk.q3c.simplycd.build.BuildPreparationException
-import uk.q3c.simplycd.i18n.LabelKey
 import uk.q3c.simplycd.lifecycle.prepare.DefaultGitClone
 
 /**

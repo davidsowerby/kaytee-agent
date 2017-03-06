@@ -4,11 +4,11 @@ import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 import uk.q3c.build.gitplus.gitplus.GitPlus
 import uk.q3c.build.gitplus.local.CloneExistsResponse
+import uk.q3c.simplycd.agent.i18n.LabelKey
+import uk.q3c.simplycd.agent.i18n.NamedFactory
 import uk.q3c.simplycd.build.Build
 import uk.q3c.simplycd.build.BuildPreparationException
-import uk.q3c.simplycd.i18n.LabelKey
 import uk.q3c.simplycd.i18n.Named
-import uk.q3c.simplycd.i18n.NamedFactory
 import uk.q3c.simplycd.system.InstallationInfo
 
 /**

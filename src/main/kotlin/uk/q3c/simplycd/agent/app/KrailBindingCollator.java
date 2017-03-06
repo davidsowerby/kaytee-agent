@@ -1,4 +1,4 @@
-package uk.q3c.simplycd.agent;
+package uk.q3c.simplycd.agent.app;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.Module;

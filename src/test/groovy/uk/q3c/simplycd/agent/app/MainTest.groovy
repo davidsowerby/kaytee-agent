@@ -48,6 +48,22 @@ class MainTest extends Specification {
 
         then:
         halResponse.self().href == "/"
+    }
 
+    @Unroll
+    "posts with Json"() {
+
+        when:
+        def actual = aut.httpClient.post(url)
+        HalResource halResponse = halMapper.readValue(actual.body.text, HalResource)
+
+        then:
+        halResponse.self().href == url
+        halResponse.getProperty("developerMessage") == "rubbish"
+
+        where:
+
+        url | href
+        ""  | "/"
     }
 }

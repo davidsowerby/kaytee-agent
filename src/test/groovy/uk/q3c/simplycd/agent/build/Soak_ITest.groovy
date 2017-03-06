@@ -12,7 +12,7 @@ import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import uk.q3c.build.gitplus.GitPlusModule
 import uk.q3c.build.gitplus.GitSHA
-import uk.q3c.simplycd.agent.KrailBindingCollator
+import uk.q3c.simplycd.agent.app.KrailBindingCollator
 import uk.q3c.simplycd.agent.i18n.I18NModule
 import uk.q3c.simplycd.agent.lifecycle.LifecycleModule
 import uk.q3c.simplycd.agent.project.DefaultProject

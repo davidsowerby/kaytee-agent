@@ -4,7 +4,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
 import uk.q3c.simplycd.i18n.DefaultNamed;
 import uk.q3c.simplycd.i18n.Named;
-import uk.q3c.simplycd.i18n.NamedFactory;
 
 /**
  * Created by David Sowerby on 21 Jan 2017

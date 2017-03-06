@@ -3,7 +3,7 @@ package uk.q3c.simplycd.i18n
 import uk.q3c.krail.core.i18n.I18NKey
 
 /**
- * Keys used in [Messages]
+ * Keys used in [DeveloperErrors]
  *
  * Created by David Sowerby on 03 May 2016
  */

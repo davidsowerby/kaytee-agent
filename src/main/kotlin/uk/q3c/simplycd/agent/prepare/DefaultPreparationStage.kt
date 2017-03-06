@@ -4,10 +4,10 @@ import com.google.common.collect.ImmutableList
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 import uk.q3c.krail.core.eventbus.GlobalBusProvider
+import uk.q3c.simplycd.agent.i18n.LabelKey
+import uk.q3c.simplycd.agent.i18n.NamedFactory
 import uk.q3c.simplycd.build.Build
-import uk.q3c.simplycd.i18n.LabelKey
 import uk.q3c.simplycd.i18n.Named
-import uk.q3c.simplycd.i18n.NamedFactory
 import uk.q3c.simplycd.queue.PreparationCompletedMessage
 import uk.q3c.simplycd.queue.PreparationStartedMessage
 

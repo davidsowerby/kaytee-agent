@@ -4,10 +4,10 @@ import net.engio.mbassy.bus.common.PubSubSupport
 import spock.lang.Specification
 import uk.q3c.krail.core.eventbus.BusMessage
 import uk.q3c.krail.core.eventbus.GlobalBusProvider
+import uk.q3c.simplycd.agent.i18n.LabelKey
+import uk.q3c.simplycd.agent.i18n.NamedFactory
 import uk.q3c.simplycd.build.Build
-import uk.q3c.simplycd.i18n.LabelKey
 import uk.q3c.simplycd.i18n.Named
-import uk.q3c.simplycd.i18n.NamedFactory
 import uk.q3c.simplycd.lifecycle.prepare.DefaultPreparationStage
 import uk.q3c.simplycd.lifecycle.prepare.GitClone
 import uk.q3c.simplycd.lifecycle.prepare.LoadBuildConfiguration

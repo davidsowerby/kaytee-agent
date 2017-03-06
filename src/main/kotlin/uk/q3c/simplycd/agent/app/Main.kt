@@ -1,9 +1,12 @@
 package uk.q3c.simplycd.agent.app
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory.getLogger
 import ratpack.kotlin.handling.ratpack
 import uk.q3c.build.gitplus.GitPlusModule
-import uk.q3c.simplycd.agent.KrailBindingCollator
+import uk.q3c.rest.hal.HalMapper
+import uk.q3c.simplycd.agent.api.ApiModule
+import uk.q3c.simplycd.agent.api.RootHandler
 import uk.q3c.simplycd.agent.build.BuildModule
 import uk.q3c.simplycd.agent.i18n.I18NModule
 import uk.q3c.simplycd.agent.lifecycle.LifecycleModule
@@ -22,8 +25,9 @@ object Main {
                 port(9000)
             }
             bindings {
+                add(ObjectMapper::class.java, HalMapper())
                 module(BuildModule())
-                module(MyModule())
+                module(ApiModule())
                 for (module in KrailBindingCollator().modules()) {
                     module(module)
                 }

@@ -1,4 +1,4 @@
-package uk.q3c.simplycd.agent.app
+package uk.q3c.simplycd.agent.api
 
 import ratpack.handling.Context
 import ratpack.handling.Handler

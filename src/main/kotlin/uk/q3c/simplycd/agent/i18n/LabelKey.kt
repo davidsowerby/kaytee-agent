@@ -1,4 +1,4 @@
-package uk.q3c.simplycd.i18n
+package uk.q3c.simplycd.agent.i18n
 
 /**
  * Created by David Sowerby on 03 May 2016

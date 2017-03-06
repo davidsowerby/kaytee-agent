@@ -4,10 +4,10 @@ import com.google.inject.Inject
 import org.apache.commons.io.FileUtils
 import org.gradle.tooling.GradleConnector
 import org.slf4j.LoggerFactory
+import uk.q3c.simplycd.agent.i18n.LabelKey
+import uk.q3c.simplycd.agent.i18n.NamedFactory
 import uk.q3c.simplycd.build.Build
-import uk.q3c.simplycd.i18n.LabelKey
 import uk.q3c.simplycd.i18n.Named
-import uk.q3c.simplycd.i18n.NamedFactory
 import uk.q3c.simplycd.queue.RequestQueue
 import uk.q3c.simplycd.system.InstallationInfo
 import java.io.IOException
