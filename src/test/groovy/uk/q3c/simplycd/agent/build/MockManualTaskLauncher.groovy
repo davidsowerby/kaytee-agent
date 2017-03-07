@@ -2,11 +2,11 @@ package uk.q3c.simplycd.agent.build
 
 import com.google.inject.Inject
 import org.jetbrains.annotations.NotNull
-import uk.q3c.krail.core.eventbus.GlobalBusProvider
+import uk.q3c.simplycd.agent.eventbus.GlobalBusProvider
+import uk.q3c.simplycd.agent.queue.TaskCompletedMessage
 import uk.q3c.simplycd.i18n.BuildResultStateKey
 import uk.q3c.simplycd.queue.ManualTaskLauncher
 import uk.q3c.simplycd.queue.ManualTaskRequest
-import uk.q3c.simplycd.queue.TaskCompletedMessage
 import uk.q3c.simplycd.queue.TaskRequest
 
 import java.time.LocalDateTime

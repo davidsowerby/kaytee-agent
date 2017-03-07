@@ -6,7 +6,9 @@ import com.google.common.collect.Iterables
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
 import org.slf4j.LoggerFactory
-import uk.q3c.krail.core.eventbus.GlobalBusProvider
+import uk.q3c.simplycd.agent.eventbus.GlobalBusProvider
+import uk.q3c.simplycd.agent.queue.AbstractTaskRequest
+import uk.q3c.simplycd.agent.queue.TaskCompletedMessage
 import uk.q3c.simplycd.build.Build
 import uk.q3c.simplycd.build.BuildExceptionLookup
 import uk.q3c.simplycd.i18n.BuildResultStateKey

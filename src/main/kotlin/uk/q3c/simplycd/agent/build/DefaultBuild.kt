@@ -6,9 +6,12 @@ import net.engio.mbassy.listener.Handler
 import net.engio.mbassy.listener.Listener
 import org.gradle.tooling.BuildLauncher
 import org.slf4j.LoggerFactory
-import uk.q3c.krail.core.eventbus.GlobalBus
-import uk.q3c.krail.core.eventbus.GlobalBusProvider
-import uk.q3c.krail.core.eventbus.SubscribeTo
+import uk.q3c.simplycd.agent.eventbus.GlobalBus
+import uk.q3c.simplycd.agent.eventbus.GlobalBusProvider
+import uk.q3c.simplycd.agent.eventbus.SubscribeTo
+import uk.q3c.simplycd.agent.queue.BuildCompletedMessage
+import uk.q3c.simplycd.agent.queue.BuildStartedMessage
+import uk.q3c.simplycd.agent.queue.TaskCompletedMessage
 import uk.q3c.simplycd.i18n.TaskKey
 import uk.q3c.simplycd.lifecycle.SimplyCDProjectExtension
 import uk.q3c.simplycd.lifecycle.prepare.PreparationStage

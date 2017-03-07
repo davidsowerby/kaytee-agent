@@ -5,7 +5,7 @@ import net.engio.mbassy.listener.Handler
 import net.engio.mbassy.listener.Listener
 import uk.q3c.krail.core.eventbus.GlobalBus
 import uk.q3c.krail.core.eventbus.SubscribeTo
-import uk.q3c.simplycd.queue.*
+import uk.q3c.simplycd.agent.queue.*
 
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -32,42 +32,42 @@ class QueueMessageReceiver {
     }
 
     @Handler
-    public void busMessage(BuildRequestedMessage busMessage) {
+    void busMessage(BuildRequestedMessage busMessage) {
         buildRequests.add(busMessage)
     }
 
     @Handler
-    public void busMessage(TaskRequestedMessage busMessage) {
+    void busMessage(TaskRequestedMessage busMessage) {
         taskRequests.add(busMessage)
     }
 
     @Handler
-    public void busMessage(TaskStartedMessage busMessage) {
+    void busMessage(TaskStartedMessage busMessage) {
         taskStarts.add(busMessage)
     }
 
     @Handler
-    public void busMessage(TaskCompletedMessage busMessage) {
+    void busMessage(TaskCompletedMessage busMessage) {
         taskCompletions.add(busMessage)
     }
 
     @Handler
-    public void busMessage(BuildStartedMessage busMessage) {
+    void busMessage(BuildStartedMessage busMessage) {
         buildStarts.add(busMessage)
     }
 
     @Handler
-    public void busMessage(BuildCompletedMessage busMessage) {
+    void busMessage(BuildCompletedMessage busMessage) {
         buildCompletions.add(busMessage)
     }
 
     @Handler
-    public void busMessage(PreparationStartedMessage busMessage) {
+    void busMessage(PreparationStartedMessage busMessage) {
         preparationStarts.add(busMessage)
     }
 
     @Handler
-    public void busMessage(PreparationCompletedMessage busMessage) {
+    void busMessage(PreparationCompletedMessage busMessage) {
         preparationCompletions.add(busMessage)
     }
 

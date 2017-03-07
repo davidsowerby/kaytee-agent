@@ -1,10 +1,11 @@
-package uk.q3c.simplycd.queue
+package uk.q3c.simplycd.agent.queue
 
 import net.engio.mbassy.bus.common.PubSubSupport
 import org.slf4j.LoggerFactory
-import uk.q3c.krail.core.eventbus.BusMessage
+import uk.q3c.simplycd.agent.eventbus.BusMessage
 import uk.q3c.simplycd.build.Build
 import uk.q3c.simplycd.i18n.TaskKey
+import uk.q3c.simplycd.queue.TaskRequest
 import java.time.LocalDateTime
 
 /**

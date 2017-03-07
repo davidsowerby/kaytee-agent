@@ -11,5 +11,6 @@ public class SystemModule extends AbstractModule {
     @Override
     protected void configure() {
         bind(InstallationInfo.class).to(DefaultInstallationInfo.class);
+        bind(RestNotifier.class).to(DefaultRestNotifier.class);
     }
 }

@@ -12,10 +12,11 @@ import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import uk.q3c.build.gitplus.GitPlusModule
 import uk.q3c.build.gitplus.GitSHA
-import uk.q3c.simplycd.agent.app.KrailBindingCollator
+import uk.q3c.simplycd.agent.eventbus.GlobalBusModule
 import uk.q3c.simplycd.agent.i18n.I18NModule
 import uk.q3c.simplycd.agent.lifecycle.LifecycleModule
 import uk.q3c.simplycd.agent.project.DefaultProject
+import uk.q3c.simplycd.agent.queue.BuildCompletedMessage
 import uk.q3c.simplycd.agent.queue.QueueModule
 import uk.q3c.simplycd.agent.system.SystemModule
 import uk.q3c.simplycd.build.BuildNumberReader
@@ -124,7 +125,8 @@ class Soak_ITest extends Specification {
         projects.add(projectC)
         projects.add(projectD)
 
-        List<Module> bindings = new KrailBindingCollator().modules()
+        List<Module> bindings = new ArrayList<>()
+        bindings.add(new GlobalBusModule())
         bindings.add(Modules.override(new BuildModule()).with(new TestBuildModule()))
         bindings.add(new SystemModule())
         bindings.add(Modules.override(new QueueModule()).with(new TestQueueModule()))

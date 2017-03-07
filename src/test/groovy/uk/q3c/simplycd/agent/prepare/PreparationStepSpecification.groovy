@@ -6,9 +6,9 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import uk.q3c.build.gitplus.GitSHA
-import uk.q3c.krail.core.eventbus.BusMessage
-import uk.q3c.krail.core.eventbus.GlobalBusProvider
 import uk.q3c.krail.core.i18n.Translate
+import uk.q3c.simplycd.agent.eventbus.BusMessage
+import uk.q3c.simplycd.agent.eventbus.GlobalBusProvider
 import uk.q3c.simplycd.agent.i18n.NamedFactory
 import uk.q3c.simplycd.build.Build
 import uk.q3c.simplycd.build.BuildFactory

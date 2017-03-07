@@ -1,6 +1,7 @@
-package uk.q3c.simplycd.i18n
+package uk.q3c.simplycd.agent.i18n
 
 import uk.q3c.krail.core.persist.clazz.i18n.EnumResourceBundle
+import uk.q3c.simplycd.i18n.BuildResultStateKey
 import uk.q3c.simplycd.i18n.BuildResultStateKey.*
 
 /**

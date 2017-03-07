@@ -1,16 +1,20 @@
-package uk.q3c.simplycd.queue
+package uk.q3c.simplycd.agent.queue
 
 import com.google.inject.Inject
 import com.google.inject.Singleton
 import org.gradle.tooling.CancellationTokenSource
 import org.slf4j.LoggerFactory
 import uk.q3c.build.gitplus.GitSHA
-import uk.q3c.krail.core.eventbus.GlobalBusProvider
-import uk.q3c.krail.core.user.notify.UserNotifier
+import uk.q3c.simplycd.agent.eventbus.GlobalBusProvider
+import uk.q3c.simplycd.agent.system.RestNotifier
 import uk.q3c.simplycd.build.BuildRequestFactory
 import uk.q3c.simplycd.i18n.MessageKey
 import uk.q3c.simplycd.i18n.MessageKey.*
 import uk.q3c.simplycd.project.Project
+import uk.q3c.simplycd.queue.BuildRequest
+import uk.q3c.simplycd.queue.QueueRequest
+import uk.q3c.simplycd.queue.RequestQueue
+import uk.q3c.simplycd.queue.TaskRequest
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
@@ -25,7 +29,7 @@ import java.util.concurrent.TimeUnit
  */
 @Singleton
 class DefaultRequestQueue @Inject constructor(
-        val userNotifier: UserNotifier,
+        val restNotifier: RestNotifier,
         val buildRequestFactory: BuildRequestFactory,
         val globalBusProvider: GlobalBusProvider)
 
@@ -81,13 +85,13 @@ class DefaultRequestQueue @Inject constructor(
             }
 
             // could not find it - out of date queueRequest
-            userNotifyInfo(MessageKey.Build_Request_Remove_Not_Found, queueRequest)
+            userNotifyInfo(Build_Request_Remove_Not_Found, queueRequest)
             return false
         }
     }
 
     private fun userNotifyInfo(key: MessageKey, queueRequest: QueueRequest) {
-        userNotifier.notifyInformation(key, queueRequest.identity())
+        restNotifier.notifyInformation(key, queueRequest.identity())
     }
 
 

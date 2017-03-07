@@ -1,9 +1,11 @@
-package uk.q3c.simplycd.queue
+package uk.q3c.simplycd.agent.queue
 
 import uk.q3c.build.gitplus.notSpecified
-import uk.q3c.krail.core.eventbus.BusMessage
+import uk.q3c.simplycd.agent.eventbus.BusMessage
 import uk.q3c.simplycd.i18n.BuildResultStateKey
 import uk.q3c.simplycd.project.Project
+import uk.q3c.simplycd.queue.BuildRequest
+import uk.q3c.simplycd.queue.TaskRequest
 import java.time.LocalDateTime
 
 /**

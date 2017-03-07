@@ -8,6 +8,7 @@ import uk.q3c.rest.hal.HalMapper
 import uk.q3c.simplycd.agent.api.ApiModule
 import uk.q3c.simplycd.agent.api.RootHandler
 import uk.q3c.simplycd.agent.build.BuildModule
+import uk.q3c.simplycd.agent.eventbus.GlobalBusModule
 import uk.q3c.simplycd.agent.i18n.I18NModule
 import uk.q3c.simplycd.agent.lifecycle.LifecycleModule
 import uk.q3c.simplycd.agent.project.ProjectModule
@@ -28,9 +29,7 @@ object Main {
                 add(ObjectMapper::class.java, HalMapper())
                 module(BuildModule())
                 module(ApiModule())
-                for (module in KrailBindingCollator().modules()) {
-                    module(module)
-                }
+                module(GlobalBusModule())
                 module(I18NModule())
                 module(LifecycleModule())
                 module(ProjectModule())
