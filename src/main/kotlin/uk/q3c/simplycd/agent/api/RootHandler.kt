@@ -27,7 +27,7 @@ import javax.inject.Singleton
                 context.render(json(responseObject))
             }
             else -> {
-                val errorResponse = errorResponseBuilder.build(DeveloperErrorMessageKey.InvalidMethod, context.request.method)
+                val errorResponse = errorResponseBuilder.build(DeveloperErrorMessageKey.InvalidMethod, context.request.method, "/", "GET")
                 context.render(json(errorResponse))
             }
         }

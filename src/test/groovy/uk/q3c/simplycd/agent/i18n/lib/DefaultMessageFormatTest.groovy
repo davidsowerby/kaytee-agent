@@ -7,7 +7,7 @@ import static uk.q3c.simplycd.agent.i18n.lib.MessageFormatMode.*
 /**
  * Created by David Sowerby on 06 Mar 2017
  */
-class StrictMessageFormatTest extends Specification {
+class DefaultMessageFormatTest extends Specification {
 
 
     def "format is valid"() {
@@ -16,7 +16,7 @@ class StrictMessageFormatTest extends Specification {
         Object[] arguments = ["parameters", "simple", "order"]
 
         when:
-        String result = StrictMessageFormat.INSTANCE.format(mode, pattern, arguments)
+        String result = DefaultMessageFormat.INSTANCE.format(mode, pattern, arguments)
 
         then:
         result == "This is a simple pattern where the parameters can be in any order"
@@ -36,19 +36,19 @@ class StrictMessageFormatTest extends Specification {
         Object[] arguments = ["repeated", "an additional argument", "surplus"]
 
         when: "strict"
-        String result = StrictMessageFormat.INSTANCE.format(pattern, arguments)
+        String result = DefaultMessageFormat.INSTANCE.format(pattern, arguments)
 
         then: "return unmodified pattern"
         result == "This is a {0} pattern where the same argument is {0} and has {1}, and {0} again"
 
         when: "strict_exception"
-        result = StrictMessageFormat.INSTANCE.format(STRICT_EXCEPTION, pattern, arguments)
+        result = DefaultMessageFormat.INSTANCE.format(STRICT_EXCEPTION, pattern, arguments)
 
         then: "throw exception"
         thrown MessageFormatException
 
         when: "lenient"
-        result = StrictMessageFormat.INSTANCE.format(LENIENT, pattern, arguments)
+        result = DefaultMessageFormat.INSTANCE.format(LENIENT, pattern, arguments)
 
         then:
         result == "This is a repeated pattern where the same argument is repeated and has an additional argument, and repeated again"
@@ -61,7 +61,7 @@ class StrictMessageFormatTest extends Specification {
         String pattern = "This is a {1} pattern where the {0} can be in any {2}{3}"
         Object[] arguments = ["parameters", "simple", "order", " you like"]
         when:
-        String result = StrictMessageFormat.INSTANCE.format(mode, pattern, arguments)
+        String result = DefaultMessageFormat.INSTANCE.format(mode, pattern, arguments)
         then:
         result == "This is a simple pattern where the parameters can be in any order you like"
 
@@ -80,7 +80,7 @@ class StrictMessageFormatTest extends Specification {
         String pattern = "This is a {1} pattern where the {0} can be in any {2}{3}{4}{5}{6}{7}{8}{9}"
         Object[] arguments = ["parameters", "simple", "order", "a", "b", "c", "d", "e", "f", "g"]
         when:
-        String result = StrictMessageFormat.INSTANCE.format(mode, pattern, arguments)
+        String result = DefaultMessageFormat.INSTANCE.format(mode, pattern, arguments)
         then:
         result == "This is a simple pattern where the parameters can be in any orderabcdefg"
 
@@ -99,7 +99,7 @@ class StrictMessageFormatTest extends Specification {
         Object[] arguments = ["parameters", "simple", "order", "a", "b", "c", "d", "e", "f", "g", "h"]
 
         when:
-        String result = StrictMessageFormat.INSTANCE.format(mode, pattern, arguments)
+        String result = DefaultMessageFormat.INSTANCE.format(mode, pattern, arguments)
 
         then:
         result == "This is a simple pattern where the parameters can be in any orderabcdefgh"
@@ -119,7 +119,7 @@ class StrictMessageFormatTest extends Specification {
         String pattern = "\\{0}This is a {1} pattern \\{0} where the {0} can be in any {2} ignoring \\{3}"
         Object[] arguments = ["parameters", "simple", "order"]
         when:
-        String result = StrictMessageFormat.INSTANCE.format(mode, pattern, arguments)
+        String result = DefaultMessageFormat.INSTANCE.format(mode, pattern, arguments)
         then:
         result == "{0}This is a simple pattern {0} where the parameters can be in any order ignoring {3}"
 
@@ -140,19 +140,19 @@ class StrictMessageFormatTest extends Specification {
         Object[] arguments = ["parameters", "simple"]
 
         when:
-        String result = StrictMessageFormat.INSTANCE.format(pattern, arguments)
+        String result = DefaultMessageFormat.INSTANCE.format(pattern, arguments)
 
         then:
         result == pattern
 
         when:
-        result = StrictMessageFormat.INSTANCE.format(STRICT_EXCEPTION, pattern, arguments)
+        result = DefaultMessageFormat.INSTANCE.format(STRICT_EXCEPTION, pattern, arguments)
 
         then:
         thrown MessageFormatException
 
         when:
-        result = StrictMessageFormat.INSTANCE.format(LENIENT, pattern, arguments)
+        result = DefaultMessageFormat.INSTANCE.format(LENIENT, pattern, arguments)
 
         then:
         result == "This is a simple pattern where the parameters can be in any {??}"
@@ -165,19 +165,19 @@ class StrictMessageFormatTest extends Specification {
         Object[] arguments = ["parameters", "simple", "unused", "order"]
 
         when:
-        String result = StrictMessageFormat.INSTANCE.format(pattern, arguments)
+        String result = DefaultMessageFormat.INSTANCE.format(pattern, arguments)
 
         then:
         result == pattern
 
         when:
-        result = StrictMessageFormat.INSTANCE.format(STRICT_EXCEPTION, pattern, arguments)
+        result = DefaultMessageFormat.INSTANCE.format(STRICT_EXCEPTION, pattern, arguments)
 
         then:
         thrown MessageFormatException
 
         when:
-        result = StrictMessageFormat.INSTANCE.format(LENIENT, pattern, arguments)
+        result = DefaultMessageFormat.INSTANCE.format(LENIENT, pattern, arguments)
 
         then:
         result == "This is a simple pattern where the parameters can be in any order"
@@ -189,19 +189,19 @@ class StrictMessageFormatTest extends Specification {
         Object[] arguments = ["parameters", "simple", "order"]
 
         when:
-        String result = StrictMessageFormat.INSTANCE.format(pattern, arguments)
+        String result = DefaultMessageFormat.INSTANCE.format(pattern, arguments)
 
         then:
         result == pattern
 
         when:
-        result = StrictMessageFormat.INSTANCE.format(STRICT_EXCEPTION, pattern, arguments)
+        result = DefaultMessageFormat.INSTANCE.format(STRICT_EXCEPTION, pattern, arguments)
 
         then:
         thrown MessageFormatException
 
         when:
-        result = StrictMessageFormat.INSTANCE.format(LENIENT, pattern, arguments)
+        result = DefaultMessageFormat.INSTANCE.format(LENIENT, pattern, arguments)
 
         then:
         result == "This is a order pattern where the simple can be in any {??}"
@@ -213,19 +213,19 @@ class StrictMessageFormatTest extends Specification {
         Object[] arguments = ["parameters", "simple", "order"]
 
         when:
-        String result = StrictMessageFormat.INSTANCE.format(pattern, arguments)
+        String result = DefaultMessageFormat.INSTANCE.format(pattern, arguments)
 
         then:
         result == pattern
 
         when:
-        result = StrictMessageFormat.INSTANCE.format(STRICT_EXCEPTION, pattern, arguments)
+        result = DefaultMessageFormat.INSTANCE.format(STRICT_EXCEPTION, pattern, arguments)
 
         then:
         thrown MessageFormatException
 
         when:
-        result = StrictMessageFormat.INSTANCE.format(LENIENT, pattern, arguments)
+        result = DefaultMessageFormat.INSTANCE.format(LENIENT, pattern, arguments)
 
         then:
         result == "This is a simple pattern where the parameters can be in any {??}"

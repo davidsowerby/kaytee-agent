@@ -8,6 +8,6 @@ import uk.q3c.krail.core.persist.clazz.i18n.EnumResourceBundle
 class DeveloperErrorMessages : EnumResourceBundle<DeveloperErrorMessageKey>() {
 
     override fun loadMap() {
-        put(DeveloperErrorMessageKey.InvalidMethod, "Developer: A request was received with an Http method of '{}'.  This URI ('{}') only responds to '{}'")
+        put(DeveloperErrorMessageKey.InvalidMethod, "Developer: A request was received with an Http method of '{0}'.  This URI ('{1}') only responds to '{2}'")
     }
 }

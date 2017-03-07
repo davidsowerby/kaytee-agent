@@ -6,6 +6,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 import uk.q3c.rest.hal.HalMapper
 import uk.q3c.rest.hal.HalResource
+import uk.q3c.simplycd.agent.api.ErrorResponse
 
 /**
  * Created by David Sowerby on 19 Feb 2017
@@ -55,11 +56,14 @@ class MainTest extends Specification {
 
         when:
         def actual = aut.httpClient.post(url)
-        HalResource halResponse = halMapper.readValue(actual.body.text, HalResource)
+        ErrorResponse halResponse = halMapper.readValue(actual.body.text, ErrorResponse)
 
         then:
         halResponse.self().href == url
-        halResponse.getProperty("developerMessage") == "rubbish"
+        halResponse.developerMessage == "Developer: A request was received with an Http method of 'POST'.  This URI ('/') only responds to 'GET'"
+        halResponse.userMessage == "User: A request was received with an Http method of 'POST'.  This URI ('/') only responds to 'GET'"
+        halResponse.detailCode == "InvalidMethod"
+        halResponse.httpCode == 405
 
         where:
 

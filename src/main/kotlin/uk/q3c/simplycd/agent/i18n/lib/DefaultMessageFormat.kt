@@ -59,21 +59,22 @@ import java.util.*
  *
  *  Parameters without matching arguments are assigned a value of "??"
  */
-object StrictMessageFormat {
-    private val log = LoggerFactory.getLogger(StrictMessageFormat::class.java)
+object DefaultMessageFormat {
+    private val log = LoggerFactory.getLogger(DefaultMessageFormat::class.java)
 
 
     @JvmOverloads
     fun format(mode: MessageFormatMode = STRICT, pattern: String, vararg arguments: Any): String {
         val parameters = ArrayList<Int>()
         val strippedPattern = scanForParameters(pattern, parameters)
+        val argsList = Arrays.asList(*arguments)
 
         when (mode) {
-            STRICT -> if (!argsMatchParams(parameters, arguments)) {
+            STRICT -> if (!argsMatchParams(parameters, argsList)) {
                 log.warn(strictFailureMessage(parameters, arguments, pattern))
                 return pattern
             }
-            STRICT_EXCEPTION -> if (!argsMatchParams(parameters, arguments)) {
+            STRICT_EXCEPTION -> if (!argsMatchParams(parameters, argsList)) {
                 throw MessageFormatException(strictFailureMessage(parameters, arguments, pattern))
             }
             else -> {
@@ -134,7 +135,7 @@ object StrictMessageFormat {
         return strippedPattern.toString()
     }
 
-    private fun argsMatchParams(parameters: List<Int>, arguments: Array<out Any>): Boolean {
+    private fun argsMatchParams(parameters: List<Int>, arguments: List<Any>): Boolean {
         // strict requires matching numbers of params and args
         if (parameters.size != arguments.size) {
             return false
