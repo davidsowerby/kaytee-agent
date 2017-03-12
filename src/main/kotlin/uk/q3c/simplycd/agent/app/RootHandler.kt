@@ -1,4 +1,4 @@
-package uk.q3c.simplycd.agent.api
+package uk.q3c.simplycd.agent.app
 
 import ratpack.handling.Context
 import ratpack.handling.Handler
@@ -6,7 +6,6 @@ import ratpack.http.HttpMethod
 import ratpack.jackson.Jackson.json
 import uk.q3c.rest.hal.HalLink
 import uk.q3c.rest.hal.HalResource
-import uk.q3c.simplycd.agent.app.buildRequests
 import uk.q3c.simplycd.agent.i18n.DeveloperErrorMessageKey
 import javax.inject.Inject
 import javax.inject.Singleton

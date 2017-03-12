@@ -2,10 +2,9 @@ package uk.q3c.simplycd.agent.queue
 
 import net.engio.mbassy.bus.common.PubSubSupport
 import org.slf4j.LoggerFactory
+import uk.q3c.simplycd.agent.build.Build
 import uk.q3c.simplycd.agent.eventbus.BusMessage
-import uk.q3c.simplycd.build.Build
 import uk.q3c.simplycd.i18n.TaskKey
-import uk.q3c.simplycd.queue.TaskRequest
 import java.time.LocalDateTime
 
 /**
@@ -30,7 +29,7 @@ abstract class AbstractTaskRequest constructor(
     }
 
     override fun identity(): String {
-        return "${build.buildRequest.project.name}:${build.buildNumber()}:$taskKey}"
+        return "${build.buildRequest.project.shortProjectName}:${build.buildNumber()}:$taskKey}"
     }
 
     override fun toString(): String {

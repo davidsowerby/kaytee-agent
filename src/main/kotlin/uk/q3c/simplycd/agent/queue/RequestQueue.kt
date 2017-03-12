@@ -1,8 +1,9 @@
-package uk.q3c.simplycd.queue
+package uk.q3c.simplycd.agent.queue
 
 import org.gradle.tooling.CancellationTokenSource
 import uk.q3c.build.gitplus.GitSHA
 import uk.q3c.simplycd.project.Project
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 /**
@@ -24,8 +25,10 @@ interface RequestQueue {
      *
      * @param project the project to build
      * @param gitSHA the Git commit id to build
+     *
+     * @return the UUID for the request - this is a permanent id for the build request, which also then becomes the Id for build itself
      */
-    fun addRequest(project: Project, gitSHA: GitSHA)
+    fun addRequest(project: Project, gitSHA: GitSHA): UUID
 
     /**
      * Add a [TaskRequest] to the queue

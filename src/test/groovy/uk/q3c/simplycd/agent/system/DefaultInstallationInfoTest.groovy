@@ -3,12 +3,11 @@ package uk.q3c.simplycd.agent.system
 import org.apache.commons.codec.digest.DigestUtils
 import spock.lang.Specification
 import uk.q3c.build.gitplus.GitSHA
-import uk.q3c.simplycd.build.Build
-import uk.q3c.simplycd.build.BuildFactory
+import uk.q3c.simplycd.agent.build.Build
+import uk.q3c.simplycd.agent.build.BuildFactory
+import uk.q3c.simplycd.agent.queue.BuildRequest
+import uk.q3c.simplycd.agent.queue.DefaultBuildRequest
 import uk.q3c.simplycd.project.Project
-import uk.q3c.simplycd.queue.BuildRequest
-import uk.q3c.simplycd.queue.DefaultBuildRequest
-import uk.q3c.simplycd.system.DefaultInstallationInfo
 
 /**
  * Created by David Sowerby on 14 Jan 2017
@@ -30,8 +29,8 @@ class DefaultInstallationInfoTest extends Specification {
 
     def "directories and files"() {
         given:
-        project.name >> 'wiggly'
-        buildRequest = new DefaultBuildRequest(buildFactory, new GitSHA(sha), project)
+        project.shortProjectName >> 'wiggly'
+        buildRequest = new DefaultBuildRequest(buildFactory, new GitSHA(sha), project, UUID.randomUUID())
         buildFactory.create(buildRequest) >> build
         build.buildNumber() >> 12
         build.buildRequest >> buildRequest

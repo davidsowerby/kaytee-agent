@@ -1,10 +1,9 @@
-package uk.q3c.simplycd.build
+package uk.q3c.simplycd.agent.build
 
 import org.gradle.tooling.BuildLauncher
+import uk.q3c.simplycd.agent.queue.BuildRequest
+import uk.q3c.simplycd.agent.queue.ProjectInstance
 import uk.q3c.simplycd.lifecycle.SimplyCDProjectExtension
-import uk.q3c.simplycd.queue.BuildRequest
-import uk.q3c.simplycd.queue.ProjectInstance
-import uk.q3c.simplycd.queue.RequestQueue
 import java.io.File
 
 /**

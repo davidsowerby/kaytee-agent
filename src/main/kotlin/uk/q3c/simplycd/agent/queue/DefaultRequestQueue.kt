@@ -5,16 +5,13 @@ import com.google.inject.Singleton
 import org.gradle.tooling.CancellationTokenSource
 import org.slf4j.LoggerFactory
 import uk.q3c.build.gitplus.GitSHA
+import uk.q3c.simplycd.agent.build.BuildRequestFactory
 import uk.q3c.simplycd.agent.eventbus.GlobalBusProvider
 import uk.q3c.simplycd.agent.system.RestNotifier
-import uk.q3c.simplycd.build.BuildRequestFactory
 import uk.q3c.simplycd.i18n.MessageKey
 import uk.q3c.simplycd.i18n.MessageKey.*
 import uk.q3c.simplycd.project.Project
-import uk.q3c.simplycd.queue.BuildRequest
-import uk.q3c.simplycd.queue.QueueRequest
-import uk.q3c.simplycd.queue.RequestQueue
-import uk.q3c.simplycd.queue.TaskRequest
+import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
@@ -45,12 +42,14 @@ class DefaultRequestQueue @Inject constructor(
         Thread.setDefaultUncaughtExceptionHandler(ThreadExceptionHandler())
     }
 
-    override fun addRequest(project: Project, gitSHA: GitSHA) {
+    override fun addRequest(project: Project, gitSHA: GitSHA): UUID {
         //TODO not atomic, but does it matter?
-        val buildRequest = buildRequestFactory.create(project, gitSHA)
+        val uid = UUID.randomUUID()
+        val buildRequest = buildRequestFactory.create(project, gitSHA, uid)
         executor.submit(buildRequest)
         globalBusProvider.get().publish(BuildRequestedMessage(buildRequest))
 //        log.info("Build queueRequest added to queue for project '{}'.  Queue size is: {}", buildRequest.project.name, queue.size)
+        return uid
     }
 
     override fun addRequest(taskRequest: TaskRequest) {

@@ -1,4 +1,4 @@
-package uk.q3c.simplycd.build
+package uk.q3c.simplycd.agent.build
 
 /**
  * Created by David Sowerby on 15 Jan 2017

@@ -1,11 +1,12 @@
-package uk.q3c.simplycd.queue
+package uk.q3c.simplycd.agent.queue
 
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
 import org.slf4j.LoggerFactory
 import uk.q3c.build.gitplus.GitSHA
-import uk.q3c.simplycd.build.BuildFactory
+import uk.q3c.simplycd.agent.build.BuildFactory
 import uk.q3c.simplycd.project.Project
+import java.util.*
 
 /**
  *  Used to place a request in [RequestQueue]
@@ -14,7 +15,8 @@ import uk.q3c.simplycd.project.Project
  */
 data class DefaultBuildRequest @Inject constructor(val buildFactory: BuildFactory,
                                                    @Assisted override val gitHash: GitSHA,
-                                                   @Assisted override val project: Project) : BuildRequest {
+                                                   @Assisted override val project: Project,
+                                                   @Assisted override val uid: UUID) : BuildRequest {
     private val log = LoggerFactory.getLogger(this.javaClass.name)
 
     override fun run() {
@@ -25,7 +27,7 @@ data class DefaultBuildRequest @Inject constructor(val buildFactory: BuildFactor
     }
 
     override fun identity(): String {
-        return "${project.name}:${gitHash.sha}"
+        return "${project.shortProjectName}:${gitHash.sha}"
     }
 
     override fun toString(): String {

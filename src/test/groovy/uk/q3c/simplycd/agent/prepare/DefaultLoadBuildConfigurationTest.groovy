@@ -1,10 +1,9 @@
 package uk.q3c.simplycd.agent.prepare
 
 import org.apache.commons.io.FileUtils
+import uk.q3c.simplycd.agent.build.BuildPreparationException
 import uk.q3c.simplycd.agent.i18n.LabelKey
-import uk.q3c.simplycd.build.BuildPreparationException
-import uk.q3c.simplycd.lifecycle.prepare.DefaultLoadBuildConfiguration
-import uk.q3c.simplycd.queue.GradleTaskRequest
+import uk.q3c.simplycd.agent.queue.GradleTaskRequest
 import uk.q3c.util.testutil.TestResource
 
 /**

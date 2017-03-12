@@ -1,7 +1,7 @@
-package uk.q3c.simplycd.build
+package uk.q3c.simplycd.agent.build
 
+import uk.q3c.simplycd.agent.queue.QueueRequest
 import uk.q3c.simplycd.i18n.BuildResultStateKey
-import uk.q3c.simplycd.queue.QueueRequest
 import java.time.LocalDateTime
 
 /**

@@ -3,11 +3,9 @@ package uk.q3c.simplycd.agent.prepare
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import uk.q3c.simplycd.agent.build.Build
 import uk.q3c.simplycd.agent.i18n.NamedFactory
-import uk.q3c.simplycd.build.Build
-import uk.q3c.simplycd.lifecycle.prepare.DefaultPrepareWorkspace
-import uk.q3c.simplycd.lifecycle.prepare.PrepareWorkspace
-import uk.q3c.simplycd.system.InstallationInfo
+import uk.q3c.simplycd.agent.system.InstallationInfo
 
 /**
  * Created by David Sowerby on 19 Jan 2017

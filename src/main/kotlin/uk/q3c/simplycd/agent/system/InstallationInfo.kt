@@ -1,6 +1,6 @@
-package uk.q3c.simplycd.system
+package uk.q3c.simplycd.agent.system
 
-import uk.q3c.simplycd.build.Build
+import uk.q3c.simplycd.agent.build.Build
 import java.io.File
 
 /**

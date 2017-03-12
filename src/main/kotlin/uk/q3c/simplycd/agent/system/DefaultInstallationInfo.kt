@@ -1,8 +1,8 @@
-package uk.q3c.simplycd.system
+package uk.q3c.simplycd.agent.system
 
 import com.google.inject.Inject
 import com.google.inject.Singleton
-import uk.q3c.simplycd.build.Build
+import uk.q3c.simplycd.agent.build.Build
 import java.io.File
 
 /**
@@ -24,7 +24,7 @@ class DefaultInstallationInfo @Inject constructor() : InstallationInfo {
     }
 
     override fun projectDir(build: Build): File {
-        return File(dataDir(), build.buildRequest.project.name)
+        return File(dataDir(), build.buildRequest.project.shortProjectName)
     }
 
     override fun dataDir(): File {

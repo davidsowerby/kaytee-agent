@@ -1,7 +1,7 @@
-package uk.q3c.simplycd.lifecycle.prepare
+package uk.q3c.simplycd.agent.prepare
 
 import com.google.common.collect.ImmutableList
-import uk.q3c.simplycd.build.Build
+import uk.q3c.simplycd.agent.build.Build
 import uk.q3c.simplycd.i18n.Named
 
 /**

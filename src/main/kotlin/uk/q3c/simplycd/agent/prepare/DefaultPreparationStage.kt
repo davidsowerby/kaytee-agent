@@ -3,14 +3,13 @@ package uk.q3c.simplycd.agent.prepare
 import com.google.common.collect.ImmutableList
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
+import uk.q3c.simplycd.agent.build.Build
 import uk.q3c.simplycd.agent.eventbus.GlobalBusProvider
 import uk.q3c.simplycd.agent.i18n.LabelKey
 import uk.q3c.simplycd.agent.i18n.NamedFactory
 import uk.q3c.simplycd.agent.queue.PreparationCompletedMessage
 import uk.q3c.simplycd.agent.queue.PreparationStartedMessage
-import uk.q3c.simplycd.build.Build
 import uk.q3c.simplycd.i18n.Named
-import uk.q3c.simplycd.lifecycle.prepare.*
 
 /**
  * Created by David Sowerby on 17 Jan 2017

@@ -15,15 +15,12 @@ import uk.q3c.build.gitplus.GitSHA
 import uk.q3c.simplycd.agent.eventbus.GlobalBusModule
 import uk.q3c.simplycd.agent.i18n.I18NModule
 import uk.q3c.simplycd.agent.lifecycle.LifecycleModule
+import uk.q3c.simplycd.agent.prepare.PreparationStage
 import uk.q3c.simplycd.agent.project.DefaultProject
-import uk.q3c.simplycd.agent.queue.BuildCompletedMessage
-import uk.q3c.simplycd.agent.queue.QueueModule
+import uk.q3c.simplycd.agent.queue.*
+import uk.q3c.simplycd.agent.system.InstallationInfo
 import uk.q3c.simplycd.agent.system.SystemModule
-import uk.q3c.simplycd.build.BuildNumberReader
-import uk.q3c.simplycd.lifecycle.prepare.PreparationStage
 import uk.q3c.simplycd.project.Project
-import uk.q3c.simplycd.queue.*
-import uk.q3c.simplycd.system.InstallationInfo
 
 import java.time.LocalDateTime
 
@@ -115,10 +112,10 @@ class Soak_ITest extends Specification {
 
     def setup() {
         temp = temporaryFolder.getRoot()
-        projectA = new DefaultProject('davidsowerby', 'projectA')
-        projectB = new DefaultProject('davidsowerby', 'projectB')
-        projectC = new DefaultProject('davidsowerby', 'projectC')
-        projectD = new DefaultProject('davidsowerby', 'projectD')
+        projectA = new DefaultProject('davidsowerby/projectA', UUID.randomUUID())
+        projectB = new DefaultProject('davidsowerby/projectB', UUID.randomUUID())
+        projectC = new DefaultProject('davidsowerby/projectC', UUID.randomUUID())
+        projectD = new DefaultProject('davidsowerby/projectD', UUID.randomUUID())
 
         projects.add(projectA)
         projects.add(projectB)
@@ -173,7 +170,7 @@ class Soak_ITest extends Specification {
         queueMessageReceiver.taskStarts.size() == queueMessageReceiver.taskCompletions.size()
         println 'Build completion order:'
         for (BuildCompletedMessage msg : queueMessageReceiver.buildCompletions) {
-            println "$msg.project.name $msg.buildNumber"
+            println "$msg.project.shortProjectName $msg.buildNumber"
         }
 
     }

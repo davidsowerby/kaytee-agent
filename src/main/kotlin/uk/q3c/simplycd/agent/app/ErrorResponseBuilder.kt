@@ -1,4 +1,4 @@
-package uk.q3c.simplycd.agent.api
+package uk.q3c.simplycd.agent.app
 
 import uk.q3c.simplycd.agent.i18n.DeveloperErrorMessageKey
 

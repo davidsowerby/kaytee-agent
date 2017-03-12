@@ -1,10 +1,13 @@
 package uk.q3c.simplycd.project
 
+import java.util.*
+
 /**
  * Created by David Sowerby on 07 Jan 2017
  */
 interface Project {
-
-    val name: String
+    val uid: UUID
+    val fullProjectName: String
     val remoteUserName: String
+    val shortProjectName: String
 }

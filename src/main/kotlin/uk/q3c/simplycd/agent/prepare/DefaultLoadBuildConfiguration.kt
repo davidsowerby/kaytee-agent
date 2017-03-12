@@ -1,16 +1,16 @@
-package uk.q3c.simplycd.lifecycle.prepare
+package uk.q3c.simplycd.agent.prepare
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.inject.Inject
+import uk.q3c.simplycd.agent.build.Build
+import uk.q3c.simplycd.agent.build.BuildPreparationException
 import uk.q3c.simplycd.agent.i18n.LabelKey
 import uk.q3c.simplycd.agent.i18n.NamedFactory
-import uk.q3c.simplycd.build.Build
-import uk.q3c.simplycd.build.BuildPreparationException
+import uk.q3c.simplycd.agent.queue.GradleTaskRequestFactory
+import uk.q3c.simplycd.agent.system.InstallationInfo
 import uk.q3c.simplycd.i18n.Named
 import uk.q3c.simplycd.i18n.TaskKey
 import uk.q3c.simplycd.lifecycle.SimplyCDProjectExtension
-import uk.q3c.simplycd.queue.GradleTaskRequestFactory
-import uk.q3c.simplycd.system.InstallationInfo
 import java.io.File
 
 /**

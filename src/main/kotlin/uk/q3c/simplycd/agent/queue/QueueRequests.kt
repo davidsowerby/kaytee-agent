@@ -1,9 +1,10 @@
-package uk.q3c.simplycd.queue
+package uk.q3c.simplycd.agent.queue
 
 import uk.q3c.build.gitplus.GitSHA
-import uk.q3c.simplycd.build.Build
+import uk.q3c.simplycd.agent.build.Build
 import uk.q3c.simplycd.i18n.TaskKey
 import uk.q3c.simplycd.project.Project
+import java.util.*
 
 /**
  * Common interface for both [BuildRequest] and [TaskRequest].  Both use the same [RequestQueue]
@@ -14,7 +15,9 @@ interface QueueRequest : Runnable {
 }
 
 
-interface BuildRequest : ProjectInstance, QueueRequest
+interface BuildRequest : ProjectInstance, QueueRequest {
+    val uid: UUID
+}
 
 
 interface TaskRequest : QueueRequest {

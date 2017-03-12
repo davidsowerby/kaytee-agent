@@ -1,4 +1,4 @@
-package uk.q3c.simplycd.lifecycle.prepare
+package uk.q3c.simplycd.agent.prepare
 
 
 /**

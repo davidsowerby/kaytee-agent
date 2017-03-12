@@ -1,8 +1,7 @@
 package uk.q3c.simplycd.agent.lifecycle;
 
 import com.google.inject.AbstractModule;
-import uk.q3c.simplycd.agent.prepare.DefaultPreparationStage;
-import uk.q3c.simplycd.lifecycle.prepare.*;
+import uk.q3c.simplycd.agent.prepare.*;
 
 /**
  * Created by David Sowerby on 17 Jan 2017

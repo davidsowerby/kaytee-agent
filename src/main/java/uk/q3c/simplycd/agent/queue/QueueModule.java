@@ -2,8 +2,7 @@ package uk.q3c.simplycd.agent.queue;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-import uk.q3c.simplycd.build.BuildRequestFactory;
-import uk.q3c.simplycd.queue.*;
+import uk.q3c.simplycd.agent.build.BuildRequestFactory;
 
 /**
  * Created by David Sowerby on 06 May 2016

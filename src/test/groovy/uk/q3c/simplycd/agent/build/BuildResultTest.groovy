@@ -1,9 +1,8 @@
 package uk.q3c.simplycd.agent.build
 
 import spock.lang.Specification
-import uk.q3c.simplycd.build.BuildResult
+import uk.q3c.simplycd.agent.queue.QueueRequest
 import uk.q3c.simplycd.i18n.BuildResultStateKey
-import uk.q3c.simplycd.queue.QueueRequest
 
 import java.time.LocalDateTime
 

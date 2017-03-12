@@ -3,11 +3,9 @@ package uk.q3c.simplycd.agent.queue
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
 import org.slf4j.LoggerFactory
+import uk.q3c.simplycd.agent.build.Build
 import uk.q3c.simplycd.agent.eventbus.GlobalBusProvider
-import uk.q3c.simplycd.build.Build
 import uk.q3c.simplycd.i18n.TaskKey
-import uk.q3c.simplycd.queue.ManualTaskLauncher
-import uk.q3c.simplycd.queue.ManualTaskRequest
 
 /**
  * Created by David Sowerby on 30 Jan 2017

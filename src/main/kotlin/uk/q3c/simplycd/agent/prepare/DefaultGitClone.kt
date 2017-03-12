@@ -1,15 +1,14 @@
-package uk.q3c.simplycd.lifecycle.prepare
-
+package uk.q3c.simplycd.agent.prepare
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 import uk.q3c.build.gitplus.gitplus.GitPlus
 import uk.q3c.build.gitplus.local.CloneExistsResponse
+import uk.q3c.simplycd.agent.build.Build
+import uk.q3c.simplycd.agent.build.BuildPreparationException
 import uk.q3c.simplycd.agent.i18n.LabelKey
 import uk.q3c.simplycd.agent.i18n.NamedFactory
-import uk.q3c.simplycd.build.Build
-import uk.q3c.simplycd.build.BuildPreparationException
+import uk.q3c.simplycd.agent.system.InstallationInfo
 import uk.q3c.simplycd.i18n.Named
-import uk.q3c.simplycd.system.InstallationInfo
 
 /**
  * Created by David Sowerby on 18 Jan 2017
@@ -22,7 +21,7 @@ class DefaultGitClone @Inject constructor(val installationInfo: InstallationInfo
 
 
     override fun execute(build: Build) {
-        log.debug("executing GitClone preparation step for '{}'", build.buildRequest.project.name)
+        log.debug("executing GitClone preparation step for '{}'", build.buildRequest.project.shortProjectName)
         try {
             gitPlus.local
                     .create(true)
@@ -30,7 +29,7 @@ class DefaultGitClone @Inject constructor(val installationInfo: InstallationInfo
                     .projectDirParent(installationInfo.codeDir(build))
             gitPlus.remote
                     .repoUser(build.project.remoteUserName)
-                    .repoName(build.project.name)
+                    .repoName(build.project.shortProjectName)
             gitPlus.execute()
 
             log.debug("Cloning from '{}'", gitPlus.remote.remoteRepoFullName())

@@ -1,4 +1,4 @@
-package uk.q3c.simplycd.queue
+package uk.q3c.simplycd.agent.queue
 
 /**
  *   For use when a separate project is used for part of the testing - typically but not necessarily, functional testing,

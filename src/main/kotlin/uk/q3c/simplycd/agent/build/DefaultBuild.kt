@@ -1,4 +1,4 @@
-package uk.q3c.simplycd.build
+package uk.q3c.simplycd.agent.build
 
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
@@ -9,13 +9,10 @@ import org.slf4j.LoggerFactory
 import uk.q3c.simplycd.agent.eventbus.GlobalBus
 import uk.q3c.simplycd.agent.eventbus.GlobalBusProvider
 import uk.q3c.simplycd.agent.eventbus.SubscribeTo
-import uk.q3c.simplycd.agent.queue.BuildCompletedMessage
-import uk.q3c.simplycd.agent.queue.BuildStartedMessage
-import uk.q3c.simplycd.agent.queue.TaskCompletedMessage
+import uk.q3c.simplycd.agent.prepare.PreparationStage
+import uk.q3c.simplycd.agent.queue.*
 import uk.q3c.simplycd.i18n.TaskKey
 import uk.q3c.simplycd.lifecycle.SimplyCDProjectExtension
-import uk.q3c.simplycd.lifecycle.prepare.PreparationStage
-import uk.q3c.simplycd.queue.*
 import java.io.File
 import java.util.*
 
@@ -54,7 +51,7 @@ class DefaultBuild @Inject constructor(
     private var buildNumber: Int = -1
         get() {
             if (field < 0) {
-                buildNumber = buildNumberReader.nextBuildNumber(buildRequest.project.name)
+                buildNumber = buildNumberReader.nextBuildNumber(buildRequest.project.shortProjectName)
             }
             return field
         }
@@ -149,7 +146,7 @@ class DefaultBuild @Inject constructor(
 
     private fun closeBuild() {
         globalBusProvider.get().publish(BuildCompletedMessage(project, buildNumber, buildRequest))
-        log.info("Closing build for {}, build {}", project.name, buildNumber)
+        log.info("Closing build for {}, build {}", project.shortProjectName, buildNumber)
 //        val result =  BuildResult(start = startTime, end = endTime, state = BuildExceptionLookup().lookupKeyFromException(e))
 
     }
@@ -180,7 +177,7 @@ class DefaultBuild @Inject constructor(
 
 
     override fun execute() {
-        log.info("starting build {} for project: {}", buildNumber, project.name)
+        log.info("starting build {} for project: {}", buildNumber, project.shortProjectName)
         globalBusProvider.get().publish(BuildStartedMessage(buildRequest))
         preparationStage.execute(this)
         generatedTaskRequests = taskRequests.size

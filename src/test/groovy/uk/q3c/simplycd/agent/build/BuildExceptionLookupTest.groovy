@@ -6,8 +6,6 @@ import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
 import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
 import spock.lang.Specification
-import uk.q3c.simplycd.build.BuildExceptionLookup
-import uk.q3c.simplycd.build.BuildPreparationException
 
 import static uk.q3c.simplycd.i18n.BuildResultStateKey.*
 

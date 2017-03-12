@@ -1,4 +1,4 @@
-package uk.q3c.simplycd.build
+package uk.q3c.simplycd.agent.build
 
 import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.BuildException

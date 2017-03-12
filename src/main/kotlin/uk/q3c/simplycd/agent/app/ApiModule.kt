@@ -1,8 +1,9 @@
-package uk.q3c.simplycd.agent.api
+package uk.q3c.simplycd.agent.app
 
 import com.google.inject.AbstractModule
 import com.google.inject.multibindings.Multibinder
 import ratpack.handling.HandlerDecorator
+import uk.q3c.simplycd.agent.queue.BuildRequestHandler
 
 /**
  * An example Guice module.
@@ -17,6 +18,7 @@ class ApiModule : AbstractModule() {
      */
     override fun configure() {
         bind(RootHandler::class.java)
+        bind(BuildRequestHandler::class.java)
         bind(ErrorResponseBuilder::class.java).to(DefaultErrorResponseBuilder::class.java)
         Multibinder.newSetBinder(binder(), HandlerDecorator::class.java)
                 .addBinding()

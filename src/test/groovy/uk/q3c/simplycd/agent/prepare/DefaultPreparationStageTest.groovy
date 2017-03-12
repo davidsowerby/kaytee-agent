@@ -2,19 +2,16 @@ package uk.q3c.simplycd.agent.prepare
 
 import net.engio.mbassy.bus.common.PubSubSupport
 import spock.lang.Specification
+import uk.q3c.simplycd.agent.build.Build
 import uk.q3c.simplycd.agent.eventbus.BusMessage
 import uk.q3c.simplycd.agent.eventbus.GlobalBusProvider
 import uk.q3c.simplycd.agent.i18n.LabelKey
 import uk.q3c.simplycd.agent.i18n.NamedFactory
+import uk.q3c.simplycd.agent.queue.BuildRequest
 import uk.q3c.simplycd.agent.queue.PreparationCompletedMessage
 import uk.q3c.simplycd.agent.queue.PreparationStartedMessage
-import uk.q3c.simplycd.build.Build
 import uk.q3c.simplycd.i18n.Named
-import uk.q3c.simplycd.lifecycle.prepare.GitClone
-import uk.q3c.simplycd.lifecycle.prepare.LoadBuildConfiguration
-import uk.q3c.simplycd.lifecycle.prepare.PrepareWorkspace
 import uk.q3c.simplycd.project.Project
-import uk.q3c.simplycd.queue.BuildRequest
 
 /**
  * Created by David Sowerby on 19 Jan 2017
