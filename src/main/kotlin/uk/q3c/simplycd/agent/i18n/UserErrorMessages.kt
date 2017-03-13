@@ -8,6 +8,6 @@ import uk.q3c.krail.core.persist.clazz.i18n.EnumResourceBundle
 class UserErrorMessages : EnumResourceBundle<UserErrorMessageKey>() {
 
     override fun loadMap() {
-        put(UserErrorMessageKey.InvalidMethod, "User: A request was received with an Http method of '{0}'.  This URI ('{1}') only responds to '{2}'")
+        put(UserErrorMessageKey.Invalid_Method, "User: A request was received with an Http method of '{0}'.  This URI ('{1}') only responds to '{2}'")
     }
 }
