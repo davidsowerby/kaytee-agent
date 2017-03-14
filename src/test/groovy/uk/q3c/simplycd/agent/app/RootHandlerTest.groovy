@@ -31,7 +31,7 @@ class RootHandlerTest extends HandlerTest {
         halResponse.self().href == url
         halResponse.developerMessage == "Developer: A request was received with an Http method of 'POST'.  This URI ('/') only responds to 'GET'"
         halResponse.userMessage == "User: A request was received with an Http method of 'POST'.  This URI ('/') only responds to 'GET'"
-        halResponse.detailCode == "InvalidMethod"
+        halResponse.detailCode == "Invalid_Method"
         halResponse.httpCode == 405
 
         where:

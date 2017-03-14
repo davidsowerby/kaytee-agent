@@ -20,6 +20,8 @@ class ApiModule : AbstractModule() {
         bind(RootHandler::class.java)
         bind(BuildRequestHandler::class.java)
         bind(ErrorResponseBuilder::class.java).to(DefaultErrorResponseBuilder::class.java)
+        bind(HookHandler::class.java)
+        bind(Hooks::class.java).to(BuildStatusHooks::class.java)
         Multibinder.newSetBinder(binder(), HandlerDecorator::class.java)
                 .addBinding()
                 .toInstance(ratpack.handling.HandlerDecorator.prepend(LoggingHandler()))

@@ -39,17 +39,8 @@ object Main {
                 module(ValidationModule())
             }
             handlers {
-                //                all{ LoggingHandler()}
-
-
-//                get("buildRequests/:id?") {
-//                    val id = pathTokens.getOrElse("id", { "default" })
-//                    render("returning buildRequests from GET $id")
-//
-//                }
-
-
                 path(buildRequests, BuildRequestHandler::class.java)
+                path(hook, HookHandler::class.java)
                 all(RootHandler::class.java)
             }
         }

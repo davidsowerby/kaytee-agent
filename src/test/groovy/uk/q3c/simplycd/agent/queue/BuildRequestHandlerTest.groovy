@@ -66,16 +66,6 @@ class BuildRequestHandlerTest extends HandlerTest {
         }
     }
 
-    def "get valid build request id"() {
-
-        expect: false
-    }
-
-    def "get unrecognised build request"() {
-
-        expect: false
-    }
-
     @SuppressWarnings("GroovyAssignabilityCheck")
     "post build request with invalid name"() {
         given:
@@ -99,8 +89,5 @@ class BuildRequestHandlerTest extends HandlerTest {
 
     }
 
-    def "hook notified when build request starts"() {
 
-        expect: false
-    }
 }

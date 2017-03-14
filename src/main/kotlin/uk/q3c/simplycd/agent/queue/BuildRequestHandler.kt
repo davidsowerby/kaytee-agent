@@ -9,7 +9,6 @@ import ratpack.jackson.Jackson.fromJson
 import ratpack.jackson.Jackson.json
 import uk.q3c.build.gitplus.GitSHA
 import uk.q3c.rest.hal.HalMapper
-import uk.q3c.rest.hal.HalResource
 import uk.q3c.simplycd.agent.api.BuildRequestRequest
 import uk.q3c.simplycd.agent.app.ErrorResponseBuilder
 import uk.q3c.simplycd.agent.app.buildRequests
@@ -33,14 +32,6 @@ class BuildRequestHandler @Inject constructor(
     private val log = LoggerFactory.getLogger(this.javaClass.name)
     override fun handle(context: Context) {
         when (context.request.method) {
-            HttpMethod.GET -> {
-                log.debug("GET received")
-// get the param
-                val responseObject = HalResource()
-                responseObject.self(buildRequests)
-                context.response.status(200)
-                context.render(json(responseObject))
-            }
             HttpMethod.POST -> {
                 log.debug("POST received")
                 context.parse(fromJson(BuildRequestRequest::class.java))
@@ -59,15 +50,6 @@ class BuildRequestHandler @Inject constructor(
                             }
 
                         }
-//                val buildRequestResource  = halMapper.readValue(context.request.getBody().getText(), BuildRequestResource::class.java)
-//                buildRequestResource.
-//                requestQueue.addRequest(project = project, gitSHA = gitSha)
-                //validate the request, add to queue
-                // return build request id
-
-            }
-            HttpMethod.DELETE -> {
-// get the  param remove the request
             }
 
             else -> {
