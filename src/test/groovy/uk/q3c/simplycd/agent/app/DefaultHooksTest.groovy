@@ -6,15 +6,16 @@ import spock.lang.Specification
 /**
  * Created by David Sowerby on 13 Mar 2017
  */
-class BuildStatusHooksTest extends Specification {
+class DefaultHooksTest extends Specification {
 
-    HookNotifier hookNotifier = Mock(HookNotifier)
+    SubscriberNotifier hookNotifier = Mock(SubscriberNotifier)
 
     UUID uid1 = UUID.randomUUID()
     UUID uid2 = UUID.randomUUID()
     UUID uid3 = UUID.randomUUID()
 
-    BuildStatusHooks hooks
+    DefaultHooks hooks
+    URL topic0 = new URL(ConstantsKt.href("build"))
     URL topic1 = new URL(ConstantsKt.href("build/$uid1"))
     URL topic2 = new URL(ConstantsKt.href("build/$uid2"))
     URL topic3 = new URL(ConstantsKt.href("build/$uid3"))
@@ -23,20 +24,32 @@ class BuildStatusHooksTest extends Specification {
     URL hookUrl2 = new URL("https://example.com/hook/2")
     URL hookUrl3 = new URL("https://example.com/hook/3")
 
-    HookCallback hook1 = new HookCallback(hookUrl1)
-    HookCallback hook2 = new HookCallback(hookUrl2)
-    HookCallback hook3 = new HookCallback(hookUrl3)
+    Subscriber hook1 = new Subscriber(hookUrl1)
+    Subscriber hook2 = new Subscriber(hookUrl2)
+    Subscriber hook3 = new Subscriber(hookUrl3)
 
 
     void setup() {
-        hooks = new BuildStatusHooks(hookNotifier)
+        hooks = new DefaultHooks(hookNotifier)
     }
 
     def "publish, subscribe and remove"() {
         given:
         BuildStatusMessage msg1 = new BuildStatusMessage(uid1)
         BuildStatusMessage msg2 = new BuildStatusMessage(uid2)
-        hooks.subscribe(topic1, hookUrl1)
+
+        when:
+        def registered = hooks.registerTopic(topic1)
+
+        then:
+        registered
+
+        when:
+        def subscribed = hooks.subscribe(topic1, hookUrl1)
+
+        then:
+        subscribed
+
 
         when:
         hooks.publish(msg1)
@@ -52,9 +65,11 @@ class BuildStatusHooksTest extends Specification {
         0 * hookNotifier.notify(hook1, msg1)
 
         when:
+        hooks.registerTopic(topic0)
+        hooks.registerTopic(topic2)
         hooks.subscribe(topic1, hookUrl1)
         hooks.subscribe(topic2, hookUrl2)
-        hooks.subscribeToAllTopics(hookUrl3)
+        hooks.subscribe(topic0, hookUrl3)
         hooks.publish(msg1)
         hooks.publish(msg2)
 
@@ -68,7 +83,8 @@ class BuildStatusHooksTest extends Specification {
         1 * hookNotifier.notify(hook3, msg2)
 
         when:
-        hooks.unsubscribeFromAll(hookUrl1)
+        hooks.registerTopic(topic3)
+        hooks.removeSubscriber(hookUrl1)
         hooks.publish(msg1)
         hooks.publish(msg2)
 
@@ -83,7 +99,12 @@ class BuildStatusHooksTest extends Specification {
         1 * hookNotifier.notify(hook3, msg2)
 
         when: "2 subscribers added, one is a duplicate, but should not cause duplicate notification"
-        hooks.subscribe(topic1, ImmutableList.of(hookUrl2, hookUrl3))
+        subscribed = hooks.subscribe(topic1, ImmutableList.of(hookUrl2, hookUrl3))
+
+        then:
+        subscribed
+
+        when:
         hooks.publish(msg1)
         hooks.publish(msg2)
 
@@ -97,14 +118,33 @@ class BuildStatusHooksTest extends Specification {
         1 * hookNotifier.notify(hook3, msg2)
 
         when: "topic removed"
-        hooks.removeTopic(topic2)
+        def removed = hooks.removeTopic(topic2)
+
+        then:
+        removed
+
+        when:
+        hooks.publish(msg1)
+        hooks.publish(msg2)
+
+        then: "hook3 will get both messages because it subscribed to topic0 (the topic 'root')"
+        0 * hookNotifier.notify(hook1, msg1)
+        1 * hookNotifier.notify(hook2, msg1)
+        1 * hookNotifier.notify(hook3, msg1)
+
+        0 * hookNotifier.notify(hook1, msg2)
+        0 * hookNotifier.notify(hook2, msg2)
+        1 * hookNotifier.notify(hook3, msg2)
+
+        when:
+        hooks.removeSubscriber(hookUrl3)
         hooks.publish(msg1)
         hooks.publish(msg2)
 
         then:
         0 * hookNotifier.notify(hook1, msg1)
         1 * hookNotifier.notify(hook2, msg1)
-        1 * hookNotifier.notify(hook3, msg1)
+        0 * hookNotifier.notify(hook3, msg1)
 
         0 * hookNotifier.notify(hook1, msg2)
         0 * hookNotifier.notify(hook2, msg2)
@@ -112,18 +152,18 @@ class BuildStatusHooksTest extends Specification {
 
     }
 
-    def "Add1"() {
+    def "subscribe to non-existent topic returns false"() {
 
-        expect: false
+        expect:
+        !hooks.subscribe(topic1, hookUrl1)
+        !hooks.subscribe(topic1, ImmutableList.of(hookUrl2, hookUrl3))
     }
 
-    def "Remove"() {
+    def "Register already registered topic returns false"() {
 
-        expect: false
+        expect:
+        hooks.registerTopic(topic1)
+        !hooks.registerTopic(topic1)
     }
 
-    def "RemoveAll"() {
-
-        expect: false
-    }
 }
