@@ -8,7 +8,10 @@ import uk.q3c.krail.core.i18n.I18NKey
 
 enum class UserErrorMessageKey : I18NKey {
 
+    Exception_in_Handler,
     Invalid_Method,
-    Invalid_Project_Name
+    Invalid_Project_Name,
+    Invalid_Topic
+
 
 }

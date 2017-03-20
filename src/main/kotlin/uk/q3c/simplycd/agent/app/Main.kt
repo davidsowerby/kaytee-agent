@@ -39,8 +39,9 @@ object Main {
                 module(ValidationModule())
             }
             handlers {
+                path(subscriptions, SubscriptionHandler::class.java)
                 path(buildRequests, BuildRequestHandler::class.java)
-                path(hook, HookHandler::class.java)
+                path(hook, SubscriptionHandler::class.java)
                 all(RootHandler::class.java)
             }
         }

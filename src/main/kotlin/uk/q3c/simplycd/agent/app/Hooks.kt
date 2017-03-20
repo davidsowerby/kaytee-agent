@@ -40,7 +40,7 @@ interface Hooks {
     /**
      * Unsubscribe a subscriber from a topic
      */
-    fun unsubscribe(topicURL: URL, subscriberCallbackUrl: URL)
+    fun unsubscribe(topicURL: URL, subscriberCallbackUrl: URL): Boolean
 
     /**
      * Remove a topic

@@ -21,6 +21,7 @@ import uk.q3c.krail.core.persist.cache.i18n.PatternCacheKey;
 import uk.q3c.krail.core.persist.clazz.i18n.ClassPatternDao;
 import uk.q3c.krail.core.persist.common.i18n.PatternDao;
 import uk.q3c.simplycd.agent.i18n.lib.DefaultMessageFormat;
+import uk.q3c.simplycd.agent.i18n.lib.MessageFormatMode;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -113,7 +114,7 @@ public class LocalTranslate implements Translate {
                 args.add(i, translation);
             }
         }
-        return DefaultMessageFormat.INSTANCE.format(pattern, args.toArray());
+        return DefaultMessageFormat.INSTANCE.format(MessageFormatMode.STRICT_EXCEPTION, pattern, args.toArray());
     }
 
     /**

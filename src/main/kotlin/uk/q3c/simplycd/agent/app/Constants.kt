@@ -6,6 +6,7 @@ package uk.q3c.simplycd.agent.app
 
 val baseUrl = "http://localhost:5050/"
 val buildRequests = "buildRequests"
+val subscriptions = "subscriptions"
 val hook = "hook"
 val httpStatusCodeLookup = "https://httpstatuses.com"
 

@@ -6,7 +6,7 @@ import ratpack.http.HttpMethod
 import ratpack.jackson.Jackson.json
 import uk.q3c.rest.hal.HalLink
 import uk.q3c.rest.hal.HalResource
-import uk.q3c.simplycd.agent.i18n.DeveloperErrorMessageKey
+import uk.q3c.simplycd.agent.invalidMethod
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -16,20 +16,18 @@ import javax.inject.Singleton
  * @see ApiModule
  */
 @Singleton class RootHandler @Inject constructor(val errorResponseBuilder: ErrorResponseBuilder) : Handler {
-    override fun handle(context: Context) {
-        when (context.request.method) {
+    override fun handle(ctx: Context) {
+        when (ctx.request.method) {
             HttpMethod.GET -> {
                 val responseObject = HalResource()
                 responseObject.self("/")
                 responseObject.link(buildRequests, HalLink(buildRequests))
-                context.response.status(200)
-                context.render(json(responseObject))
+                ctx.response.status(200)
+                ctx.render(json(responseObject))
             }
             else -> {
-                val errorResponse = errorResponseBuilder.build(DeveloperErrorMessageKey.Invalid_Method, context.request.method, "/", "GET")
-                context.render(json(errorResponse))
+                invalidMethod(context = ctx, builder = errorResponseBuilder, allowedMethods = arrayOf("GET"))
             }
         }
-
     }
 }

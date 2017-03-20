@@ -16,7 +16,7 @@ abstract class HandlerTest extends Specification {
     @AutoCleanup
     MainClassApplicationUnderTest aut
 
-
+    // Set this to the URI stub to be interacted with, for example 'buildRequests'
     String uri
 
     @Delegate
