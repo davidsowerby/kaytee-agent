@@ -25,7 +25,7 @@ class DefaultLoadBuildConfigurationTest extends PreparationStepSpecification {
         step.execute(build)
 
         then:
-        installationInfo.codeDir(build) >> { throw new NullPointerException("boo!") }
+        installationInfo.buildNumberDir(build) >> { throw new NullPointerException("boo!") }
 
         then:
         thrown BuildPreparationException
@@ -55,7 +55,7 @@ class DefaultLoadBuildConfigurationTest extends PreparationStepSpecification {
         1 * gradleTaskRequest.run()
 
         then:
-        1 * installationInfo.codeDir(build) >> codeDir
+        1 * installationInfo.buildNumberDir(build) >> codeDir
         build.taskRequests.size() == 1
     }
 }

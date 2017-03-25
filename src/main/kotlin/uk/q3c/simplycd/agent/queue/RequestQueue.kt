@@ -2,7 +2,7 @@ package uk.q3c.simplycd.agent.queue
 
 import org.gradle.tooling.CancellationTokenSource
 import uk.q3c.build.gitplus.GitSHA
-import uk.q3c.simplycd.project.Project
+import uk.q3c.simplycd.agent.project.Project
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 

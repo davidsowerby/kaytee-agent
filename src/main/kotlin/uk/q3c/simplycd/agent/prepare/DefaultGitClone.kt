@@ -1,4 +1,5 @@
 package uk.q3c.simplycd.agent.prepare
+
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 import uk.q3c.build.gitplus.gitplus.GitPlus
@@ -24,22 +25,19 @@ class DefaultGitClone @Inject constructor(val installationInfo: InstallationInfo
         log.debug("executing GitClone preparation step for '{}'", build.buildRequest.project.shortProjectName)
         try {
             gitPlus.local
-                    .create(true)
+                    .projectDirParent(installationInfo.buildNumberDir(build))
+                    .cloneFromRemote(true)
                     .cloneExistsResponse(CloneExistsResponse.EXCEPTION)
-                    .projectDirParent(installationInfo.codeDir(build))
             gitPlus.remote
                     .repoUser(build.project.remoteUserName)
                     .repoName(build.project.shortProjectName)
             gitPlus.execute()
-
-            log.debug("Cloning from '{}'", gitPlus.remote.remoteRepoFullName())
-            gitPlus.local.cloneRemote()
-
+            log.debug("Cloning complete")
 
             gitPlus.local.checkoutCommit(build.gitHash)
             log.debug("Checked out commit {}", build.gitHash)
         } catch (e: Exception) {
-            val msg = "Git clone operation failed"
+            val msg = "Git clone or checkout operation failed"
             throw BuildPreparationException(msg, e)
         }
     }

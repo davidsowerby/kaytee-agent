@@ -10,6 +10,6 @@ import com.google.inject.Singleton
 class DefaultBuildNumberReader @Inject constructor() : BuildNumberReader {
 
     override fun nextBuildNumber(projectName: String): Int {
-        TODO()
+        return 99
     }
 }

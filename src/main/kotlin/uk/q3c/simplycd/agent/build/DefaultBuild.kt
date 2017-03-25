@@ -177,6 +177,7 @@ class DefaultBuild @Inject constructor(
 
 
     override fun execute() {
+//        log.info("starting build")
         log.info("starting build {} for project: {}", buildNumber, project.shortProjectName)
         globalBusProvider.get().publish(BuildStartedMessage(buildRequest))
         preparationStage.execute(this)

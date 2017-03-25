@@ -35,15 +35,19 @@ class DefaultInstallationInfo @Inject constructor() : InstallationInfo {
         return File(installDirRoot, "simplycd")
     }
 
-    private fun projectVersionDir(build: Build): File {
+    private fun projectBuildNumberDir(build: Build): File {
         return File(projectDir(build), build.buildNumber().toString())
     }
 
     override fun gradleOutputDir(build: Build): File {
-        return File(projectVersionDir(build), "build-output")
+        return File(projectBuildNumberDir(build), "build-output")
     }
 
-    override fun codeDir(build: Build): File {
-        return File(projectVersionDir(build), "code")
+    override fun buildNumberDir(build: Build): File {
+        return projectBuildNumberDir(build)
+    }
+
+    override fun projectInstanceDir(build: Build): File {
+        return File(buildNumberDir(build), build.buildRequest.project.shortProjectName)
     }
 }

@@ -14,10 +14,10 @@ import uk.q3c.simplycd.agent.build.DefaultBuild
 import uk.q3c.simplycd.agent.eventbus.BusMessage
 import uk.q3c.simplycd.agent.eventbus.GlobalBusProvider
 import uk.q3c.simplycd.agent.i18n.NamedFactory
+import uk.q3c.simplycd.agent.project.Project
 import uk.q3c.simplycd.agent.queue.*
 import uk.q3c.simplycd.agent.system.InstallationInfo
 import uk.q3c.simplycd.i18n.Named
-import uk.q3c.simplycd.project.Project
 
 /**
  * Created by David Sowerby on 20 Jan 2017
@@ -58,7 +58,7 @@ abstract class PreparationStepSpecification extends Specification {
         temp = temporaryFolder.getRoot()
         codeDir = new File(temp, projectName)
         i18NNamedFactory.create(_) >> i18NNamed
-        installationInfo.codeDir(build) >> codeDir
+        installationInfo.buildNumberDir(build) >> codeDir
         busProvider.get() >> globalBus
     }
 

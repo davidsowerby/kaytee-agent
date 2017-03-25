@@ -7,10 +7,10 @@ import org.slf4j.LoggerFactory
 import uk.q3c.build.gitplus.GitSHA
 import uk.q3c.simplycd.agent.build.BuildRequestFactory
 import uk.q3c.simplycd.agent.eventbus.GlobalBusProvider
+import uk.q3c.simplycd.agent.project.Project
 import uk.q3c.simplycd.agent.system.RestNotifier
 import uk.q3c.simplycd.i18n.MessageKey
 import uk.q3c.simplycd.i18n.MessageKey.*
-import uk.q3c.simplycd.project.Project
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.LinkedBlockingQueue
@@ -109,8 +109,9 @@ class DefaultRequestQueue @Inject constructor(
 class ThreadExceptionHandler : Thread.UncaughtExceptionHandler {
     private val log = LoggerFactory.getLogger(this.javaClass.name)
     override fun uncaughtException(t: Thread?, e: Throwable?) {
-        log.error("Exception in thread", e)
-        throw RuntimeException("Exception in thread", e)
+        println(">>>>>>>>>>>>>>>>>>>>>>>>>>> exception handler called")
+//        log.error("Exception in thread", e)
+//        throw RuntimeException("Exception in thread", e)
     }
 
 }

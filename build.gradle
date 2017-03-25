@@ -2,6 +2,7 @@ buildscript {
     ext.kotlin_version = '1.1.1'
 
     repositories {
+        mavenLocal()
         jcenter()
         mavenCentral()
     }
@@ -9,6 +10,7 @@ buildscript {
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "io.ratpack:ratpack-gradle:1.4.5"
+        classpath 'uk.q3c.simplycd:simplycd-lifecycle:0.7.3.19'
     }
 }
 
@@ -16,7 +18,7 @@ plugins {
     id 'idea'
     id 'java'
     id 'groovy'  //needed for IDEA to identify source root for test/groovy
-    id 'org.unbroken-dome.test-sets' version '1.2.0'
+//    id 'org.unbroken-dome.test-sets' version '1.2.0'
     id 'maven'
     id 'maven-publish'
 }
@@ -30,16 +32,24 @@ sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 
 version = '0.3.0.3'
+group = 'uk.q3c.simplycd'
 
-testSets {
-    test
-}
+
+
 
 def toolingApiVersion = gradle.gradleVersion
 
 apply plugin: 'kotlin'
 apply plugin: "io.ratpack.ratpack-java"
 apply from: "gradle/idea.gradle"
+apply plugin: 'uk.q3c.simplycd'
+
+
+simplycd {
+    functionalTest {
+        enabled = true
+    }
+}
 
 repositories {
     mavenLocal()
@@ -50,9 +60,9 @@ repositories {
 dependencies {
 
     //logging
-    compile 'org.slf4j:slf4j-api:' + slf4jVersion
-    compile 'ch.qos.logback:logback-classic:1.1.2'
-    compile 'ch.qos.logback:logback-core:1.1.2'
+//    compile 'org.slf4j:slf4j-api:' + slf4jVersion
+//    compile 'ch.qos.logback:logback-classic:1.1.2'
+//    compile 'ch.qos.logback:logback-core:1.1.2'
 
     compile ratpack.dependency("guice")
     compile 'uk.q3c.rest:hal-kotlin:0.5.1.12'
@@ -80,46 +90,15 @@ dependencies {
     testCompile "uk.q3c:q3c-testUtil:0.8.2"
     testCompile 'org.assertj:assertj-core:' + assertjVersion
 
-    runtime("org.apache.logging.log4j:log4j-slf4j-impl:2.6.1")
-    runtime("org.apache.logging.log4j:log4j-api:2.6.1")
-    runtime("org.apache.logging.log4j:log4j-core:2.6.1")
+//    runtime("org.apache.logging.log4j:log4j-slf4j-impl:2.6.1")
+    compile("org.apache.logging.log4j:log4j-api:2.6.1")
+//    runtime("org.apache.logging.log4j:log4j-core:2.6.1")
     runtime("com.lmax:disruptor:3.3.4")
 }
 
 
 
-publishing {
 
-    publications {
-
-        mavenStuff(MavenPublication) {
-            from components.java
-
-            artifact sourcesJar {
-                classifier 'sources'
-            }
-
-            artifact javadocJar {
-                classifier 'javadoc'
-            }
-        }
-    }
-}
-
-task sourcesJar(type: Jar, dependsOn: classes) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
-
-artifacts {
-    archives sourcesJar
-    archives javadocJar
-}
 
 mainClassName = "uk.q3c.simplycd.agent.app.Main"
 

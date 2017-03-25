@@ -18,13 +18,14 @@ class DefaultPreparationStage @Inject constructor(
         val globalBusProvider: GlobalBusProvider,
         gitClone: GitClone,
         prepareWorkspace: PrepareWorkspace,
+        connectBuildToGradle: ConnectBuildToGradle,
         loadBuildConfiguration: LoadBuildConfiguration,
         namedFactory: NamedFactory)
 
     : PreparationStage, Named by namedFactory.create(LabelKey.Preparation_Stage) {
 
     private val log = LoggerFactory.getLogger(this.javaClass.name)
-    override var steps: ImmutableList<PreparationBuildStep> = ImmutableList.of(prepareWorkspace, gitClone, loadBuildConfiguration)
+    override var steps: ImmutableList<PreparationBuildStep> = ImmutableList.of(prepareWorkspace, gitClone, connectBuildToGradle, loadBuildConfiguration)
 
 
     override fun execute(build: Build) {

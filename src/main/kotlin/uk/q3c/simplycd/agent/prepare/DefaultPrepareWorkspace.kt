@@ -16,7 +16,7 @@ class DefaultPrepareWorkspace @Inject constructor(val installationInfo: Installa
     : PrepareWorkspace, Named by namedFactory.create(LabelKey.Prepare_Workspace) {
 
     override fun execute(build: Build) {
-        val codeArea = installationInfo.codeDir(build)
+        val codeArea = installationInfo.buildNumberDir(build)
         try {
             if (!codeArea.exists()) {
                 FileUtils.forceMkdir(codeArea)

@@ -1,8 +1,8 @@
 package uk.q3c.simplycd.agent.build
 
 import uk.q3c.build.gitplus.GitSHA
+import uk.q3c.simplycd.agent.project.Project
 import uk.q3c.simplycd.agent.queue.BuildRequest
-import uk.q3c.simplycd.project.Project
 import java.util.*
 
 /**

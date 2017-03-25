@@ -5,7 +5,8 @@ import com.google.inject.assistedinject.Assisted
 import org.slf4j.LoggerFactory
 import uk.q3c.build.gitplus.GitSHA
 import uk.q3c.simplycd.agent.build.BuildFactory
-import uk.q3c.simplycd.project.Project
+import uk.q3c.simplycd.agent.eventbus.GlobalBusProvider
+import uk.q3c.simplycd.agent.project.Project
 import java.util.*
 
 /**
@@ -14,16 +15,22 @@ import java.util.*
  * Created by David Sowerby on 08 Jan 2017
  */
 data class DefaultBuildRequest @Inject constructor(val buildFactory: BuildFactory,
+                                                   val globalBusProvider: GlobalBusProvider,
                                                    @Assisted override val gitHash: GitSHA,
                                                    @Assisted override val project: Project,
                                                    @Assisted override val uid: UUID) : BuildRequest {
     private val log = LoggerFactory.getLogger(this.javaClass.name)
 
     override fun run() {
-        log.debug("creating build instance")
-        val build = buildFactory.create(this)
-        log.debug("executing build instance")
-        build.execute()
+        try {
+            log.debug("creating build instance")
+            val build = buildFactory.create(this)
+            log.debug("executing build instance, project '{}' build number: {}", build.buildRequest.project.shortProjectName, build.buildNumber())
+            build.execute()
+        } catch (e: Exception) {
+            globalBusProvider.get().publish(BuildFailedMessage(this, e))
+            log.error("Exception thrown in build execution", e)
+        }
     }
 
     override fun identity(): String {

@@ -17,10 +17,10 @@ import uk.q3c.simplycd.agent.i18n.I18NModule
 import uk.q3c.simplycd.agent.lifecycle.LifecycleModule
 import uk.q3c.simplycd.agent.prepare.PreparationStage
 import uk.q3c.simplycd.agent.project.DefaultProject
+import uk.q3c.simplycd.agent.project.Project
 import uk.q3c.simplycd.agent.queue.*
 import uk.q3c.simplycd.agent.system.InstallationInfo
 import uk.q3c.simplycd.agent.system.SystemModule
-import uk.q3c.simplycd.project.Project
 
 import java.time.LocalDateTime
 

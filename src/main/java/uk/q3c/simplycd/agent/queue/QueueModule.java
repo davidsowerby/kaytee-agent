@@ -13,6 +13,7 @@ public class QueueModule extends AbstractModule {
     protected void configure() {
         bind(ManualTaskLauncher.class).to(DefaultManualTaskLauncher.class);
         bind(RequestQueue.class).to(DefaultRequestQueue.class);
+        bind(GradleTaskExecutor.class).to(DefaultGradleTaskExecutor.class);
 
         install(new FactoryModuleBuilder()
                 .implement(BuildRequest.class, DefaultBuildRequest.class)

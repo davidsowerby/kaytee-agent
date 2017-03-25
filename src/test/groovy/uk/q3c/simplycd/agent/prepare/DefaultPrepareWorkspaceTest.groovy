@@ -25,7 +25,7 @@ class DefaultPrepareWorkspaceTest extends Specification {
     void setup() {
         temp = temporaryFolder.getRoot()
         codeBuildDir = new File(temp, "codeDir")
-        installationInfo.codeDir(build) >> codeBuildDir
+        installationInfo.buildNumberDir(build) >> codeBuildDir
         step = new DefaultPrepareWorkspace(installationInfo, i18NNamedFactory)
     }
 

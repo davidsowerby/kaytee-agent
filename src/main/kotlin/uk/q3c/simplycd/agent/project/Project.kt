@@ -1,4 +1,4 @@
-package uk.q3c.simplycd.project
+package uk.q3c.simplycd.agent.project
 
 import java.util.*
 

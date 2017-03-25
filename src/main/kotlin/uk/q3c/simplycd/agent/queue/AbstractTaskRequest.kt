@@ -3,6 +3,7 @@ package uk.q3c.simplycd.agent.queue
 import net.engio.mbassy.bus.common.PubSubSupport
 import org.slf4j.LoggerFactory
 import uk.q3c.simplycd.agent.build.Build
+import uk.q3c.simplycd.agent.build.BuildExceptionLookup
 import uk.q3c.simplycd.agent.eventbus.BusMessage
 import uk.q3c.simplycd.i18n.TaskKey
 import java.time.LocalDateTime
@@ -21,10 +22,15 @@ abstract class AbstractTaskRequest constructor(
 
 
     override fun run() {
-        log.info("Executing task request {}", identity())
         val start = LocalDateTime.now()
-        globalBus.publish(TaskStartedMessage(start = start, taskRequest = this))
-        doRun()
+        try {
+            globalBus.publish(TaskStartedMessage(start = start, taskRequest = this))
+            log.info("Executing task request {}", identity())
+            doRun()
+        } catch (e: Exception) {
+            globalBus.publish(TaskFailedMessage(this, e, start, LocalDateTime.now(), BuildExceptionLookup().lookupKeyFromException(e)))
+            log.error("Exception thrown by task execution", e)
+        }
         // we cannot send the end message here - some tasks are executed asynchronously
     }
 

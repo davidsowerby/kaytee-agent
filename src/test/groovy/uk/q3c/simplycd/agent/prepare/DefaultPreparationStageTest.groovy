@@ -7,11 +7,11 @@ import uk.q3c.simplycd.agent.eventbus.BusMessage
 import uk.q3c.simplycd.agent.eventbus.GlobalBusProvider
 import uk.q3c.simplycd.agent.i18n.LabelKey
 import uk.q3c.simplycd.agent.i18n.NamedFactory
+import uk.q3c.simplycd.agent.project.Project
 import uk.q3c.simplycd.agent.queue.BuildRequest
 import uk.q3c.simplycd.agent.queue.PreparationCompletedMessage
 import uk.q3c.simplycd.agent.queue.PreparationStartedMessage
 import uk.q3c.simplycd.i18n.Named
-import uk.q3c.simplycd.project.Project
 
 /**
  * Created by David Sowerby on 19 Jan 2017

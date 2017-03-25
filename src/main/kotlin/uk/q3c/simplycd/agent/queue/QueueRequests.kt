@@ -2,8 +2,8 @@ package uk.q3c.simplycd.agent.queue
 
 import uk.q3c.build.gitplus.GitSHA
 import uk.q3c.simplycd.agent.build.Build
+import uk.q3c.simplycd.agent.project.Project
 import uk.q3c.simplycd.i18n.TaskKey
-import uk.q3c.simplycd.project.Project
 import java.util.*
 
 /**
