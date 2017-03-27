@@ -12,7 +12,7 @@ import uk.q3c.simplycd.agent.queue.DefaultBuildRequest;
 public class BuildModule extends AbstractModule {
     @Override
     protected void configure() {
-
+        bind(BuildResultCollator.class).to(DefaultBuildResultCollator.class).asEagerSingleton();
 
         bind(BuildNumberReader.class).to(DefaultBuildNumberReader.class);
         install(new FactoryModuleBuilder()

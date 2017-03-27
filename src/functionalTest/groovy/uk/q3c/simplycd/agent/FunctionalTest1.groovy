@@ -27,7 +27,6 @@ class FunctionalTest1 extends FunctionalTestBase {
         post(ConstantsKt.buildRequests)
 
         then:
-        Thread.sleep(100000)
-        false
+        true
     }
 }

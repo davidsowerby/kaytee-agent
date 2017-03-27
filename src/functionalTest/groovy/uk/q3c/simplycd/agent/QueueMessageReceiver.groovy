@@ -1,3 +1,5 @@
+package uk.q3c.simplycd.agent
+
 import com.google.inject.Inject
 import net.engio.mbassy.listener.Handler
 import net.engio.mbassy.listener.Listener
@@ -15,16 +17,16 @@ import java.util.concurrent.ConcurrentLinkedQueue
 class QueueMessageReceiver {
     Queue<BuildRequestedMessage> buildRequests = new ConcurrentLinkedQueue<>()
     Queue<BuildStartedMessage> buildStarts = new ConcurrentLinkedQueue<>()
-    Queue<BuildCompletedMessage> buildCompletions = new ConcurrentLinkedQueue<>()
+    Queue<BuildSuccessfulMessage> buildCompletions = new ConcurrentLinkedQueue<>()
     Queue<BuildFailedMessage> buildFails = new ConcurrentLinkedQueue<>()
 
 
     Queue<PreparationStartedMessage> preparationStarts = new ConcurrentLinkedQueue<>()
-    Queue<PreparationCompletedMessage> preparationCompletions = new ConcurrentLinkedQueue<>()
+    Queue<PreparationSuccessfulMessage> preparationCompletions = new ConcurrentLinkedQueue<>()
 
     Queue<TaskStartedMessage> taskStarts = new ConcurrentLinkedQueue<>()
     Queue<TaskRequestedMessage> taskRequests = new ConcurrentLinkedQueue<>()
-    Queue<TaskCompletedMessage> taskCompletions = new ConcurrentLinkedQueue<>()
+    Queue<TaskSuccessfulMessage> taskCompletions = new ConcurrentLinkedQueue<>()
     Queue<TaskFailedMessage> taskFails = new ConcurrentLinkedQueue<>()
 
     @Inject
@@ -47,7 +49,7 @@ class QueueMessageReceiver {
     }
 
     @Handler
-    void busMessage(TaskCompletedMessage busMessage) {
+    void busMessage(TaskSuccessfulMessage busMessage) {
         taskCompletions.add(busMessage)
     }
 
@@ -57,7 +59,7 @@ class QueueMessageReceiver {
     }
 
     @Handler
-    void busMessage(BuildCompletedMessage busMessage) {
+    void busMessage(BuildSuccessfulMessage busMessage) {
         buildCompletions.add(busMessage)
     }
 
@@ -67,7 +69,7 @@ class QueueMessageReceiver {
     }
 
     @Handler
-    void busMessage(PreparationCompletedMessage busMessage) {
+    void busMessage(PreparationSuccessfulMessage busMessage) {
         preparationCompletions.add(busMessage)
     }
 

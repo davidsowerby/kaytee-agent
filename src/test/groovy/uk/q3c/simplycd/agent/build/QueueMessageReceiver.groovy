@@ -5,6 +5,7 @@ import net.engio.mbassy.listener.Handler
 import net.engio.mbassy.listener.Listener
 import uk.q3c.krail.core.eventbus.GlobalBus
 import uk.q3c.krail.core.eventbus.SubscribeTo
+import uk.q3c.simplycd.agent.eventbus.BusMessage
 import uk.q3c.simplycd.agent.queue.*
 
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -17,15 +18,18 @@ import java.util.concurrent.ConcurrentLinkedQueue
 class QueueMessageReceiver {
     Queue<BuildRequestedMessage> buildRequests = new ConcurrentLinkedQueue<>()
     Queue<BuildStartedMessage> buildStarts = new ConcurrentLinkedQueue<>()
-    Queue<BuildCompletedMessage> buildCompletions = new ConcurrentLinkedQueue<>()
+    Queue<BuildFailedMessage> buildFails = new ConcurrentLinkedQueue<>()
+    Queue<BusMessage> buildCompletions = new ConcurrentLinkedQueue<>()
 
 
     Queue<PreparationStartedMessage> preparationStarts = new ConcurrentLinkedQueue<>()
-    Queue<PreparationCompletedMessage> preparationCompletions = new ConcurrentLinkedQueue<>()
+    Queue<PreparationFailedMessage> preparationFails = new ConcurrentLinkedQueue<>()
+    Queue<PreparationSuccessfulMessage> preparationCompletions = new ConcurrentLinkedQueue<>()
 
     Queue<TaskStartedMessage> taskStarts = new ConcurrentLinkedQueue<>()
+    Queue<TaskFailedMessage> taskFails = new ConcurrentLinkedQueue<>()
     Queue<TaskRequestedMessage> taskRequests = new ConcurrentLinkedQueue<>()
-    Queue<TaskCompletedMessage> taskCompletions = new ConcurrentLinkedQueue<>()
+    Queue<BusMessage> taskCompletions = new ConcurrentLinkedQueue<>()
 
     @Inject
     QueueMessageReceiver() {
@@ -47,8 +51,14 @@ class QueueMessageReceiver {
     }
 
     @Handler
-    void busMessage(TaskCompletedMessage busMessage) {
+    void busMessage(TaskSuccessfulMessage busMessage) {
         taskCompletions.add(busMessage)
+    }
+
+    @Handler
+    void busMessage(TaskFailedMessage busMessage) {
+        taskCompletions.add(busMessage)
+        taskFails.add(busMessage)
     }
 
     @Handler
@@ -57,7 +67,13 @@ class QueueMessageReceiver {
     }
 
     @Handler
-    void busMessage(BuildCompletedMessage busMessage) {
+    void busMessage(BuildFailedMessage busMessage) {
+        buildFails.add(busMessage)
+        buildCompletions.add(busMessage)
+    }
+
+    @Handler
+    void busMessage(BuildSuccessfulMessage busMessage) {
         buildCompletions.add(busMessage)
     }
 
@@ -67,8 +83,13 @@ class QueueMessageReceiver {
     }
 
     @Handler
-    void busMessage(PreparationCompletedMessage busMessage) {
+    void busMessage(PreparationSuccessfulMessage busMessage) {
         preparationCompletions.add(busMessage)
+    }
+
+    @Handler
+    void busMessage(PreparationFailedMessage busMessage) {
+        buildCompletions.add(busMessage)
     }
 
     boolean finishedBuilds() {

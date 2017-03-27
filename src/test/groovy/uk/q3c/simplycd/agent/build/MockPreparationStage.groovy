@@ -3,6 +3,7 @@ package uk.q3c.simplycd.agent.build
 import com.google.common.collect.ImmutableList
 import com.google.inject.Inject
 import org.apache.commons.io.FileUtils
+import org.gradle.tooling.GradleConnectionException
 import org.jetbrains.annotations.NotNull
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -10,8 +11,8 @@ import uk.q3c.krail.core.i18n.I18NKey
 import uk.q3c.simplycd.agent.eventbus.GlobalBusProvider
 import uk.q3c.simplycd.agent.prepare.PreparationBuildStep
 import uk.q3c.simplycd.agent.prepare.PreparationStage
-import uk.q3c.simplycd.agent.queue.PreparationCompletedMessage
 import uk.q3c.simplycd.agent.queue.PreparationStartedMessage
+import uk.q3c.simplycd.agent.queue.PreparationSuccessfulMessage
 import uk.q3c.simplycd.agent.system.InstallationInfo
 
 /**
@@ -42,13 +43,21 @@ class MockPreparationStage implements PreparationStage {
     @Override
     void execute(@NotNull Build build) {
         log.info("Started preparation for build: {}", build.buildRequest.identity())
-        globalBusProvider.get().publish(new PreparationStartedMessage(build.buildRequest))
+        globalBusProvider.get().publish(new PreparationStartedMessage(build.buildRequest.uid))
         File outputDir = installationInfo.gradleOutputDir(build)
         if (!outputDir.exists()) {
             FileUtils.forceMkdir(outputDir)
         }
         build.gradleLauncher = new MockGradleLauncher()
         build.configure(new BuildConfigurationRandomiser().getConfig())
+
+        //randomised failure 1 in 5
+        Random random = new Random()
+        if (random.nextInt() % 10 == 1) {
+            throw (new GradleConnectionException("Mocked preparation failure"))
+        }
+
+
         File stdErr = installationInfo.gradleStdErrFile(build)
         if (!stdErr.exists()) {
             stdErr.createNewFile()
@@ -60,7 +69,7 @@ class MockPreparationStage implements PreparationStage {
             stdOut.createNewFile()
         }
         build.stdoutOutputFile = stdOut
-        globalBusProvider.get().publish(new PreparationCompletedMessage(build.buildRequest))
+        globalBusProvider.get().publish(new PreparationSuccessfulMessage(build.buildRequest.uid))
         log.info("Completed preparation for build:  {}", build.buildRequest.identity())
     }
 

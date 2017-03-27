@@ -5,7 +5,7 @@ import com.google.common.base.Splitter
 import com.google.common.collect.Iterables
 import org.slf4j.LoggerFactory
 import uk.q3c.simplycd.agent.build.Build
-import uk.q3c.simplycd.i18n.TaskKey
+import uk.q3c.simplycd.agent.i18n.TaskKey
 import java.io.FileOutputStream
 
 /**

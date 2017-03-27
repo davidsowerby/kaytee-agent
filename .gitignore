@@ -7,6 +7,7 @@ build/*
 classes
 simplycd-agent.iml
 simplycd-agent.ipr
+out
 
 
 

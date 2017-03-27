@@ -9,8 +9,8 @@ import uk.q3c.simplycd.agent.i18n.LabelKey
 import uk.q3c.simplycd.agent.i18n.NamedFactory
 import uk.q3c.simplycd.agent.project.Project
 import uk.q3c.simplycd.agent.queue.BuildRequest
-import uk.q3c.simplycd.agent.queue.PreparationCompletedMessage
 import uk.q3c.simplycd.agent.queue.PreparationStartedMessage
+import uk.q3c.simplycd.agent.queue.PreparationSuccessfulMessage
 import uk.q3c.simplycd.i18n.Named
 
 /**
@@ -30,12 +30,15 @@ class DefaultPreparationStageTest extends Specification {
     GlobalBusProvider busProvider = Mock(GlobalBusProvider)
     PubSubSupport<BusMessage> globalBus = Mock(PubSubSupport)
     BuildRequest buildRequest = Mock(BuildRequest)
+    ConnectBuildToGradle connectBuildToGradle = Mock(ConnectBuildToGradle)
+    UUID uid = UUID.randomUUID()
 
     void setup() {
         namedFactory.create(LabelKey.Preparation_Stage) >> named
         named.name() >> "Preparation Stage"
         build.buildRequest >> buildRequest
         buildRequest.identity() >> "whatever"
+        buildRequest.uid >> uid
         busProvider.get() >> globalBus
     }
 
@@ -45,19 +48,20 @@ class DefaultPreparationStageTest extends Specification {
     def "steps defined"() {
 
         given:
-        stage = new DefaultPreparationStage(busProvider, gitClone, prepareWorkspace, loadBuildConfiguration, namedFactory)
+        stage = new DefaultPreparationStage(busProvider, gitClone, prepareWorkspace, connectBuildToGradle, loadBuildConfiguration, namedFactory)
 
         when:
         stage.execute(build)
 
         then:
         stage.name() == "Preparation Stage"
-        1 * globalBus.publish(new PreparationStartedMessage(buildRequest))
+        1 * globalBus.publish(new PreparationStartedMessage(buildRequest.uid))
 
-        stage.steps.size() == 3
+        stage.steps.size() == 4
         stage.steps.get(0) == prepareWorkspace
         stage.steps.get(1) == gitClone
-        stage.steps.get(2) == loadBuildConfiguration
+        stage.steps.get(2) == connectBuildToGradle
+        stage.steps.get(3) == loadBuildConfiguration
 
         then:
         prepareWorkspace.execute(build)
@@ -69,7 +73,7 @@ class DefaultPreparationStageTest extends Specification {
         loadBuildConfiguration.execute(build)
 
         then:
-        1 * globalBus.publish(new PreparationCompletedMessage(buildRequest))
+        1 * globalBus.publish(new PreparationSuccessfulMessage(buildRequest.uid))
 
     }
 }

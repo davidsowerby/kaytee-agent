@@ -2,31 +2,37 @@ package uk.q3c.simplycd.agent.queue
 
 import uk.q3c.build.gitplus.notSpecified
 import uk.q3c.simplycd.agent.eventbus.BusMessage
-import uk.q3c.simplycd.agent.project.Project
-import uk.q3c.simplycd.i18n.BuildResultStateKey
-import java.time.LocalDateTime
+import uk.q3c.simplycd.agent.i18n.TaskKey
+import uk.q3c.simplycd.agent.i18n.TaskResultStateKey
+import java.time.OffsetDateTime
+import java.util.*
 
 /**
  * Created by David Sowerby on 26 Jan 2017
  */
-
 /**
- * this has to have a no-args constructor for RestEasy Jackson
+ * Message timestamped 'now' at creation
  */
-data class BuildRequestMessage(var repoUser: String = notSpecified) : BusMessage
+abstract class TimedMessage : BusMessage {
+    val time: OffsetDateTime = OffsetDateTime.now()
+}
 
-data class BuildRequestedMessage(val buildRequest: BuildRequest) : BusMessage
-data class BuildStartedMessage(val buildRequest: BuildRequest) : BusMessage
-data class BuildCompletedMessage(val project: Project, val buildNumber: Int, val buildRequest: BuildRequest) : BusMessage
-data class BuildFailedMessage(val buildRequest: BuildRequest, val e: Exception) : BusMessage
+data class BuildRequestMessage(val buildRequestId: UUID, var repoUser: String = notSpecified) : TimedMessage()
 
-data class PreparationStartedMessage(val buildRequest: BuildRequest) : BusMessage
-data class PreparationCompletedMessage(val buildRequest: BuildRequest) : BusMessage
+data class BuildRequestedMessage(val buildRequestId: UUID) : TimedMessage()
+data class BuildStartedMessage(val buildRequestId: UUID, val buildNumber: Int) : TimedMessage()
+data class BuildSuccessfulMessage(val buildRequestId: UUID) : TimedMessage()
+data class BuildFailedMessage(val buildRequestId: UUID, val e: Exception) : TimedMessage()
 
-data class TaskRequestedMessage(val taskRequest: TaskRequest) : BusMessage
-data class TaskStartedMessage(val taskRequest: TaskRequest, val start: LocalDateTime) : BusMessage
-data class TaskCompletedMessage(val taskRequest: TaskRequest, val start: LocalDateTime, val end: LocalDateTime, val result: BuildResultStateKey) : BusMessage
-data class TaskFailedMessage(val taskRequest: TaskRequest, val exception: Exception, val start: LocalDateTime, val end: LocalDateTime, val result: BuildResultStateKey) : BusMessage
+data class PreparationStartedMessage(val buildRequestId: UUID) : TimedMessage()
+data class PreparationSuccessfulMessage(val buildRequestId: UUID) : TimedMessage()
+
+data class PreparationFailedMessage(val buildRequestId: UUID, val e: Exception) : TimedMessage()
+
+data class TaskRequestedMessage(val buildRequestId: UUID, val taskKey: TaskKey) : TimedMessage()
+data class TaskStartedMessage(val buildRequestId: UUID, val taskKey: TaskKey) : TimedMessage()
+data class TaskSuccessfulMessage(val buildRequestId: UUID, val taskKey: TaskKey) : TimedMessage()
+data class TaskFailedMessage(val buildRequestId: UUID, val taskKey: TaskKey, val result: TaskResultStateKey) : TimedMessage()
 
 
 

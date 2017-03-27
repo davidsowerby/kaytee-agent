@@ -3,9 +3,9 @@ package uk.q3c.simplycd.agent.prepare
 import org.apache.commons.io.FileUtils
 import uk.q3c.simplycd.agent.build.BuildPreparationException
 import uk.q3c.simplycd.agent.i18n.LabelKey
+import uk.q3c.simplycd.agent.queue.GradleTaskExecutor
 import uk.q3c.simplycd.agent.queue.GradleTaskRequest
 import uk.q3c.util.testutil.TestResource
-
 /**
  * Created by David Sowerby on 20 Jan 2017
  */
@@ -13,10 +13,13 @@ class DefaultLoadBuildConfigurationTest extends PreparationStepSpecification {
 
 
     DefaultLoadBuildConfiguration step
+    GradleTaskExecutor gradleTaskExecutor = Mock(GradleTaskExecutor)
+    GradleTaskRequest gradleTaskRequest = Mock(GradleTaskRequest)
 
 
     def setup() {
-        step = new DefaultLoadBuildConfiguration(installationInfo, gradleTaskRequestFactory, i18NNamedFactory)
+        step = new DefaultLoadBuildConfiguration(installationInfo, gradleTaskRequestFactory, gradleTaskExecutor, i18NNamedFactory)
+
     }
 
     def "execute error throws preparation exception"() {
@@ -34,7 +37,7 @@ class DefaultLoadBuildConfigurationTest extends PreparationStepSpecification {
     def "name"() {
 
         when:
-        step = new DefaultLoadBuildConfiguration(installationInfo, gradleTaskRequestFactory, i18NNamedFactory)
+        step = new DefaultLoadBuildConfiguration(installationInfo, gradleTaskRequestFactory, gradleTaskExecutor, i18NNamedFactory)
 
         then:
         1 * i18NNamedFactory.create(LabelKey.Load_Configuration)
@@ -52,10 +55,8 @@ class DefaultLoadBuildConfigurationTest extends PreparationStepSpecification {
         step.execute(build)
 
         then:
-        1 * gradleTaskRequest.run()
-
-        then:
-        1 * installationInfo.buildNumberDir(build) >> codeDir
-        build.taskRequests.size() == 1
+        1 * installationInfo.projectInstanceDir(build) >> codeDir
+        1 * gradleTaskExecutor.execute(build, _) // Groovy cannot deal with TaskKey, so have to use wildcard
+        1 * gradleTaskRequestFactory.create(build, _) >> this.gradleTaskRequest
     }
 }

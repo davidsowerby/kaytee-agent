@@ -6,9 +6,9 @@ import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.exceptions.UnsupportedBuildArgumentException
 import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
 import spock.lang.Specification
+import uk.q3c.simplycd.agent.i18n.TaskResultStateKey
 
-import static uk.q3c.simplycd.i18n.BuildResultStateKey.*
-
+import static uk.q3c.simplycd.agent.i18n.BuildFailCauseKey.*
 /**
  * Created by David Sowerby on 15 Jan 2017
  */
@@ -25,8 +25,9 @@ class BuildExceptionLookupTest extends Specification {
         expect:
 //        lookup.lookupKeyFromException(new UnsupportedVersionException("x")) == Unsupported_Gradle_Version
         lookup.lookupKeyFromException(new UnsupportedOperationConfigurationException("x")) == Unsupported_Operation_Configuration
+        lookup.lookupKeyFromException(new TaskException(TaskResultStateKey.Task_Cancelled)) == Task_Failure
         lookup.lookupKeyFromException(new UnsupportedBuildArgumentException("x")) == Unsupported_Build_Argument
-        lookup.lookupKeyFromException(new BuildException("x", new NullPointerException())) == Build_Failure
+        lookup.lookupKeyFromException(new BuildException("x", new NullPointerException())) == Build_Failed
         lookup.lookupKeyFromException(new BuildCancelledException("x")) == Build_Cancelled
         lookup.lookupKeyFromException(new GradleConnectionException("x")) == Gradle_Connection_Failure
         lookup.lookupKeyFromException(new IllegalStateException("x")) == Gradle_Illegal_State

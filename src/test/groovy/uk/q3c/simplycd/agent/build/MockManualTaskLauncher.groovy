@@ -3,14 +3,13 @@ package uk.q3c.simplycd.agent.build
 import com.google.inject.Inject
 import org.jetbrains.annotations.NotNull
 import uk.q3c.simplycd.agent.eventbus.GlobalBusProvider
+import uk.q3c.simplycd.agent.i18n.BuildStateKey
 import uk.q3c.simplycd.agent.queue.ManualTaskLauncher
 import uk.q3c.simplycd.agent.queue.ManualTaskRequest
-import uk.q3c.simplycd.agent.queue.TaskCompletedMessage
 import uk.q3c.simplycd.agent.queue.TaskRequest
-import uk.q3c.simplycd.i18n.BuildResultStateKey
+import uk.q3c.simplycd.agent.queue.TaskSuccessfulMessage
 
 import java.time.LocalDateTime
-
 /**
  * Created by David Sowerby on 30 Jan 2017
  */
@@ -40,8 +39,8 @@ class MockManualTaskLauncher implements ManualTaskLauncher {
                 d--
             }
             LocalDateTime end = LocalDateTime.now()
-            BuildResultStateKey resultStateKey = randomiser.fail ? BuildResultStateKey.Build_Failure : BuildResultStateKey.Build_Successful
-            TaskCompletedMessage msg = new TaskCompletedMessage(taskRequest, start, end, resultStateKey)
+            BuildStateKey resultStateKey = randomiser.fail ? BuildStateKey.Build_Failed : BuildStateKey.Build_Successful
+            TaskSuccessfulMessage msg = new TaskSuccessfulMessage(taskRequest.build.buildRequest.uid, taskRequest.taskKey)
             globalBusProvider.get().publish(msg)
             println "Manual task completion message sent: $resultStateKey "
         }

@@ -11,6 +11,7 @@ import javax.annotation.concurrent.ThreadSafe
  *
  * Created by David Sowerby on 13 Mar 2017
  */
+@Suppress("UNUSED_VARIABLE")
 @ThreadSafe
 class DefaultHooks @Inject constructor(val subscriberNotifier: SubscriberNotifier) : Hooks {
     private val log = LoggerFactory.getLogger(this.javaClass.name)

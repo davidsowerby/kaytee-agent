@@ -52,12 +52,13 @@ abstract class PreparationStepSpecification extends Specification {
         gitHash = new GitSHA(DigestUtils.sha1Hex('any'))
         project.shortProjectName >> projectName
         project.remoteUserName >> repoUserName
-        BuildRequest buildRequest = new DefaultBuildRequest(buildFactory, gitHash, project, UUID.randomUUID())
+        BuildRequest buildRequest = new DefaultBuildRequest(buildFactory, busProvider, gitHash, project, UUID.randomUUID())
         build = new DefaultBuild(preparationStage, buildNumberReader, requestQueue, busProvider, gradleTaskRequestFactory, manualTaskRequestFactory, buildRequest)
         translate.from(_) >> translatedKey
         temp = temporaryFolder.getRoot()
         codeDir = new File(temp, projectName)
         i18NNamedFactory.create(_) >> i18NNamed
+        installationInfo.projectInstanceDir(build) >> codeDir
         installationInfo.buildNumberDir(build) >> codeDir
         busProvider.get() >> globalBus
     }

@@ -15,7 +15,7 @@ class DefaultTopicRegistrar @Inject constructor(val hooks: Hooks) : TopicRegistr
     private val log = LoggerFactory.getLogger(this.javaClass.name)
     @Handler
     override fun buildRequest(message: BuildRequestedMessage) {
-        log.debug("Registering build request {}, as Hooks topic", message.buildRequest.identity())
-        hooks.registerTopic(URL(href("$buildRequests/${message.buildRequest.uid}")))
+        log.debug("Registering build request {}, as Hooks topic", message.buildRequestId)
+        hooks.registerTopic(URL(href("$buildRequests/${message.buildRequestId}")))
     }
 }

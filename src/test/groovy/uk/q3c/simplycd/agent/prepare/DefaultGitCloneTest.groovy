@@ -29,15 +29,14 @@ class DefaultGitCloneTest extends PreparationStepSpecification {
         gitClone.execute(build)
 
         then:
-        1 * gitLocal.create(true) >> gitLocal
-        1 * gitLocal.cloneExistsResponse(CloneExistsResponse.EXCEPTION) >> gitLocal
         1 * gitLocal.projectDirParent(codeDir) >> gitLocal
+        1 * gitLocal.cloneFromRemote(true) >> gitLocal
+        1 * gitLocal.cloneExistsResponse(CloneExistsResponse.EXCEPTION) >> gitLocal
         1 * gitRemote.repoUser(repoUserName) >> gitRemote
         1 * gitRemote.repoName(projectName) >> gitRemote
 
         then:
         1 * gitPlus.execute()
-        1 * gitLocal.cloneRemote()
         1 * gitLocal.checkoutCommit(gitHash)
     }
 
@@ -46,15 +45,14 @@ class DefaultGitCloneTest extends PreparationStepSpecification {
         gitClone.execute(build)
 
         then:
-        1 * gitLocal.create(true) >> gitLocal
+        1 * gitLocal.cloneFromRemote(true) >> gitLocal
         1 * gitLocal.cloneExistsResponse(CloneExistsResponse.EXCEPTION) >> gitLocal
         1 * gitLocal.projectDirParent(codeDir) >> gitLocal
         1 * gitRemote.repoUser(repoUserName) >> gitRemote
         1 * gitRemote.repoName(projectName) >> gitRemote
 
         then:
-        1 * gitPlus.execute()
-        1 * gitLocal.cloneRemote() >> { throw new GitLocalException("failed") }
+        1 * gitPlus.execute() >> { throw new GitLocalException("failed") }
         0 * gitLocal.checkoutCommit(gitHash)
         thrown BuildPreparationException
     }

@@ -7,8 +7,8 @@ import uk.q3c.simplycd.agent.build.Build
 import uk.q3c.simplycd.agent.eventbus.GlobalBusProvider
 import uk.q3c.simplycd.agent.i18n.LabelKey
 import uk.q3c.simplycd.agent.i18n.NamedFactory
-import uk.q3c.simplycd.agent.queue.PreparationCompletedMessage
 import uk.q3c.simplycd.agent.queue.PreparationStartedMessage
+import uk.q3c.simplycd.agent.queue.PreparationSuccessfulMessage
 import uk.q3c.simplycd.i18n.Named
 
 /**
@@ -30,13 +30,13 @@ class DefaultPreparationStage @Inject constructor(
 
     override fun execute(build: Build) {
         log.info("Started preparation for build: {}", build.buildRequest.identity())
-        globalBusProvider.get().publish(PreparationStartedMessage(build.buildRequest))
+        globalBusProvider.get().publish(PreparationStartedMessage(build.buildRequest.uid))
 
         for (step in steps) {
             step.execute(build)
         }
         // build has now been configured and at least one task placed in the queue
-        globalBusProvider.get().publish(PreparationCompletedMessage(build.buildRequest))
+        globalBusProvider.get().publish(PreparationSuccessfulMessage(build.buildRequest.uid))
         log.info("Completed preparation for build:  {}", build.buildRequest.identity())
     }
 }

@@ -6,12 +6,14 @@ import net.engio.mbassy.listener.Handler
 import net.engio.mbassy.listener.Listener
 import org.gradle.tooling.BuildLauncher
 import org.slf4j.LoggerFactory
+import uk.q3c.simplycd.agent.eventbus.BusMessage
 import uk.q3c.simplycd.agent.eventbus.GlobalBus
 import uk.q3c.simplycd.agent.eventbus.GlobalBusProvider
 import uk.q3c.simplycd.agent.eventbus.SubscribeTo
+import uk.q3c.simplycd.agent.i18n.TaskKey
+import uk.q3c.simplycd.agent.i18n.TaskResultStateKey
 import uk.q3c.simplycd.agent.prepare.PreparationStage
 import uk.q3c.simplycd.agent.queue.*
-import uk.q3c.simplycd.i18n.TaskKey
 import uk.q3c.simplycd.lifecycle.SimplyCDProjectExtension
 import java.io.File
 import java.util.*
@@ -42,10 +44,9 @@ class DefaultBuild @Inject constructor(
     lateinit override var parentBuild: Build
     lateinit override var gradleLauncher: BuildLauncher
 
-
-    val results: MutableList<BuildResult> = mutableListOf()
+    private val results: MutableList<TaskKey> = mutableListOf()
     private val taskRequests = ArrayDeque<TaskRequest>()
-    private val resultLock = Any()
+    private val completedTasksLock = Any()
     private var generatedTaskRequests: Int = 0
 
     private var buildNumber: Int = -1
@@ -57,14 +58,18 @@ class DefaultBuild @Inject constructor(
         }
 
 
-    private fun addResult(buildResult: BuildResult) {
-        log.debug("result received for {}", buildResult.queueRequest.identity())
-        synchronized(resultLock) {
-            results.add(buildResult)
-            if (results.size >= generatedTaskRequests) {
-                closeBuild()
+    private fun closeTask(taskKey: TaskKey, passed: Boolean, busMessage: BusMessage) {
+        log.debug("closing task {}", taskKey)
+        synchronized(completedTasksLock) {
+            results.add(taskKey)
+            if (passed) {
+                if (results.size < generatedTaskRequests) {
+                    pushTaskToRequestQueue()
+                } else {
+                    closeBuild(true, busMessage)
+                }
             } else {
-                pushTaskToRequestQueue()
+                closeBuild(false, busMessage)
             }
         }
 
@@ -95,9 +100,11 @@ class DefaultBuild @Inject constructor(
     }
 
     private fun pushTaskToRequestQueue() {
-        synchronized(resultLock) {
+        synchronized(completedTasksLock) {
             if (taskRequests.isNotEmpty()) {
-                requestQueue.addRequest(taskRequests.poll())
+                val taskRequest = taskRequests.poll()
+                log.debug("Adding task '{}' to queue for processing", taskRequest.identity())
+                requestQueue.addRequest(taskRequest)
             } else {
                 log.error("Attempted to push task from empty taskRequests {}", buildRequest.identity())
             }
@@ -133,21 +140,37 @@ class DefaultBuild @Inject constructor(
 
     }
 
-    @Handler()
-    fun taskCompleted(message: TaskCompletedMessage) {
+    @Handler
+    fun taskCompleted(message: TaskSuccessfulMessage) {
         // filter for messages which apply to this build - probably could make better use of MBassador filtering
-        if (message.taskRequest.build == this) {
-            log.debug("Received completion message for task: {}", message.taskRequest.identity())
-            val result = BuildResult(queueRequest = message.taskRequest, start = message.start, end = message.end, state = message.result)
-            addResult(result)
+        if (message.buildRequestId == this.buildRequest.uid) {
+            log.debug("Received completion message for task: {}", message.taskKey)
+            closeTask(message.taskKey, true, message)
+        }
+    }
+
+    @Handler
+    fun taskCompleted(message: TaskFailedMessage) {
+        // filter for messages which apply to this build - probably could make better use of MBassador filtering
+        if (message.buildRequestId == this.buildRequest.uid) {
+            log.debug("Received completion message for task: {}", message.taskKey)
+            closeTask(message.taskKey, false, message)
         }
     }
 
 
-    private fun closeBuild() {
-        globalBusProvider.get().publish(BuildCompletedMessage(project, buildNumber, buildRequest))
+    private fun closeBuild(passed: Boolean, busMessage: BusMessage) {
+        if (passed) {
+            globalBusProvider.get().publish(BuildSuccessfulMessage(buildRequest.uid))
+        } else {
+            if (busMessage is TaskFailedMessage) {
+                val exception = TaskException(busMessage.result)
+                globalBusProvider.get().publish(BuildFailedMessage(buildRequest.uid, exception))
+            } else {
+                throw QueueException("Only a TaskFailedMessage should get this far")
+            }
+        }
         log.info("Closing build for {}, build {}", project.shortProjectName, buildNumber)
-//        val result =  BuildResult(start = startTime, end = endTime, state = BuildExceptionLookup().lookupKeyFromException(e))
 
     }
 
@@ -179,19 +202,30 @@ class DefaultBuild @Inject constructor(
     override fun execute() {
 //        log.info("starting build")
         log.info("starting build {} for project: {}", buildNumber, project.shortProjectName)
-        globalBusProvider.get().publish(BuildStartedMessage(buildRequest))
-        preparationStage.execute(this)
+        try {
+            preparationStage.execute(this)
+        } catch (e: Exception) {
+            log.debug("preparation failed", e)
+            globalBusProvider.get().publish(PreparationFailedMessage(buildRequest.uid, e))
+            return
+        }
         generatedTaskRequests = taskRequests.size
+        log.debug("Build {} has {} tasks to execute", buildRequest.identity(), generatedTaskRequests)
         if (taskRequests.isNotEmpty()) {
             // in effect this starts the build proper - the first task is placed into the queue, and as the task requests are
-            // completed, another is added until the build completes or fails
+            // completed, another is pushed to the request queue until the build completes or fails
             pushTaskToRequestQueue()
+            globalBusProvider.get().publish(BuildStartedMessage(buildRequest.uid, buildNumber))
         } else {
             // there is nothing to do
-            log.warn("There were no tasks to carry out, check the simplycd configuration in build.gradle, they may all be disabled")
-            closeBuild()
+            val msg = "There were no tasks to carry out, check the simplycd configuration in build.gradle, they may all be disabled"
+            globalBusProvider.get().publish(BuildFailedMessage(buildRequest.uid, BuildConfigurationException()))
         }
     }
 
 
 }
+
+class TaskException(result: TaskResultStateKey) : RuntimeException(result.name)
+
+class BuildConfigurationException : RuntimeException("There were no tasks to carry out, check the simplycd configuration in build.gradle, they may all be disabled")

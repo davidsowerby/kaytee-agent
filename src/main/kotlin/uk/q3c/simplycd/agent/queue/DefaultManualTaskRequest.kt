@@ -5,7 +5,7 @@ import com.google.inject.assistedinject.Assisted
 import org.slf4j.LoggerFactory
 import uk.q3c.simplycd.agent.build.Build
 import uk.q3c.simplycd.agent.eventbus.GlobalBusProvider
-import uk.q3c.simplycd.i18n.TaskKey
+import uk.q3c.simplycd.agent.i18n.TaskKey
 
 /**
  * Created by David Sowerby on 30 Jan 2017

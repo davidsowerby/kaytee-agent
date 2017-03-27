@@ -13,6 +13,7 @@ import spock.lang.Specification
 import uk.q3c.build.gitplus.GitPlusModule
 import uk.q3c.build.gitplus.GitSHA
 import uk.q3c.simplycd.agent.eventbus.GlobalBusModule
+import uk.q3c.simplycd.agent.i18n.BuildStateKey
 import uk.q3c.simplycd.agent.i18n.I18NModule
 import uk.q3c.simplycd.agent.lifecycle.LifecycleModule
 import uk.q3c.simplycd.agent.prepare.PreparationStage
@@ -34,8 +35,8 @@ class Soak_ITest extends Specification {
     @Rule
     TemporaryFolder temporaryFolder
     File temp
-    QueueMessageReceiver queueMessageReceiver
 
+    BuildResultCollator resultCollator
 
     RequestQueue queue
     Project projectA
@@ -43,6 +44,14 @@ class Soak_ITest extends Specification {
     Project projectC
     Project projectD
     List<Project> projects = new ArrayList<>()
+
+    static int buildsRequested = 0
+    int preparationFailures = 0
+    int buildsStarted = 0
+    int buildsCompleted = 0
+    def buildsSuccessFul = 0
+    def buildsFailed = 0
+    def preparationsFailed = 0
 
 
     static class TestBuildModule extends AbstractModule {
@@ -79,6 +88,7 @@ class Soak_ITest extends Specification {
         int generationPeriod = 3
         RequestQueue queue
         List<Project> projects
+        LocalDateTime targetEnd
 
         BuildRequestGenerator(int generationPeriod, RequestQueue queue, List<Project> projects) {
             this.projects = projects
@@ -89,10 +99,11 @@ class Soak_ITest extends Specification {
         @Override
         void run() {
             int i = 0
-            LocalDateTime targetEnd = LocalDateTime.now().plusSeconds(generationPeriod)
+            targetEnd = LocalDateTime.now().plusSeconds(generationPeriod)
             Random random = new Random()
             int projectIndex = random.nextInt(4)
             queue.addRequest(projects.get(projectIndex), sha(i))
+            buildsRequested++
 
             while (LocalDateTime.now().isBefore(targetEnd)) {
                 int delay = random.nextInt(800) + 200
@@ -100,6 +111,7 @@ class Soak_ITest extends Specification {
                 Thread.sleep(delay)
                 i++
                 queue.addRequest(projects.get(projectIndex), sha(i))
+                buildsRequested++
             }
 
         }
@@ -135,7 +147,7 @@ class Soak_ITest extends Specification {
         queue = injector.getInstance(RequestQueue)
         InstallationInfo installationInfo = injector.getInstance(InstallationInfo)
         installationInfo.dataDirRoot = temp
-        queueMessageReceiver = injector.getInstance(QueueMessageReceiver)
+        resultCollator = injector.getInstance(BuildResultCollator)
     }
 
     def cleanup() {
@@ -143,35 +155,60 @@ class Soak_ITest extends Specification {
 
     def "Single runner"() {
         given:
-        Thread requestGeneratorThread = new Thread(new BuildRequestGenerator(5 * 1, queue, projects))
+        int requestGenerationPeriodInSeconds = 5
+        Thread requestGeneratorThread = new Thread(new BuildRequestGenerator(requestGenerationPeriodInSeconds, queue, projects))
         requestGeneratorThread.run()
 
         when:
-        LocalDateTime timeout = LocalDateTime.now().plusSeconds(10)
-        while (!queueMessageReceiver.finishedBuilds() && LocalDateTime.now().isBefore(timeout)) {
-            Thread.sleep(100)
+
+        LocalDateTime timeout = LocalDateTime.now().plusSeconds(requestGenerationPeriodInSeconds * 2)
+
+        //wait for queue to drain
+        while (!(queue.size() == 0)) {
+            println ">>>>> Waiting for queue to empty"
+            Thread.sleep(1000)
         }
 
+        // wait for last jobs to complete
+        println ">>>>> Waiting for last jobs to complete"
+        Thread.sleep(2000)
+
+        println ">>>>> Validating results"
+        boolean allComplete = true
+        List<String> validationErrors = new ArrayList<>()
+
+        for (BuildResult result : resultCollator.results.values()) {
+            BuildResultValidator resultValidator = new BuildResultValidator(result)
+            if (!result.requestedCompleted()) {
+                allComplete = false
+            } else {
+                buildsCompleted++
+            }
+            switch (result.state) {
+                case BuildStateKey.Build_Successful: buildsSuccessFul++; break
+                case BuildStateKey.Build_Failed: buildsFailed++; break
+                case BuildStateKey.Preparation_Failed: preparationsFailed++; break
+            }
+            resultValidator.validate()
+            validationErrors.addAll(resultValidator.errors)
+        }
+        if (!validationErrors.isEmpty()) {
+            println validationErrors
+        }
 
         then:
-        println "Build requests received: " + queueMessageReceiver.buildRequests.size()
-        println "Build requests started: " + queueMessageReceiver.buildStarts.size()
-        println "Build requests completed: " + queueMessageReceiver.buildCompletions.size()
-        println "Preparations started: " + queueMessageReceiver.preparationStarts.size()
-        println "Preparations completed: " + queueMessageReceiver.preparationCompletions.size()
-        println "Tasks requests received: " + queueMessageReceiver.taskRequests.size()
-        println "Tasks requests started: " + queueMessageReceiver.taskStarts.size()
-        println "Tasks requests completed: " + queueMessageReceiver.taskCompletions.size()
-        println "Build results held by "
-        queueMessageReceiver.buildRequests.size() == queueMessageReceiver.buildStarts.size()
-        queueMessageReceiver.buildCompletions.size() == queueMessageReceiver.buildStarts.size()
-        queueMessageReceiver.preparationStarts.size() == queueMessageReceiver.preparationCompletions.size()
-        queueMessageReceiver.taskRequests.size() == queueMessageReceiver.taskStarts.size()
-        queueMessageReceiver.taskStarts.size() == queueMessageReceiver.taskCompletions.size()
-        println 'Build completion order:'
-        for (BuildCompletedMessage msg : queueMessageReceiver.buildCompletions) {
-            println "$msg.project.shortProjectName $msg.buildNumber"
-        }
+        println "Build requests generated: $buildsRequested"
+        println "Build requests failed: $buildsFailed"
+        println "Build requests sucessful: $buildsSuccessFul"
+        println "Build requests completed: $buildsCompleted"
+        println "Preparations failed: $preparationsFailed"
+        println "Build results held by resultsCollator: " + resultCollator.results.size()
+        allComplete // this could fail if processing is not allowed to complete, and test finishes too early
+        validationErrors.isEmpty()
+        buildsRequested == buildsCompleted
+        buildsSuccessFul + buildsFailed + preparationsFailed == buildsCompleted
+        resultCollator.results.size() == buildsRequested
+
 
     }
 

@@ -47,14 +47,14 @@ class DefaultRequestQueue @Inject constructor(
         val uid = UUID.randomUUID()
         val buildRequest = buildRequestFactory.create(project, gitSHA, uid)
         executor.submit(buildRequest)
-        globalBusProvider.get().publish(BuildRequestedMessage(buildRequest))
+        globalBusProvider.get().publish(BuildRequestedMessage(buildRequest.uid))
 //        log.info("Build queueRequest added to queue for project '{}'.  Queue size is: {}", buildRequest.project.name, queue.size)
         return uid
     }
 
     override fun addRequest(taskRequest: TaskRequest) {
+        globalBusProvider.get().publish(TaskRequestedMessage(taskRequest.build.buildRequest.uid, taskRequest.taskKey))
         executor.submit(taskRequest)
-        globalBusProvider.get().publish(TaskRequestedMessage(taskRequest))
     }
 
     //TODo there is a very small possibility that a build hasn't actually started when this is received even though

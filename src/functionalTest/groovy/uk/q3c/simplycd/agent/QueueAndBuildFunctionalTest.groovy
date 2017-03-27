@@ -1,3 +1,5 @@
+package uk.q3c.simplycd.agent
+
 import com.google.inject.Guice
 import com.google.inject.Injector
 import com.google.inject.Module
@@ -6,9 +8,10 @@ import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import uk.q3c.build.gitplus.GitPlusModule
 import uk.q3c.build.gitplus.GitSHA
-import uk.q3c.simplycd.agent.build.BuildModule
+import uk.q3c.simplycd.agent.build.*
 import uk.q3c.simplycd.agent.eventbus.GlobalBusModule
 import uk.q3c.simplycd.agent.i18n.I18NModule
+import uk.q3c.simplycd.agent.i18n.TaskResultStateKey
 import uk.q3c.simplycd.agent.lifecycle.LifecycleModule
 import uk.q3c.simplycd.agent.project.Project
 import uk.q3c.simplycd.agent.project.ProjectModule
@@ -16,6 +19,8 @@ import uk.q3c.simplycd.agent.project.Projects
 import uk.q3c.simplycd.agent.queue.QueueModule
 import uk.q3c.simplycd.agent.queue.RequestQueue
 import uk.q3c.simplycd.agent.system.SystemModule
+
+import java.time.LocalDateTime
 
 /**
  * Integrates RequestQueue, BuildRunner and GradleExecutor
@@ -28,6 +33,7 @@ class QueueAndBuildFunctionalTest extends Specification {
     TemporaryFolder temporaryFolder
     File temp
     QueueMessageReceiver queueMessageReceiver
+    BuildResultCollator buildResultCollator
 
 
     RequestQueue queue
@@ -50,6 +56,7 @@ class QueueAndBuildFunctionalTest extends Specification {
         Injector injector = Guice.createInjector(bindings)
         queue = injector.getInstance(RequestQueue)
         queueMessageReceiver = injector.getInstance(QueueMessageReceiver)
+        buildResultCollator = injector.getInstance(BuildResultCollator)
         projects = injector.getInstance(Projects.class)
     }
 
@@ -61,16 +68,29 @@ class QueueAndBuildFunctionalTest extends Specification {
         final String projectFullName = 'davidsowerby/simplycd-test'
         final String commitId = "7c3a779e17d65ec255b4c7d40b14950ea6ce232e"
         Project project = projects.getProject(projectFullName)
-//        Logger logger = LogManager.getRootLogger()
+        LocalDateTime timeout = LocalDateTime.now().plusSeconds(20)
 
         when:
-        queue.addRequest(project, new GitSHA(commitId))
+        UUID uid = queue.addRequest(project, new GitSHA(commitId))
 
         then:
-        while (queueMessageReceiver.buildCompletions.isEmpty()) {
+        while (queueMessageReceiver.buildCompletions.isEmpty() && LocalDateTime.now().isBefore(timeout)) {
             Thread.sleep(100)
         }
-        true //TODO result should be returned and checked
+        BuildResult result = buildResultCollator.getResult(uid)
+        BuildResultValidator validator = new BuildResultValidator(result)
+        boolean valid = validator.validate()
+        if (!valid) {
+            println validator.errors
+        }
+        valid
+        result.taskResults.size() == 1
+        TaskResult taskResult = new BuildResultWrapper(result).taskResult("Unit_Test")
+        taskResult.requestedAt.isAfter(result.requestedAt)
+        taskResult.startedAt.isAfter(taskResult.requestedAt)
+        taskResult.completedAt.isAfter(taskResult.requestedAt)
+        taskResult.outcome == TaskResultStateKey.Task_Successful
+        taskResult.task.name() == "Unit_Test"
 
 
     }
