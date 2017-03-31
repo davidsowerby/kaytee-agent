@@ -24,7 +24,7 @@ class DefaultInstallationInfo @Inject constructor() : InstallationInfo {
     }
 
     override fun projectDir(build: Build): File {
-        return File(dataDir(), build.buildRequest.project.shortProjectName)
+        return File(dataDir(), build.buildRunner.project.shortProjectName)
     }
 
     override fun dataDir(): File {
@@ -48,6 +48,6 @@ class DefaultInstallationInfo @Inject constructor() : InstallationInfo {
     }
 
     override fun projectInstanceDir(build: Build): File {
-        return File(buildNumberDir(build), build.buildRequest.project.shortProjectName)
+        return File(buildNumberDir(build), build.buildRunner.project.shortProjectName)
     }
 }

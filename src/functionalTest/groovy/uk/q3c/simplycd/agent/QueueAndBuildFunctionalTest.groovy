@@ -33,7 +33,7 @@ class QueueAndBuildFunctionalTest extends Specification {
     TemporaryFolder temporaryFolder
     File temp
     QueueMessageReceiver queueMessageReceiver
-    BuildResultCollator buildResultCollator
+    BuildRecordCollator buildResultCollator
 
 
     RequestQueue queue
@@ -56,7 +56,7 @@ class QueueAndBuildFunctionalTest extends Specification {
         Injector injector = Guice.createInjector(bindings)
         queue = injector.getInstance(RequestQueue)
         queueMessageReceiver = injector.getInstance(QueueMessageReceiver)
-        buildResultCollator = injector.getInstance(BuildResultCollator)
+        buildResultCollator = injector.getInstance(BuildRecordCollator)
         projects = injector.getInstance(Projects.class)
     }
 
@@ -77,15 +77,15 @@ class QueueAndBuildFunctionalTest extends Specification {
         while (queueMessageReceiver.buildCompletions.isEmpty() && LocalDateTime.now().isBefore(timeout)) {
             Thread.sleep(100)
         }
-        BuildResult result = buildResultCollator.getResult(uid)
-        BuildResultValidator validator = new BuildResultValidator(result)
+        BuildRecord result = buildResultCollator.getResult(uid)
+        BuildRecordValidator validator = new BuildRecordValidator(result)
         boolean valid = validator.validate()
         if (!valid) {
             println validator.errors
         }
         valid
         result.taskResults.size() == 1
-        TaskResult taskResult = new BuildResultWrapper(result).taskResult("Unit_Test")
+        TaskResult taskResult = new BuildRecordWrapper(result).taskResult("Unit_Test")
         taskResult.requestedAt.isAfter(result.requestedAt)
         taskResult.startedAt.isAfter(taskResult.requestedAt)
         taskResult.completedAt.isAfter(taskResult.requestedAt)

@@ -14,18 +14,18 @@ import java.util.*
  *
  * Created by David Sowerby on 08 Jan 2017
  */
-data class DefaultBuildRequest @Inject constructor(val buildFactory: BuildFactory,
-                                                   val globalBusProvider: GlobalBusProvider,
-                                                   @Assisted override val gitHash: GitSHA,
-                                                   @Assisted override val project: Project,
-                                                   @Assisted override val uid: UUID) : BuildRequest {
+data class DefaultBuildRunner @Inject constructor(val buildFactory: BuildFactory,
+                                                  val globalBusProvider: GlobalBusProvider,
+                                                  @Assisted override val gitHash: GitSHA,
+                                                  @Assisted override val project: Project,
+                                                  @Assisted override val uid: UUID) : BuildRunner {
     private val log = LoggerFactory.getLogger(this.javaClass.name)
 
     override fun run() {
         try {
             log.debug("creating build instance")
             val build = buildFactory.create(this)
-            log.debug("executing build instance, project '{}' build number: {}", build.buildRequest.project.shortProjectName, build.buildNumber())
+            log.debug("executing build instance, project '{}' build number: {}", build.buildRunner.project.shortProjectName, build.buildNumber())
             build.execute()
         } catch (e: Exception) {
             globalBusProvider.get().publish(BuildFailedMessage(uid, e))

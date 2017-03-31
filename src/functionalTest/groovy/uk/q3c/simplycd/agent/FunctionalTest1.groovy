@@ -2,8 +2,8 @@ package uk.q3c.simplycd.agent
 
 import groovy.json.JsonOutput
 import ratpack.http.client.RequestSpec
+import uk.q3c.simplycd.agent.api.BuildRequest
 import uk.q3c.simplycd.agent.app.ConstantsKt
-import uk.q3c.simplycd.agent.queue.BuildRequestRequest
 
 /**
  * Created by David Sowerby on 21 Mar 2017
@@ -16,7 +16,7 @@ class FunctionalTest1 extends FunctionalTestBase {
         given:
         final String fullProjectName = "davidsowerby/q3c-testUtil"
         final String commitId = "91a5818aced677660f0e25a7c57aa73601d8deb8"
-        BuildRequestRequest buildRequest = new BuildRequestRequest(fullProjectName, commitId)
+        BuildRequest buildRequest = new BuildRequest(fullProjectName, commitId)
 
 
         when:

@@ -2,7 +2,7 @@ package uk.q3c.simplycd.agent.build
 
 import uk.q3c.build.gitplus.GitSHA
 import uk.q3c.simplycd.agent.project.Project
-import uk.q3c.simplycd.agent.queue.BuildRequest
+import uk.q3c.simplycd.agent.queue.BuildRunner
 import java.util.*
 
 /**
@@ -10,5 +10,5 @@ import java.util.*
  */
 interface BuildRequestFactory {
 
-    fun create(project: Project, gitSHA: GitSHA, uid: UUID): BuildRequest
+    fun create(project: Project, gitSHA: GitSHA, uid: UUID): BuildRunner
 }

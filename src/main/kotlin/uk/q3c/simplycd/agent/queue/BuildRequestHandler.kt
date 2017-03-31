@@ -8,7 +8,8 @@ import ratpack.http.HttpMethod
 import ratpack.jackson.Jackson
 import uk.q3c.build.gitplus.GitSHA
 import uk.q3c.rest.hal.HalMapper
-import uk.q3c.simplycd.agent.api.BuildRequestRequest
+import uk.q3c.simplycd.agent.api.BuildRequest
+import uk.q3c.simplycd.agent.api.BuildRequestResponse
 import uk.q3c.simplycd.agent.app.AbstractHandler
 import uk.q3c.simplycd.agent.app.ErrorResponseBuilder
 import uk.q3c.simplycd.agent.i18n.DeveloperErrorMessageKey
@@ -33,13 +34,13 @@ class BuildRequestHandler @Inject constructor(
 
     private val log = LoggerFactory.getLogger(this.javaClass.name)
     override fun post(context: Context) {
-        context.parse(Jackson.fromJson(BuildRequestRequest::class.java))
-                .then { buildRequestRequest ->
-                    log.debug("processing build request for project: '{}'", buildRequestRequest.projectFullName)
+        context.parse(Jackson.fromJson(BuildRequest::class.java))
+                .then { buildRequest ->
+                    log.debug("processing build request for project: '{}'", buildRequest.projectFullName)
                     try {
-                        val project = projects.getProject(buildRequestRequest)
-                        val uid = requestQueue.addRequest(project, GitSHA(buildRequestRequest.commitId))
-                        val response = BuildRequestResponse(buildRequestRequest, uid)
+                        val project = projects.getProject(buildRequest)
+                        val uid = requestQueue.addRequest(project, GitSHA(buildRequest.commitId))
+                        val response = BuildRequestResponse(buildRequest, uid)
                         context.response.status(202)
                         context.render(Jackson.json(response))
                     } catch (e: Exception) {

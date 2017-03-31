@@ -27,7 +27,7 @@ class DefaultConnectBuildToGradle @Inject constructor(val requestQueue: RequestQ
         val connector = GradleConnector.newConnector()
         connector.forProjectDirectory(projectDir)
         // we need a way of stopping the Gradle build externally
-        requestQueue.stoppers.put(build.buildRequest, GradleConnector.newCancellationTokenSource())
+        requestQueue.stoppers.put(build.buildRunner, GradleConnector.newCancellationTokenSource())
         val connection = connector.connect()
         log.info("Gradle connected to build at {}", projectDir)
 

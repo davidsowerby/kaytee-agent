@@ -4,7 +4,7 @@ import org.apache.commons.io.FileUtils
 import uk.q3c.simplycd.agent.build.BuildPreparationException
 import uk.q3c.simplycd.agent.i18n.LabelKey
 import uk.q3c.simplycd.agent.queue.GradleTaskExecutor
-import uk.q3c.simplycd.agent.queue.GradleTaskRequest
+import uk.q3c.simplycd.agent.queue.GradleTaskRunner
 import uk.q3c.util.testutil.TestResource
 /**
  * Created by David Sowerby on 20 Jan 2017
@@ -14,7 +14,7 @@ class DefaultLoadBuildConfigurationTest extends PreparationStepSpecification {
 
     DefaultLoadBuildConfiguration step
     GradleTaskExecutor gradleTaskExecutor = Mock(GradleTaskExecutor)
-    GradleTaskRequest gradleTaskRequest = Mock(GradleTaskRequest)
+    GradleTaskRunner gradleTaskRequest = Mock(GradleTaskRunner)
 
 
     def setup() {
@@ -45,7 +45,7 @@ class DefaultLoadBuildConfigurationTest extends PreparationStepSpecification {
 
     def "execute successfully"() {
         given:
-        GradleTaskRequest gradleTaskRequest = Mock(GradleTaskRequest)
+        GradleTaskRunner gradleTaskRequest = Mock(GradleTaskRunner)
         gradleTaskRequestFactory.create(_, _) >> gradleTaskRequest
         File ref = TestResource.resource(this, 'simplycd.json')
         File target = new File(codeDir, "build/simplycd.json")

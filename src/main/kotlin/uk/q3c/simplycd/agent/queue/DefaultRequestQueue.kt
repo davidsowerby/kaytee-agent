@@ -36,7 +36,7 @@ class DefaultRequestQueue @Inject constructor(
 
     private val log = LoggerFactory.getLogger(this.javaClass.name)
     private val executor = ThreadPoolExecutor(5, 5, 1, TimeUnit.MINUTES, LinkedBlockingQueue<Runnable>())
-    override val stoppers: ConcurrentHashMap<BuildRequest, CancellationTokenSource> = ConcurrentHashMap()
+    override val stoppers: ConcurrentHashMap<BuildRunner, CancellationTokenSource> = ConcurrentHashMap()
 
     init {
         Thread.setDefaultUncaughtExceptionHandler(ThreadExceptionHandler())
@@ -52,21 +52,21 @@ class DefaultRequestQueue @Inject constructor(
         return uid
     }
 
-    override fun addRequest(taskRequest: TaskRequest) {
-        globalBusProvider.get().publish(TaskRequestedMessage(taskRequest.build.buildRequest.uid, taskRequest.taskKey))
-        executor.submit(taskRequest)
+    override fun addRequest(taskRunner: TaskRunner) {
+        globalBusProvider.get().publish(TaskRequestedMessage(taskRunner.build.buildRunner.uid, taskRunner.taskKey))
+        executor.submit(taskRunner)
     }
 
     //TODo there is a very small possibility that a build hasn't actually started when this is received even though
     // the stopper has been registered.  Best way to deal with that?
-    override fun stopBuild(buildRequest: BuildRequest) {
+    override fun stopBuild(buildRunner: BuildRunner) {
         synchronized(stoppers) {
-            val stopper: CancellationTokenSource? = stoppers.get(buildRequest)
+            val stopper: CancellationTokenSource? = stoppers.get(buildRunner)
             if (stopper == null) {
-                userNotifyInfo(Build_Request_Stop_Not_Found, buildRequest)
+                userNotifyInfo(Build_Request_Stop_Not_Found, buildRunner)
             } else {
                 stopper.cancel()
-                userNotifyInfo(Build_Request_Stop_Sent, buildRequest)
+                userNotifyInfo(Build_Request_Stop_Sent, buildRunner)
             }
         }
     }

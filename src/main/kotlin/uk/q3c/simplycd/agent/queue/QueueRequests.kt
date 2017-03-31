@@ -7,7 +7,7 @@ import uk.q3c.simplycd.agent.project.Project
 import java.util.*
 
 /**
- * Common interface for both [BuildRequest] and [TaskRequest].  Both use the same [RequestQueue]
+ * Common interface for both [BuildRunner] and [TaskRunner].  Both use the same [RequestQueue]
  * Created by David Sowerby on 25 Jan 2017
  */
 interface QueueRequest : Runnable {
@@ -15,18 +15,18 @@ interface QueueRequest : Runnable {
 }
 
 
-interface BuildRequest : ProjectInstance, QueueRequest {
+interface BuildRunner : ProjectInstance, QueueRequest {
     val uid: UUID
 }
 
 
-interface TaskRequest : QueueRequest {
+interface TaskRunner : QueueRequest {
     val build: Build
     val taskKey: TaskKey
 }
 
-interface GradleTaskRequest : TaskRequest
-interface ManualTaskRequest : TaskRequest
+interface GradleTaskRunner : TaskRunner
+interface ManualTaskRunner : TaskRunner
 
 
 interface ProjectInstance {
@@ -34,10 +34,10 @@ interface ProjectInstance {
     val project: Project
 }
 
-interface GradleTaskRequestFactory {
-    fun create(build: Build, taskKey: TaskKey): GradleTaskRequest
+interface GradleTaskRunnerFactory {
+    fun create(build: Build, taskKey: TaskKey): GradleTaskRunner
 }
 
-interface ManualTaskRequestFactory {
-    fun create(build: Build, taskKey: TaskKey): ManualTaskRequest
+interface ManualTaskRunnerFactory {
+    fun create(build: Build, taskKey: TaskKey): ManualTaskRunner
 }

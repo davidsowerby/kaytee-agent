@@ -16,12 +16,12 @@ interface RequestQueue {
      * Gradle uses instances of [CancellationTokenSource] to stop a running build.  When the connection is made to Gradle,
      * a stopper is added so that a request to stopo the job can be executed from the queue
      */
-    val stoppers: ConcurrentHashMap<BuildRequest, CancellationTokenSource>
+    val stoppers: ConcurrentHashMap<BuildRunner, CancellationTokenSource>
 
     /**
      * Add a queueRequest to the queue.  Requests may be for a full build of all the steps which are enabled within the
      * 'simplycd' configuration of the project's build.gradle file, or they are individual tasks within a build.
-     * The original [BuildRequest] is broken down into a sequence of [TaskRequest]s, which are placed onto the queue
+     * The original [BuildRunner] is broken down into a sequence of [TaskRunner]s, which are placed onto the queue
      *
      * @param project the project to build
      * @param gitSHA the Git commit id to build
@@ -31,9 +31,9 @@ interface RequestQueue {
     fun addRequest(project: Project, gitSHA: GitSHA): UUID
 
     /**
-     * Add a [TaskRequest] to the queue
+     * Add a [TaskRunner] to the queue
      */
-    fun addRequest(taskRequest: TaskRequest)
+    fun addRequest(taskRunner: TaskRunner)
 
     /**
      * Returns the number of requests currently in the queue
@@ -53,9 +53,9 @@ interface RequestQueue {
     fun contains(queueRequest: QueueRequest): Boolean
 
     /**
-     * Attempts to stop a currently executing [BuildRequest].  Uses a Gradle [CancellationTokenSource] to stop a Gradle
+     * Attempts to stop a currently executing [BuildRunner].  Uses a Gradle [CancellationTokenSource] to stop a Gradle
      * build.  Ignored if the request is not being built at the time
      */
-    fun stopBuild(buildRequest: BuildRequest)
+    fun stopBuild(buildRunner: BuildRunner)
 
 }

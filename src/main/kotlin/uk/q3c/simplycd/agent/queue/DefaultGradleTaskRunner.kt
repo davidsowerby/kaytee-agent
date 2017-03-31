@@ -15,10 +15,10 @@ import uk.q3c.simplycd.agent.i18n.TaskResultStateKey
  *
  * Created by David Sowerby on 26 Jan 2017
  */
-class DefaultGradleTaskRequest @Inject constructor(globalBusProvider: GlobalBusProvider, val gradleTaskExecutor: GradleTaskExecutor, @Assisted build: Build, @Assisted taskKey: TaskKey) :
+class DefaultGradleTaskRunner @Inject constructor(globalBusProvider: GlobalBusProvider, val gradleTaskExecutor: GradleTaskExecutor, @Assisted build: Build, @Assisted taskKey: TaskKey) :
 
-        GradleTaskRequest,
-        AbstractTaskRequest(build, taskKey, globalBusProvider.get()) {
+        GradleTaskRunner,
+        AbstractTaskRunner(build, taskKey, globalBusProvider.get()) {
 
     private val log = LoggerFactory.getLogger(this.javaClass.name)
 
@@ -26,11 +26,11 @@ class DefaultGradleTaskRequest @Inject constructor(globalBusProvider: GlobalBusP
         try {
             gradleTaskExecutor.execute(build, taskKey)
             log.info("Build successful for {}", identity())
-            val outcome = TaskSuccessfulMessage(build.buildRequest.uid, taskKey)
+            val outcome = TaskSuccessfulMessage(build.buildRunner.uid, taskKey)
             globalBus.publish(outcome)
         } catch (e: Exception) {
             log.info("Build failed for {}", identity())
-            val outcome = TaskFailedMessage(build.buildRequest.uid, taskKey, TaskResultStateKey.Task_Failed)
+            val outcome = TaskFailedMessage(build.buildRunner.uid, taskKey, TaskResultStateKey.Task_Failed)
             globalBus.publish(outcome)
         }
     }

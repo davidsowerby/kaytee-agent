@@ -36,7 +36,7 @@ class Soak_ITest extends Specification {
     TemporaryFolder temporaryFolder
     File temp
 
-    BuildResultCollator resultCollator
+    BuildRecordCollator resultCollator
 
     RequestQueue queue
     Project projectA
@@ -77,8 +77,8 @@ class Soak_ITest extends Specification {
             bind(ManualTaskLauncher.class).to(MockManualTaskLauncher.class)
             bind(QueueMessageReceiver)
             install(new FactoryModuleBuilder()
-                    .implement(GradleTaskRequest.class, DefaultGradleTaskRequest.class)
-                    .build(GradleTaskRequestFactory.class))
+                    .implement(GradleTaskRunner.class, DefaultGradleTaskRunner.class)
+                    .build(GradleTaskRunnerFactory.class))
         }
     }
 
@@ -147,7 +147,7 @@ class Soak_ITest extends Specification {
         queue = injector.getInstance(RequestQueue)
         InstallationInfo installationInfo = injector.getInstance(InstallationInfo)
         installationInfo.dataDirRoot = temp
-        resultCollator = injector.getInstance(BuildResultCollator)
+        resultCollator = injector.getInstance(BuildRecordCollator)
     }
 
     def cleanup() {
@@ -177,8 +177,8 @@ class Soak_ITest extends Specification {
         boolean allComplete = true
         List<String> validationErrors = new ArrayList<>()
 
-        for (BuildResult result : resultCollator.results.values()) {
-            BuildResultValidator resultValidator = new BuildResultValidator(result)
+        for (BuildRecord result : resultCollator.results.values()) {
+            BuildRecordValidator resultValidator = new BuildRecordValidator(result)
             if (!result.requestedCompleted()) {
                 allComplete = false
             } else {

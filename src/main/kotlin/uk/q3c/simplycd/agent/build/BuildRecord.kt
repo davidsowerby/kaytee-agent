@@ -15,12 +15,12 @@ import java.util.*
 /**
  * Collates the results for a build.
  *
- * [tasksResults] is synchronised because parallel tasks could cause contention here.  Other properties would only be
- * accessed sequentially
+ * [tasksResults] is synchronised because parallel tasks could cause contention here.  [state] is also synchronised, but
+ * other properties would only be accessed sequentially, and therefore not be subject to contention
  *
  * Created by David Sowerby on 13 Jan 2017
  */
-class BuildResult(val buildRequestId: UUID, val requestedAt: OffsetDateTime) : HalResource() {
+class BuildRecord(val buildRequestId: UUID, val requestedAt: OffsetDateTime) : HalResource() {
     var preparationStartedAt: OffsetDateTime = OffsetDateTime.MIN
     var preparationCompletedAt: OffsetDateTime = OffsetDateTime.MIN
     var buildStartedAt: OffsetDateTime = OffsetDateTime.MIN
@@ -40,7 +40,7 @@ class BuildResult(val buildRequestId: UUID, val requestedAt: OffsetDateTime) : H
     }
 
     fun validate(): Boolean {
-        return BuildResultValidator(this).validate()
+        return BuildRecordValidator(this).validate()
     }
 
     fun taskResult(task: TaskKey): TaskResult {
@@ -107,20 +107,20 @@ class TaskResult(val task: TaskKey, val requestedAt: OffsetDateTime) {
     }
 }
 
-class BuildResultValidator(val result: BuildResult) {
+class BuildRecordValidator(val record: BuildRecord) {
     private val log = LoggerFactory.getLogger(this.javaClass.name)
     val errors: MutableList<String> = mutableListOf()
     lateinit var validatedAt: BuildStateKey
     fun validate(): Boolean {
-        log.debug("Validating {}", result.buildRequestId)
-        when (result.state) {
+        log.debug("Validating {}", record.buildRequestId)
+        when (record.state) {
             Not_Started -> {
-                shouldNotBeSet("preparationStartedAt", result.preparationStartedAt)
-                shouldNotBeSet("preparationCompletedAt", result.preparationCompletedAt)
+                shouldNotBeSet("preparationStartedAt", record.preparationStartedAt)
+                shouldNotBeSet("preparationCompletedAt", record.preparationCompletedAt)
             }
             Preparation_Started -> {
-                shouldBeSet("preparationStartedAt", result.preparationStartedAt)
-                shouldNotBeSet("preparationCompletedAt", result.preparationCompletedAt)
+                shouldBeSet("preparationStartedAt", record.preparationStartedAt)
+                shouldNotBeSet("preparationCompletedAt", record.preparationCompletedAt)
                 buildEmpty()
             }
             Preparation_Successful -> {
@@ -133,11 +133,11 @@ class BuildResultValidator(val result: BuildResult) {
             }
             Build_Started -> {
                 preparation()
-                shouldBeSet("buildStartedAt", result.buildStartedAt)
+                shouldBeSet("buildStartedAt", record.buildStartedAt)
                 tasksShouldNotBeEmpty()
             }
             Build_Failed -> {
-                if (result.causeOfFailure == Build_Configuration) {
+                if (record.causeOfFailure == Build_Configuration) {
                     buildEmpty()
                     noTaskFailed()
                 } else {
@@ -154,7 +154,7 @@ class BuildResultValidator(val result: BuildResult) {
                 noTaskFailed()
             }
         }
-        validatedAt = result.state
+        validatedAt = record.state
 
         if (errors.isNotEmpty()) {
             log.error("BuildResult validated at '{}', produces errors: \n {}", validatedAt, errors.toString())
@@ -166,8 +166,8 @@ class BuildResultValidator(val result: BuildResult) {
      * No tasks - would only be if preparation failed, or build start failed
      */
     private fun buildEmpty() {
-        shouldNotBeSet("buildStartedAt", result.buildStartedAt)
-        shouldNotBeSet("buildCompletedAt", result.buildCompletedAt)
+        shouldNotBeSet("buildStartedAt", record.buildStartedAt)
+        shouldNotBeSet("buildCompletedAt", record.buildCompletedAt)
         tasksShouldBeEmpty()
     }
 
@@ -176,8 +176,8 @@ class BuildResultValidator(val result: BuildResult) {
      */
     private fun buildNotEmpty() {
         preparation()
-        shouldBeSet("buildStartedAt", result.buildStartedAt)
-        shouldBeSet("buildCompletedAt", result.buildCompletedAt)
+        shouldBeSet("buildStartedAt", record.buildStartedAt)
+        shouldBeSet("buildCompletedAt", record.buildCompletedAt)
         tasksShouldNotBeEmpty()
     }
 
@@ -186,14 +186,14 @@ class BuildResultValidator(val result: BuildResult) {
      */
     private fun taskFailed() {
         var noneFailed = true
-        for (taskResult in result.taskResults.values) {
+        for (taskResult in record.taskResults.values) {
             if (taskResult.failed()) {
                 noneFailed = false
                 break
             }
         }
         if (noneFailed) {
-            errors.add("At least one task should be in a 'failed' state when causeOfFailure is: ${result.causeOfFailure}")
+            errors.add("At least one task should be in a 'failed' state when causeOfFailure is: ${record.causeOfFailure}")
         }
     }
 
@@ -202,7 +202,7 @@ class BuildResultValidator(val result: BuildResult) {
      */
     private fun noTaskFailed() {
         var noneFailed = true
-        for (taskResult in result.taskResults.values) {
+        for (taskResult in record.taskResults.values) {
             if (taskResult.failed()) {
                 noneFailed = false
                 break
@@ -218,7 +218,7 @@ class BuildResultValidator(val result: BuildResult) {
      */
     private fun taskCancelled() {
         var noneCancelled = true
-        for (taskResult in result.taskResults.values) {
+        for (taskResult in record.taskResults.values) {
             if (taskResult.cancelled()) {
                 noneCancelled = false
                 break
@@ -233,7 +233,7 @@ class BuildResultValidator(val result: BuildResult) {
      * Build has been requested
      */
     private fun requested() {
-        shouldBeSet("requestedAt", result.requestedAt)
+        shouldBeSet("requestedAt", record.requestedAt)
     }
 
     /**
@@ -241,8 +241,8 @@ class BuildResultValidator(val result: BuildResult) {
      */
     private fun preparation() {
         requested()
-        mustBeLaterOrEqual("preparationStartedAt", "requestedAt", result.preparationStartedAt, result.requestedAt)
-        mustBeLaterOrEqual("preparationCompletedAt", "preparationStartedAt", result.preparationCompletedAt, result.preparationStartedAt)
+        mustBeLaterOrEqual("preparationStartedAt", "requestedAt", record.preparationStartedAt, record.requestedAt)
+        mustBeLaterOrEqual("preparationCompletedAt", "preparationStartedAt", record.preparationCompletedAt, record.preparationStartedAt)
     }
 
     fun compare(valid: Boolean, failMessage: String) {
@@ -265,11 +265,11 @@ class BuildResultValidator(val result: BuildResult) {
     }
 
     fun tasksShouldBeEmpty() {
-        compare(result.taskResults.isEmpty(), "taskResults should be empty")
+        compare(record.taskResults.isEmpty(), "taskResults should be empty")
     }
 
     fun tasksShouldNotBeEmpty() {
-        compare(result.taskResults.isNotEmpty(), "taskResults should not be empty")
+        compare(record.taskResults.isNotEmpty(), "taskResults should not be empty")
     }
 
 

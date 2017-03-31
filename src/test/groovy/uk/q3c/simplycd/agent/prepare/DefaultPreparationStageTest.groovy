@@ -8,7 +8,7 @@ import uk.q3c.simplycd.agent.eventbus.GlobalBusProvider
 import uk.q3c.simplycd.agent.i18n.LabelKey
 import uk.q3c.simplycd.agent.i18n.NamedFactory
 import uk.q3c.simplycd.agent.project.Project
-import uk.q3c.simplycd.agent.queue.BuildRequest
+import uk.q3c.simplycd.agent.queue.BuildRunner
 import uk.q3c.simplycd.agent.queue.PreparationStartedMessage
 import uk.q3c.simplycd.agent.queue.PreparationSuccessfulMessage
 import uk.q3c.simplycd.i18n.Named
@@ -29,16 +29,16 @@ class DefaultPreparationStageTest extends Specification {
     Named named = Mock(Named)
     GlobalBusProvider busProvider = Mock(GlobalBusProvider)
     PubSubSupport<BusMessage> globalBus = Mock(PubSubSupport)
-    BuildRequest buildRequest = Mock(BuildRequest)
+    BuildRunner buildRunner = Mock(BuildRunner)
     ConnectBuildToGradle connectBuildToGradle = Mock(ConnectBuildToGradle)
     UUID uid = UUID.randomUUID()
 
     void setup() {
         namedFactory.create(LabelKey.Preparation_Stage) >> named
         named.name() >> "Preparation Stage"
-        build.buildRequest >> buildRequest
-        buildRequest.identity() >> "whatever"
-        buildRequest.uid >> uid
+        build.buildRunner >> buildRunner
+        buildRunner.identity() >> "whatever"
+        buildRunner.uid >> uid
         busProvider.get() >> globalBus
     }
 
@@ -55,7 +55,7 @@ class DefaultPreparationStageTest extends Specification {
 
         then:
         stage.name() == "Preparation Stage"
-        1 * globalBus.publish(new PreparationStartedMessage(buildRequest.uid))
+        1 * globalBus.publish(new PreparationStartedMessage(buildRunner.uid))
 
         stage.steps.size() == 4
         stage.steps.get(0) == prepareWorkspace
@@ -73,7 +73,7 @@ class DefaultPreparationStageTest extends Specification {
         loadBuildConfiguration.execute(build)
 
         then:
-        1 * globalBus.publish(new PreparationSuccessfulMessage(buildRequest.uid))
+        1 * globalBus.publish(new PreparationSuccessfulMessage(buildRunner.uid))
 
     }
 }

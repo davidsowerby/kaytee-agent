@@ -1,6 +1,6 @@
 package uk.q3c.simplycd.agent.project
 
-import uk.q3c.simplycd.agent.api.BuildRequestRequest
+import uk.q3c.simplycd.agent.api.BuildRequest
 import uk.q3c.simplycd.agent.app.InvalidPropertyValueException
 import java.util.*
 
@@ -9,7 +9,7 @@ import java.util.*
  */
 class DefaultProjects : Projects {
 
-    override fun getProject(buildRequestRequest: BuildRequestRequest): Project {
+    override fun getProject(buildRequestRequest: BuildRequest): Project {
         return getProject(buildRequestRequest.projectFullName)
     }
 

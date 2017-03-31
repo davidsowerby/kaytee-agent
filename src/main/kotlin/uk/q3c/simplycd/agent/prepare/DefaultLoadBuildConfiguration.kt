@@ -8,7 +8,7 @@ import uk.q3c.simplycd.agent.i18n.LabelKey
 import uk.q3c.simplycd.agent.i18n.NamedFactory
 import uk.q3c.simplycd.agent.i18n.TaskKey
 import uk.q3c.simplycd.agent.queue.GradleTaskExecutor
-import uk.q3c.simplycd.agent.queue.GradleTaskRequestFactory
+import uk.q3c.simplycd.agent.queue.GradleTaskRunnerFactory
 import uk.q3c.simplycd.agent.system.InstallationInfo
 import uk.q3c.simplycd.i18n.Named
 import uk.q3c.simplycd.lifecycle.SimplyCDProjectExtension
@@ -19,7 +19,7 @@ import java.io.File
  */
 class DefaultLoadBuildConfiguration @Inject constructor(
         val installationInfo: InstallationInfo,
-        val gradleTaskRequestFactory: GradleTaskRequestFactory,
+        val gradleTaskRunnerFactory: GradleTaskRunnerFactory,
         val gradleTaskExecutor: GradleTaskExecutor,
         namedFactory: NamedFactory
 )

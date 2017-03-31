@@ -5,8 +5,8 @@ import org.jetbrains.annotations.NotNull
 import uk.q3c.simplycd.agent.eventbus.GlobalBusProvider
 import uk.q3c.simplycd.agent.i18n.BuildStateKey
 import uk.q3c.simplycd.agent.queue.ManualTaskLauncher
-import uk.q3c.simplycd.agent.queue.ManualTaskRequest
-import uk.q3c.simplycd.agent.queue.TaskRequest
+import uk.q3c.simplycd.agent.queue.ManualTaskRunner
+import uk.q3c.simplycd.agent.queue.TaskRunner
 import uk.q3c.simplycd.agent.queue.TaskSuccessfulMessage
 
 import java.time.LocalDateTime
@@ -20,9 +20,9 @@ class MockManualTaskLauncher implements ManualTaskLauncher {
     static class ManualTaskService implements Runnable {
 
         GlobalBusProvider globalBusProvider
-        TaskRequest taskRequest
+        TaskRunner taskRequest
 
-        ManualTaskService(GlobalBusProvider globalBusProvider, TaskRequest taskRequest) {
+        ManualTaskService(GlobalBusProvider globalBusProvider, TaskRunner taskRequest) {
             this.globalBusProvider = globalBusProvider
             this.taskRequest = taskRequest
         }
@@ -40,7 +40,7 @@ class MockManualTaskLauncher implements ManualTaskLauncher {
             }
             LocalDateTime end = LocalDateTime.now()
             BuildStateKey resultStateKey = randomiser.fail ? BuildStateKey.Build_Failed : BuildStateKey.Build_Successful
-            TaskSuccessfulMessage msg = new TaskSuccessfulMessage(taskRequest.build.buildRequest.uid, taskRequest.taskKey)
+            TaskSuccessfulMessage msg = new TaskSuccessfulMessage(taskRequest.build.getBuildRunner.uid, taskRequest.taskKey)
             globalBusProvider.get().publish(msg)
             println "Manual task completion message sent: $resultStateKey "
         }
@@ -52,7 +52,7 @@ class MockManualTaskLauncher implements ManualTaskLauncher {
     }
 
     @Override
-    void run(@NotNull ManualTaskRequest taskRequest) {
+    void run(@NotNull ManualTaskRunner taskRequest) {
 
         new Thread(new ManualTaskService(globalBusProvider, taskRequest)).run()
 

@@ -44,15 +44,15 @@ abstract class PreparationStepSpecification extends Specification {
     GlobalBusProvider busProvider = Mock(GlobalBusProvider)
     PreparationStage preparationStage = Mock(PreparationStage)
     RequestQueue requestQueue = Mock(RequestQueue)
-    GradleTaskRequestFactory gradleTaskRequestFactory = Mock(GradleTaskRequestFactory)
-    ManualTaskRequestFactory manualTaskRequestFactory = Mock(ManualTaskRequestFactory)
+    GradleTaskRunnerFactory gradleTaskRequestFactory = Mock(GradleTaskRunnerFactory)
+    ManualTaskRunnerFactory manualTaskRequestFactory = Mock(ManualTaskRunnerFactory)
     PubSubSupport<BusMessage> globalBus = Mock(PubSubSupport)
 
     def setup() {
         gitHash = new GitSHA(DigestUtils.sha1Hex('any'))
         project.shortProjectName >> projectName
         project.remoteUserName >> repoUserName
-        BuildRequest buildRequest = new DefaultBuildRequest(buildFactory, busProvider, gitHash, project, UUID.randomUUID())
+        BuildRunner buildRequest = new DefaultBuildRunner(buildFactory, busProvider, gitHash, project, UUID.randomUUID())
         build = new DefaultBuild(preparationStage, buildNumberReader, requestQueue, busProvider, gradleTaskRequestFactory, manualTaskRequestFactory, buildRequest)
         translate.from(_) >> translatedKey
         temp = temporaryFolder.getRoot()

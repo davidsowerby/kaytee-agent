@@ -29,12 +29,12 @@ class DefaultBuild @Inject constructor(
         val buildNumberReader: BuildNumberReader,
         val requestQueue: RequestQueue,
         val globalBusProvider: GlobalBusProvider,
-        val gradleTaskRequestFactory: GradleTaskRequestFactory,
-        val manualTaskRequestFactory: ManualTaskRequestFactory,
-        @Assisted override val buildRequest: BuildRequest) :
+        val gradleTaskRunnerFactory: GradleTaskRunnerFactory,
+        val manualTaskRunnerFactory: ManualTaskRunnerFactory,
+        @Assisted override val buildRunner: BuildRunner) :
 
         Build,
-        ProjectInstance by buildRequest {
+        ProjectInstance by buildRunner {
 
 
     private val log = LoggerFactory.getLogger(this.javaClass.name)
@@ -45,14 +45,14 @@ class DefaultBuild @Inject constructor(
     lateinit override var gradleLauncher: BuildLauncher
 
     private val results: MutableList<TaskKey> = mutableListOf()
-    private val taskRequests = ArrayDeque<TaskRequest>()
+    private val taskRunners = ArrayDeque<TaskRunner>()
     private val completedTasksLock = Any()
-    private var generatedTaskRequests: Int = 0
+    private var generatedTaskRunners: Int = 0
 
     private var buildNumber: Int = -1
         get() {
             if (field < 0) {
-                buildNumber = buildNumberReader.nextBuildNumber(buildRequest.project.shortProjectName)
+                buildNumber = buildNumberReader.nextBuildNumber(buildRunner.project.shortProjectName)
             }
             return field
         }
@@ -63,7 +63,7 @@ class DefaultBuild @Inject constructor(
         synchronized(completedTasksLock) {
             results.add(taskKey)
             if (passed) {
-                if (results.size < generatedTaskRequests) {
+                if (results.size < generatedTaskRunners) {
                     pushTaskToRequestQueue()
                 } else {
                     closeBuild(true, busMessage)
@@ -89,7 +89,7 @@ class DefaultBuild @Inject constructor(
      * both *auto* and *manual* properties are set, two tasks are created, with the auto task to run first
      */
     override fun configure(configuration: SimplyCDProjectExtension) {
-        synchronized(taskRequests) {
+        synchronized(taskRunners) {
             setupTasks(configuration.unitTest, TaskKey.Unit_Test, TaskKey.Unit_Test_Quality_Gate)
             setupTasks(configuration.integrationTest, TaskKey.Integration_Test, TaskKey.Integration_Test_Quality_Gate)
             setupTasks(configuration.functionalTest, TaskKey.Functional_Test, TaskKey.Functional_Test_Quality_Gate)
@@ -101,12 +101,12 @@ class DefaultBuild @Inject constructor(
 
     private fun pushTaskToRequestQueue() {
         synchronized(completedTasksLock) {
-            if (taskRequests.isNotEmpty()) {
-                val taskRequest = taskRequests.poll()
-                log.debug("Adding task '{}' to queue for processing", taskRequest.identity())
-                requestQueue.addRequest(taskRequest)
+            if (taskRunners.isNotEmpty()) {
+                val taskRunner = taskRunners.poll()
+                log.debug("Adding task '{}' to queue for processing", taskRunner.identity())
+                requestQueue.addRequest(taskRunner)
             } else {
-                log.error("Attempted to push task from empty taskRequests {}", buildRequest.identity())
+                log.error("Attempted to push task from empty taskRunners {}", buildRunner.identity())
             }
         }
     }
@@ -143,7 +143,7 @@ class DefaultBuild @Inject constructor(
     @Handler
     fun taskCompleted(message: TaskSuccessfulMessage) {
         // filter for messages which apply to this build - probably could make better use of MBassador filtering
-        if (message.buildRequestId == this.buildRequest.uid) {
+        if (message.buildRequestId == this.buildRunner.uid) {
             log.debug("Received completion message for task: {}", message.taskKey)
             closeTask(message.taskKey, true, message)
         }
@@ -152,7 +152,7 @@ class DefaultBuild @Inject constructor(
     @Handler
     fun taskCompleted(message: TaskFailedMessage) {
         // filter for messages which apply to this build - probably could make better use of MBassador filtering
-        if (message.buildRequestId == this.buildRequest.uid) {
+        if (message.buildRequestId == this.buildRunner.uid) {
             log.debug("Received completion message for task: {}", message.taskKey)
             closeTask(message.taskKey, false, message)
         }
@@ -161,11 +161,11 @@ class DefaultBuild @Inject constructor(
 
     private fun closeBuild(passed: Boolean, busMessage: BusMessage) {
         if (passed) {
-            globalBusProvider.get().publish(BuildSuccessfulMessage(buildRequest.uid))
+            globalBusProvider.get().publish(BuildSuccessfulMessage(buildRunner.uid))
         } else {
             if (busMessage is TaskFailedMessage) {
                 val exception = TaskException(busMessage.result)
-                globalBusProvider.get().publish(BuildFailedMessage(buildRequest.uid, exception))
+                globalBusProvider.get().publish(BuildFailedMessage(buildRunner.uid, exception))
             } else {
                 throw QueueException("Only a TaskFailedMessage should get this far")
             }
@@ -176,26 +176,26 @@ class DefaultBuild @Inject constructor(
 
 
     /**
-     * Creates a [SubBuildTask] and adds it to [taskRequests]
+     * Creates a [SubBuildTask] and adds it to [taskRunners]
      */
     private fun createSubBuildTask(taskNameKey: TaskKey, config: SimplyCDProjectExtension.GroupConfig) {
         TODO()
     }
 
     /**
-     * Creates a [GradleTask] and adds it to [taskRequests]
+     * Creates a [GradleTask] and adds it to [taskRunners]
      */
     private fun createLocalGradleTask(taskKey: TaskKey, config: SimplyCDProjectExtension.GroupConfig) {
-        val taskRequest = gradleTaskRequestFactory.create(build = this, taskKey = taskKey)
-        taskRequests.add(taskRequest)
+        val taskRunner = gradleTaskRunnerFactory.create(build = this, taskKey = taskKey)
+        taskRunners.add(taskRunner)
     }
 
     /**
-     * Creates a [ManualTask] and adds it to [taskRequests]
+     * Creates a [ManualTask] and adds it to [taskRunners]
      */
     private fun createManualTask(taskKey: TaskKey, config: SimplyCDProjectExtension.GroupConfig) {
-        val taskRequest = manualTaskRequestFactory.create(build = this, taskKey = taskKey)
-        taskRequests.add(taskRequest)
+        val taskRunner = manualTaskRunnerFactory.create(build = this, taskKey = taskKey)
+        taskRunners.add(taskRunner)
     }
 
 
@@ -206,20 +206,20 @@ class DefaultBuild @Inject constructor(
             preparationStage.execute(this)
         } catch (e: Exception) {
             log.debug("preparation failed", e)
-            globalBusProvider.get().publish(PreparationFailedMessage(buildRequest.uid, e))
+            globalBusProvider.get().publish(PreparationFailedMessage(buildRunner.uid, e))
             return
         }
-        generatedTaskRequests = taskRequests.size
-        log.debug("Build {} has {} tasks to execute", buildRequest.identity(), generatedTaskRequests)
-        if (taskRequests.isNotEmpty()) {
+        generatedTaskRunners = taskRunners.size
+        log.debug("Build {} has {} tasks to execute", buildRunner.identity(), generatedTaskRunners)
+        if (taskRunners.isNotEmpty()) {
             // in effect this starts the build proper - the first task is placed into the queue, and as the task requests are
             // completed, another is pushed to the request queue until the build completes or fails
             pushTaskToRequestQueue()
-            globalBusProvider.get().publish(BuildStartedMessage(buildRequest.uid, buildNumber))
+            globalBusProvider.get().publish(BuildStartedMessage(buildRunner.uid, buildNumber))
         } else {
             // there is nothing to do
             val msg = "There were no tasks to carry out, check the simplycd configuration in build.gradle, they may all be disabled"
-            globalBusProvider.get().publish(BuildFailedMessage(buildRequest.uid, BuildConfigurationException()))
+            globalBusProvider.get().publish(BuildFailedMessage(buildRunner.uid, BuildConfigurationException()))
         }
     }
 

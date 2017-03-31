@@ -1,6 +1,6 @@
 package uk.q3c.simplycd.agent.build
 
-import uk.q3c.simplycd.agent.queue.BuildRequest
+import uk.q3c.simplycd.agent.queue.BuildRunner
 
 
 /**
@@ -8,5 +8,5 @@ import uk.q3c.simplycd.agent.queue.BuildRequest
  */
 interface BuildFactory {
 
-    fun create(buildRequest: BuildRequest): Build
+    fun create(buildRunner: BuildRunner): Build
 }

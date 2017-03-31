@@ -16,16 +16,16 @@ public class QueueModule extends AbstractModule {
         bind(GradleTaskExecutor.class).to(DefaultGradleTaskExecutor.class);
 
         install(new FactoryModuleBuilder()
-                .implement(BuildRequest.class, DefaultBuildRequest.class)
+                .implement(BuildRunner.class, DefaultBuildRunner.class)
                 .build(BuildRequestFactory.class));
 
         install(new FactoryModuleBuilder()
-                .implement(GradleTaskRequest.class, DefaultGradleTaskRequest.class)
-                .build(GradleTaskRequestFactory.class));
+                .implement(GradleTaskRunner.class, DefaultGradleTaskRunner.class)
+                .build(GradleTaskRunnerFactory.class));
 
         install(new FactoryModuleBuilder()
-                .implement(ManualTaskRequest.class, DefaultManualTaskRequest.class)
-                .build(ManualTaskRequestFactory.class));
+                .implement(ManualTaskRunner.class, DefaultManualTaskRunner.class)
+                .build(ManualTaskRunnerFactory.class));
     }
 
 

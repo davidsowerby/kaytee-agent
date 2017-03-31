@@ -7,8 +7,8 @@ import uk.q3c.simplycd.agent.build.Build
 import uk.q3c.simplycd.agent.build.BuildFactory
 import uk.q3c.simplycd.agent.eventbus.GlobalBusProvider
 import uk.q3c.simplycd.agent.project.Project
-import uk.q3c.simplycd.agent.queue.BuildRequest
-import uk.q3c.simplycd.agent.queue.DefaultBuildRequest
+import uk.q3c.simplycd.agent.queue.BuildRunner
+import uk.q3c.simplycd.agent.queue.DefaultBuildRunner
 
 /**
  * Created by David Sowerby on 14 Jan 2017
@@ -17,7 +17,7 @@ class DefaultInstallationInfoTest extends Specification {
 
     DefaultInstallationInfo info
     Build build = Mock(Build)
-    BuildRequest buildRequest
+    BuildRunner buildRequest
     Project project = Mock(Project)
     String sha = DigestUtils.sha1Hex('x')
     BuildFactory buildFactory = Mock(BuildFactory)
@@ -32,10 +32,10 @@ class DefaultInstallationInfoTest extends Specification {
     def "directories and files"() {
         given:
         project.shortProjectName >> 'wiggly'
-        buildRequest = new DefaultBuildRequest(buildFactory, globalBusProvider, new GitSHA(sha), project, UUID.randomUUID())
+        buildRequest = new DefaultBuildRunner(buildFactory, globalBusProvider, new GitSHA(sha), project, UUID.randomUUID())
         buildFactory.create(buildRequest) >> build
         build.buildNumber() >> 12
-        build.buildRequest >> buildRequest
+        build.buildRunner >> buildRequest
 
         expect:
 

@@ -1,6 +1,6 @@
 package uk.q3c.simplycd.agent;
 
-import uk.q3c.simplycd.agent.build.BuildResult;
+import uk.q3c.simplycd.agent.build.BuildRecord;
 import uk.q3c.simplycd.agent.build.TaskResult;
 import uk.q3c.simplycd.agent.i18n.TaskKey;
 
@@ -9,16 +9,16 @@ import uk.q3c.simplycd.agent.i18n.TaskKey;
  * <p>
  * Created by David Sowerby on 27 Mar 2017
  */
-public class BuildResultWrapper {
-    private BuildResult buildResult;
+public class BuildRecordWrapper {
+    private BuildRecord buildRecord;
 
-    public BuildResultWrapper(BuildResult buildResult) {
-        this.buildResult = buildResult;
+    public BuildRecordWrapper(BuildRecord buildRecord) {
+        this.buildRecord = buildRecord;
     }
 
     public TaskResult taskResult(String keyName) {
         TaskKey key = TaskKey.valueOf(keyName);
-        return buildResult.taskResult(key);
+        return buildRecord.taskResult(key);
     }
 
 

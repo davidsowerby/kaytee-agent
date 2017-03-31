@@ -10,30 +10,30 @@ import uk.q3c.simplycd.agent.i18n.TaskResultStateKey
 /**
  * Created by David Sowerby on 26 Jan 2017
  */
-abstract class AbstractTaskRequest constructor(
+abstract class AbstractTaskRunner constructor(
         override val build: Build,
         override val taskKey: TaskKey,
         val globalBus: PubSubSupport<BusMessage>) :
 
-        TaskRequest {
+        TaskRunner {
 
     private val log = LoggerFactory.getLogger(this.javaClass.name)
 
 
     override fun run() {
         try {
-            globalBus.publish(TaskStartedMessage(this.build.buildRequest.uid, taskKey))
+            globalBus.publish(TaskStartedMessage(this.build.buildRunner.uid, taskKey))
             log.info("Executing task request {}", identity())
             doRun()
         } catch (e: Exception) {
-            globalBus.publish(TaskFailedMessage(this.build.buildRequest.uid, taskKey, TaskResultStateKey.Task_Failed))
+            globalBus.publish(TaskFailedMessage(this.build.buildRunner.uid, taskKey, TaskResultStateKey.Task_Failed))
             log.error("Exception thrown by task execution", e)
         }
         // we cannot send the end message here - some tasks are executed asynchronously
     }
 
     override fun identity(): String {
-        return "${build.buildRequest.project.shortProjectName}:${build.buildNumber()}:$taskKey}"
+        return "${build.buildRunner.project.shortProjectName}:${build.buildNumber()}:$taskKey}"
     }
 
     override fun toString(): String {

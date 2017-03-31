@@ -6,6 +6,8 @@ import ratpack.guice.BindingsImposition
 import ratpack.http.client.RequestSpec
 import ratpack.impose.ImpositionsSpec
 import ratpack.test.MainClassApplicationUnderTest
+import uk.q3c.simplycd.agent.api.BuildRequest
+import uk.q3c.simplycd.agent.api.BuildRequestResponse
 import uk.q3c.simplycd.agent.app.ConstantsKt
 import uk.q3c.simplycd.agent.app.ErrorResponse
 import uk.q3c.simplycd.agent.app.HandlerTest
@@ -17,7 +19,7 @@ import uk.q3c.simplycd.agent.app.Main
 @SuppressWarnings("GroovyAssignabilityCheck")
 class BuildRequestHandlerTest extends HandlerTest {
 
-    BuildRequestRequest buildRequest
+    BuildRequest buildRequest
     RequestQueue mockRequestQueue = Mock(RequestQueue)
     UUID uuid
     String projectName = "davidsowerby/q3c-testUtil"
@@ -28,7 +30,7 @@ class BuildRequestHandlerTest extends HandlerTest {
         projectName = "davidsowerby/q3c-testUtil"
         commitId = "9173501a05e33ca549cb83f5d8015d45bf5c4510"
         uuid = UUID.randomUUID()
-        buildRequest = new BuildRequestRequest(projectName, commitId)
+        buildRequest = new BuildRequest(projectName, commitId)
     }
 
     @Override
@@ -69,7 +71,7 @@ class BuildRequestHandlerTest extends HandlerTest {
     @SuppressWarnings("GroovyAssignabilityCheck")
     "post build request with invalid name"() {
         given:
-        buildRequest = new BuildRequestRequest("davidsowerbyq3ctestUtil", commitId)
+        buildRequest = new BuildRequest("davidsowerbyq3ctestUtil", commitId)
 
         when:
         requestSpec { RequestSpec requestSpec ->

@@ -22,7 +22,7 @@ class DefaultGitClone @Inject constructor(val installationInfo: InstallationInfo
 
 
     override fun execute(build: Build) {
-        log.debug("executing GitClone preparation step for '{}'", build.buildRequest.project.shortProjectName)
+        log.debug("executing GitClone preparation step for '{}'", build.buildRunner.project.shortProjectName)
         try {
             gitPlus.local
                     .projectDirParent(installationInfo.buildNumberDir(build))

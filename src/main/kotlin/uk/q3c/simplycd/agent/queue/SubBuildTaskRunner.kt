@@ -7,4 +7,4 @@ package uk.q3c.simplycd.agent.queue
  * Created by David Sowerby on 31 Jan 2017
  */
 
-class SubBuildTaskRequest
+class SubBuildTaskRunner

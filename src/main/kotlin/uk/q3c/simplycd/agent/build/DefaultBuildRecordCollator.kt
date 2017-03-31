@@ -17,14 +17,14 @@ import java.util.concurrent.ConcurrentHashMap
  * Created by David Sowerby on 25 Mar 2017
  */
 @Listener @SubscribeTo(GlobalBus::class)
-class DefaultBuildResultCollator @Inject constructor() : BuildResultCollator {
-    override val results: MutableMap<UUID, BuildResult> = ConcurrentHashMap()
+class DefaultBuildRecordCollator @Inject constructor() : BuildRecordCollator {
+    override val results: MutableMap<UUID, BuildRecord> = ConcurrentHashMap()
     private val log = LoggerFactory.getLogger(this.javaClass.name)
 
     @Handler
     fun busMessage(busMessage: BuildRequestedMessage) {
         log.debug("BuildRequestedMessage received, build id: {}", busMessage.buildRequestId)
-        val result = BuildResult(busMessage.buildRequestId, busMessage.time)
+        val result = BuildRecord(busMessage.buildRequestId, busMessage.time)
         results.put(busMessage.buildRequestId, result)
     }
 
@@ -111,7 +111,7 @@ class DefaultBuildResultCollator @Inject constructor() : BuildResultCollator {
         result.updateTaskOutcome(busMessage.taskKey, busMessage.time, TaskResultStateKey.Task_Failed)
     }
 
-    override fun getResult(buildRequestId: UUID): BuildResult {
+    override fun getResult(buildRequestId: UUID): BuildRecord {
         val result = results.get(buildRequestId)
         if (result == null) {
             throw InvalidBuildRequestIdException(buildRequestId)
@@ -123,16 +123,5 @@ class DefaultBuildResultCollator @Inject constructor() : BuildResultCollator {
 
 }
 
-class BuildResultException(errors: MutableList<String>) : RuntimeException(errors.toString()) {
-    init {
-//        val buf = StringBuilder()
-//        for (s in errors) {
-//            buf.append(s)
-//            buf.append("\n")
-//        }
-//        message=buf.toString()
-    }
-
-}
 
 class InvalidBuildRequestIdException(buildRequestId: UUID) : RuntimeException("Invalid build request id: $buildRequestId")

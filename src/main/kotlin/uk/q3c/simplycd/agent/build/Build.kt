@@ -1,7 +1,7 @@
 package uk.q3c.simplycd.agent.build
 
 import org.gradle.tooling.BuildLauncher
-import uk.q3c.simplycd.agent.queue.BuildRequest
+import uk.q3c.simplycd.agent.queue.BuildRunner
 import uk.q3c.simplycd.agent.queue.ProjectInstance
 import uk.q3c.simplycd.lifecycle.SimplyCDProjectExtension
 import java.io.File
@@ -11,7 +11,7 @@ import java.io.File
  * A [Build] instance acts as the focal point for the asynchronous process of executing build tasks. There are different
  * execution methods, but all are executed asynchronously.
  *
- * When [configure] is called with the configuration taken from build.gradle, individual [TaskRequests] are generated.
+ * When [configure] is called with the configuration taken from build.gradle, individual [TaskRunner]s are generated.
  * The first task is then released to the [RequestQueue] to start the build
  *
  * When a task completes successfully, or fails, a result is returned to the owning Build.  The build will then release
@@ -29,7 +29,7 @@ import java.io.File
  * Created by David Sowerby on 07 Jan 2017
  */
 interface Build : ProjectInstance {
-    val buildRequest: BuildRequest
+    val buildRunner: BuildRunner
     var parentBuild: Build
 
 
@@ -48,7 +48,7 @@ interface Build : ProjectInstance {
 
 
     /**
-     * Prepares the build environment and sets up [TaskRequest]s for the build
+     * Prepares the build environment and sets up [TaskRunner]s for the build
      */
     fun execute()
 

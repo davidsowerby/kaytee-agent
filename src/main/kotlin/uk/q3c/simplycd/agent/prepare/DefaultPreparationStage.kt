@@ -29,14 +29,14 @@ class DefaultPreparationStage @Inject constructor(
 
 
     override fun execute(build: Build) {
-        log.info("Started preparation for build: {}", build.buildRequest.identity())
-        globalBusProvider.get().publish(PreparationStartedMessage(build.buildRequest.uid))
+        log.info("Started preparation for build: {}", build.buildRunner.identity())
+        globalBusProvider.get().publish(PreparationStartedMessage(build.buildRunner.uid))
 
         for (step in steps) {
             step.execute(build)
         }
         // build has now been configured and at least one task placed in the queue
-        globalBusProvider.get().publish(PreparationSuccessfulMessage(build.buildRequest.uid))
-        log.info("Completed preparation for build:  {}", build.buildRequest.identity())
+        globalBusProvider.get().publish(PreparationSuccessfulMessage(build.buildRunner.uid))
+        log.info("Completed preparation for build:  {}", build.buildRunner.identity())
     }
 }

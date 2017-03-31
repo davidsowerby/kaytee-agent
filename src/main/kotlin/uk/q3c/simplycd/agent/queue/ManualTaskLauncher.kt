@@ -6,5 +6,5 @@ package uk.q3c.simplycd.agent.queue
  */
 interface ManualTaskLauncher {
 
-    fun run(manualTaskRequest: ManualTaskRequest)
+    fun run(manualTaskRequest: ManualTaskRunner)
 }
