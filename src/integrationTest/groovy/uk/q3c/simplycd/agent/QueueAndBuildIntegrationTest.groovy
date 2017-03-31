@@ -27,7 +27,7 @@ import java.time.LocalDateTime
  *
  * Created by David Sowerby on 08 Jan 2017
  */
-class QueueAndBuildFunctionalTest extends Specification {
+class QueueAndBuildIntegrationTest extends Specification {
 
     @Rule
     TemporaryFolder temporaryFolder
