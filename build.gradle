@@ -57,6 +57,11 @@ repositories {
     mavenCentral()
 }
 
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
 dependencies {
 
     //logging
@@ -65,7 +70,6 @@ dependencies {
 //    compile 'ch.qos.logback:logback-core:1.1.2'
 
     compile ratpack.dependency("guice")
-//    compile 'uk.q3c.rest:hal-kotlin:0.5.1.12'
     compile 'uk.q3c.rest:hal-kotlin:0.5.2.13'
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.7.5"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.7.5"
@@ -77,19 +81,19 @@ dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 
-    compile "me.drmaas:ratpack-kotlin-dsl:0.6.0"
+    compile "me.drmaas:ratpack-kotlin-dsl:0.9.0"
     compile 'org.apache.bval:bval-core:1.1.2'
     compile 'org.apache.bval:bval-guice:0.5'
 
+    // persistence
     compile ('ru.vyarus:guice-persist-orient:3.1.1'){
         exclude module: 'orientdb-object'
     }
 
-//    compile "uk.q3c.rest:ion-json:0.0.1.5"
+    // testing
     testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
     testCompile 'cglib:cglib-nodep:3.2.0'
     testCompile 'org.objenesis:objenesis:2.2'
-    testCompile 'org.jetbrains.spek:spek-api:1.1.19'
 //    testCompile 'io.ratpack:ratpack-test:1.4.5'
     testCompile ratpack.dependency('test')
     testCompile "org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version"
