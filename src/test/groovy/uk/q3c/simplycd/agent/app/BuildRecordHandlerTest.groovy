@@ -55,6 +55,17 @@ class BuildRecordHandlerTest extends HandlerTest {
         getCheck.result.records.isEmpty()
     }
 
+    def "request specific list of build requests"() {
+
+        when:
+        ResponseCheck<BuildRecordList> getCheck = doGet(SC_OK, BuildRecordList, "unit=weeks;range=2;rangeFrom=1")
+
+        then:
+        1 * buildRecordService.list("weeks", 2, 1) >> new BuildRecordList(ImmutableList.of())
+        getCheck.allChecks()
+        getCheck.result.records.isEmpty()
+    }
+
 
     def "request valid build record, returns correct info"() {
         given:

@@ -24,6 +24,8 @@ import uk.q3c.simplycd.agent.project.ProjectModule
 import uk.q3c.simplycd.agent.project.Projects
 import uk.q3c.simplycd.agent.queue.QueueModule
 import uk.q3c.simplycd.agent.queue.RequestQueue
+import uk.q3c.simplycd.agent.system.DefaultInstallationInfo
+import uk.q3c.simplycd.agent.system.InstallationInfo
 import uk.q3c.simplycd.agent.system.SystemModule
 
 import java.time.LocalDateTime
@@ -39,12 +41,13 @@ class QueueAndBuildIntegrationTest extends Specification {
     File temp
     QueueMessageReceiver queueMessageReceiver
     BuildRecordCollator buildResultCollator
-
+    InstallationInfo installationInfo
     class TestSystemModule extends AbstractModule {
 
         @Override
         protected void configure() {
             bind(PublicAddress.class).toInstance(new ConstantPublicAddress(new URI(ConstantsKt.baseUrl)))
+            bind(InstallationInfo.class).toInstance(installationInfo)
         }
     }
 
@@ -54,6 +57,8 @@ class QueueAndBuildIntegrationTest extends Specification {
 
     def setup() {
         temp = temporaryFolder.getRoot()
+        installationInfo = new DefaultInstallationInfo()
+        installationInfo.dataDirRoot = temp
 
         List<Module> bindings = new ArrayList<>()
         bindings.add(new GlobalBusModule())
@@ -72,6 +77,8 @@ class QueueAndBuildIntegrationTest extends Specification {
         queueMessageReceiver = injector.getInstance(QueueMessageReceiver)
         buildResultCollator = injector.getInstance(BuildRecordCollator)
         projects = injector.getInstance(Projects.class)
+
+
     }
 
     def cleanup() {

@@ -23,7 +23,7 @@ interface BuildRecordService {
     fun list(unit: String = unitDefault, range: Int = rangeDefault, rangeFrom: Int = rangeFromDefault): BuildRecordList
 
     /**
-     * returns a [BuildRecord] fo [uid]
+     * returns a [BuildRecord] for [uid]
      *
      * @throws IllegalArgumentException if the id is not recognised
      */
@@ -31,6 +31,7 @@ interface BuildRecordService {
 }
 
 class DefaultBuildRecordService : BuildRecordService {
+
     override fun get(uid: UUID): BuildRecord {
         TODO()
     }
