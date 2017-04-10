@@ -19,6 +19,7 @@ import javax.inject.Inject
 
     init {
         validMethodCalls = ImmutableList.of(POST, DELETE)
+        uri = subscriptions
     }
 
     /**
@@ -52,7 +53,7 @@ import javax.inject.Inject
                         context.render("OK")
                     } else {
                         log.debug("subscription failed - has the topic been registered?")
-                        val errorResponse = errorResponseBuilder.build(DeveloperErrorMessageKey.Invalid_Topic, subscriptionRequest.topicUrl)
+                        val errorResponse = errorResponseBuilder.build(uri, DeveloperErrorMessageKey.Invalid_Topic, subscriptionRequest.topicUrl)
                         context.response.status(DeveloperErrorMessageKey.Invalid_Topic.httpCode)
                         context.render(Jackson.json(errorResponse))
                     }

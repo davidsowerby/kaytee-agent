@@ -21,9 +21,11 @@ class AbstractHandlerTest extends Specification {
 
     class TestHandler extends AbstractHandler {
 
+
         TestHandler(
                 @NotNull ErrorResponseBuilder errorResponseBuilder) {
             super(errorResponseBuilder)
+            uri = "test"
         }
     }
 
@@ -79,7 +81,7 @@ class AbstractHandlerTest extends Specification {
         handler.handle(context)
 
         then:
-        1 * errorResponseBuilder.build(DeveloperErrorMessageKey.Exception_in_Handler, "Either override this method to respond or modify 'validMethodCalls' to exclude $method")
+        1 * errorResponseBuilder.build('test', DeveloperErrorMessageKey.Exception_in_Handler, "Either override this method to respond or modify 'validMethodCalls' to exclude $method")
 
         where:
         method  | blank
@@ -101,7 +103,7 @@ class AbstractHandlerTest extends Specification {
         handler.handle(context)
 
         then:
-        1 * errorResponseBuilder.build(DeveloperErrorMessageKey.Exception_in_Handler, ['testing'])
+        1 * errorResponseBuilder.build('test', DeveloperErrorMessageKey.Exception_in_Handler, ['testing'])
         1 * response.status(500)
 
     }

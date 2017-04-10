@@ -1,7 +1,11 @@
 package uk.q3c.simplycd.agent.app
 
 import com.google.common.collect.ImmutableList
+import ratpack.server.PublicAddress
 import spock.lang.Specification
+import uk.q3c.simplycd.agent.build.BuildRecord
+
+import java.time.OffsetDateTime
 
 /**
  * Created by David Sowerby on 13 Mar 2017
@@ -15,10 +19,11 @@ class DefaultHooksTest extends Specification {
     UUID uid3 = UUID.randomUUID()
 
     DefaultHooks hooks
+    PublicAddress publicAddress = Mock(PublicAddress)
     URL topic0 = new URL(ConstantsKt.href("build"))
-    URL topic1 = new URL(ConstantsKt.href("build/$uid1"))
-    URL topic2 = new URL(ConstantsKt.href("build/$uid2"))
-    URL topic3 = new URL(ConstantsKt.href("build/$uid3"))
+    URL topic1
+    URL topic2
+    URL topic3
 
     URL hookUrl1 = new URL("https://example.com/hook/1")
     URL hookUrl2 = new URL("https://example.com/hook/2")
@@ -27,16 +32,24 @@ class DefaultHooksTest extends Specification {
     Subscriber hook1 = new Subscriber(hookUrl1)
     Subscriber hook2 = new Subscriber(hookUrl2)
     Subscriber hook3 = new Subscriber(hookUrl3)
+    BuildRecord msg1
+    BuildRecord msg2
+    BuildRecord msg3
 
 
     void setup() {
-        hooks = new DefaultHooks(hookNotifier)
+        msg1 = new BuildRecord(uid1, OffsetDateTime.now())
+        msg2 = new BuildRecord(uid2, OffsetDateTime.now())
+        msg3 = new BuildRecord(uid3, OffsetDateTime.now())
+        topic1 = new URL(ConstantsKt.href(msg1.self().href))
+        topic2 = new URL(ConstantsKt.href(msg2.self().href))
+        topic3 = new URL(ConstantsKt.href(msg3.self().href))
+        publicAddress.get() >> new URI(ConstantsKt.baseUrl)
+        hooks = new DefaultHooks(hookNotifier, publicAddress)
     }
 
     def "publish, subscribe and remove"() {
-        given:
-        BuildStatusMessage msg1 = new BuildStatusMessage(uid1)
-        BuildStatusMessage msg2 = new BuildStatusMessage(uid2)
+
 
         when:
         def registered = hooks.registerTopic(topic1)

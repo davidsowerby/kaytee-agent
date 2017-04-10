@@ -17,6 +17,7 @@ import uk.q3c.simplycd.agent.i18n.DeveloperErrorMessageKey
 abstract class AbstractHandler(val errorResponseBuilder: ErrorResponseBuilder) : Handler {
     private val log = LoggerFactory.getLogger(this.javaClass.name)
     protected var validMethodCalls: ImmutableList<HttpMethod> = ImmutableList.of(GET)
+    lateinit var uri: String
 
 
     override fun handle(ctx: Context) {
@@ -41,13 +42,18 @@ abstract class AbstractHandler(val errorResponseBuilder: ErrorResponseBuilder) :
 
         } catch(e: Exception) {
             log.error("Error occurred in handler response", e)
-            val errorResponse = errorResponseBuilder.build(DeveloperErrorMessageKey.Exception_in_Handler, e.message ?: "no message")
+            val errorResponse = errorResponseBuilder.build(uri, DeveloperErrorMessageKey.Exception_in_Handler, e.message ?: "no message")
             ctx.response.status(DeveloperErrorMessageKey.Exception_in_Handler.httpCode)
             ctx.render(Jackson.json(errorResponse))
         }
 
     }
 
+    fun error(ctx: Context, msgKey: DeveloperErrorMessageKey, vararg args: Any) {
+        val errorResponse = errorResponseBuilder.build(uri, msgKey, *args)
+        ctx.response.status(msgKey.httpCode)
+        ctx.render(Jackson.json(errorResponse))
+    }
 
     open fun post(context: Context) {
         throw HandlerDefinitionException(POST)

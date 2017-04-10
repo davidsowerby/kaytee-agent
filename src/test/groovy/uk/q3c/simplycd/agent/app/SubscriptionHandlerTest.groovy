@@ -1,8 +1,10 @@
 package uk.q3c.simplycd.agent.app
 
+import com.google.common.collect.ImmutableList
 import groovy.json.JsonOutput
 import org.apache.http.HttpStatus
 import ratpack.guice.BindingsImposition
+import ratpack.http.HttpMethod
 import ratpack.http.client.RequestSpec
 import ratpack.impose.ImpositionsSpec
 import ratpack.test.MainClassApplicationUnderTest
@@ -10,6 +12,7 @@ import ratpack.test.MainClassApplicationUnderTest
 /**
  * Created by David Sowerby on 13 Mar 2017
  */
+@SuppressWarnings("GroovyAssignabilityCheck")
 class SubscriptionHandlerTest extends HandlerTest {
 
     Hooks mockHooks = Mock(Hooks)
@@ -18,6 +21,8 @@ class SubscriptionHandlerTest extends HandlerTest {
 
 
     def setup() {
+        handler = new SubscriptionHandler(mockHooks, errorResponseBuilder)
+        supportedMethods = ImmutableList.of(HttpMethod.POST, HttpMethod.DELETE)
         uri = ConstantsKt.subscriptions
     }
 

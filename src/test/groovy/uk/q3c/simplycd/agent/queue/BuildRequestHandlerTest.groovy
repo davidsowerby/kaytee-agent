@@ -1,8 +1,10 @@
 package uk.q3c.simplycd.agent.queue
 
+import com.google.common.collect.ImmutableList
 import groovy.json.JsonOutput
 import org.apache.http.HttpStatus
 import ratpack.guice.BindingsImposition
+import ratpack.http.HttpMethod
 import ratpack.http.client.RequestSpec
 import ratpack.impose.ImpositionsSpec
 import ratpack.test.MainClassApplicationUnderTest
@@ -12,6 +14,7 @@ import uk.q3c.simplycd.agent.app.ConstantsKt
 import uk.q3c.simplycd.agent.app.ErrorResponse
 import uk.q3c.simplycd.agent.app.HandlerTest
 import uk.q3c.simplycd.agent.app.Main
+import uk.q3c.simplycd.agent.project.Projects
 
 /**
  * Created by David Sowerby on 10 Mar 2017
@@ -24,6 +27,8 @@ class BuildRequestHandlerTest extends HandlerTest {
     UUID uuid
     String projectName = "davidsowerby/q3c-testUtil"
     String commitId = "9173501a05e33ca549cb83f5d8015d45bf5c4510"
+    Projects projects = Mock(Projects)
+
 
     def setup() {
         uri = ConstantsKt.buildRequests
@@ -31,6 +36,8 @@ class BuildRequestHandlerTest extends HandlerTest {
         commitId = "9173501a05e33ca549cb83f5d8015d45bf5c4510"
         uuid = UUID.randomUUID()
         buildRequest = new BuildRequest(projectName, commitId)
+        handler = new BuildRequestHandler(mockRequestQueue, errorResponseBuilder, projects)
+        supportedMethods = ImmutableList.of(HttpMethod.POST)
     }
 
     @Override

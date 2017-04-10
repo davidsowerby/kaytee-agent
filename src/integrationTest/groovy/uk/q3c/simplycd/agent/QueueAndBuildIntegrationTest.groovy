@@ -1,13 +1,19 @@
 package uk.q3c.simplycd.agent
 
+import com.google.inject.AbstractModule
 import com.google.inject.Guice
 import com.google.inject.Injector
 import com.google.inject.Module
+import com.google.inject.util.Modules
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import ratpack.server.PublicAddress
+import ratpack.server.internal.ConstantPublicAddress
 import spock.lang.Specification
 import uk.q3c.build.gitplus.GitPlusModule
 import uk.q3c.build.gitplus.GitSHA
+import uk.q3c.simplycd.agent.app.ApiModule
+import uk.q3c.simplycd.agent.app.ConstantsKt
 import uk.q3c.simplycd.agent.build.*
 import uk.q3c.simplycd.agent.eventbus.GlobalBusModule
 import uk.q3c.simplycd.agent.i18n.I18NModule
@@ -21,7 +27,6 @@ import uk.q3c.simplycd.agent.queue.RequestQueue
 import uk.q3c.simplycd.agent.system.SystemModule
 
 import java.time.LocalDateTime
-
 /**
  * Integrates RequestQueue, BuildRunner and GradleExecutor
  *
@@ -35,6 +40,13 @@ class QueueAndBuildIntegrationTest extends Specification {
     QueueMessageReceiver queueMessageReceiver
     BuildRecordCollator buildResultCollator
 
+    class TestSystemModule extends AbstractModule {
+
+        @Override
+        protected void configure() {
+            bind(PublicAddress.class).toInstance(new ConstantPublicAddress(new URI(ConstantsKt.baseUrl)))
+        }
+    }
 
     RequestQueue queue
     Projects projects
@@ -46,12 +58,14 @@ class QueueAndBuildIntegrationTest extends Specification {
         List<Module> bindings = new ArrayList<>()
         bindings.add(new GlobalBusModule())
         bindings.add(new BuildModule())
-        bindings.add(new SystemModule())
+        bindings.add(Modules.override(new SystemModule()).with(new TestSystemModule()))
         bindings.add(new QueueModule())
         bindings.add(new LifecycleModule())
         bindings.add(new GitPlusModule())
         bindings.add(new I18NModule())
         bindings.add(new ProjectModule())
+        bindings.add(new ApiModule())
+
 
         Injector injector = Guice.createInjector(bindings)
         queue = injector.getInstance(RequestQueue)
@@ -77,7 +91,7 @@ class QueueAndBuildIntegrationTest extends Specification {
         while (queueMessageReceiver.buildCompletions.isEmpty() && LocalDateTime.now().isBefore(timeout)) {
             Thread.sleep(100)
         }
-        BuildRecord result = buildResultCollator.getResult(uid)
+        BuildRecord result = buildResultCollator.getRecord(uid)
         BuildRecordValidator validator = new BuildRecordValidator(result)
         boolean valid = validator.validate()
         if (!valid) {

@@ -41,6 +41,7 @@ object Main {
             handlers {
                 path(subscriptions, SubscriptionHandler::class.java)
                 path(buildRequests, BuildRequestHandler::class.java)
+                path(buildRecords, BuildRecordHandler::class.java)
                 path(hook, SubscriptionHandler::class.java)
                 all(RootHandler::class.java)
             }

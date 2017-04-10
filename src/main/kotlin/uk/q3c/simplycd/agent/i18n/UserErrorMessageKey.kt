@@ -11,7 +11,8 @@ enum class UserErrorMessageKey : I18NKey {
     Exception_in_Handler,
     Invalid_Method,
     Invalid_Project_Name,
-    Invalid_Topic
+    Invalid_Topic,
+    Unrecognised_Build_Record_Id
 
 
 }

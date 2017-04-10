@@ -65,8 +65,10 @@ dependencies {
 //    compile 'ch.qos.logback:logback-core:1.1.2'
 
     compile ratpack.dependency("guice")
-    compile 'uk.q3c.rest:hal-kotlin:0.5.1.12'
+//    compile 'uk.q3c.rest:hal-kotlin:0.5.1.12'
+    compile 'uk.q3c.rest:hal-kotlin:0.5.2.13'
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.7.5"
+    compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.7.5"
     //krail for I18N only.  Reduce when I18N moved out of Krail
     compile "uk.q3c.krail:krail:0.9.9"
     compile "uk.q3c.simplycd:simplycd-lifecycle:0.7.3.19"
@@ -79,7 +81,11 @@ dependencies {
     compile 'org.apache.bval:bval-core:1.1.2'
     compile 'org.apache.bval:bval-guice:0.5'
 
-    compile "uk.q3c.rest:ion-json:0.0.1.5"
+    compile ('ru.vyarus:guice-persist-orient:3.1.1'){
+        exclude module: 'orientdb-object'
+    }
+
+//    compile "uk.q3c.rest:ion-json:0.0.1.5"
     testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
     testCompile 'cglib:cglib-nodep:3.2.0'
     testCompile 'org.objenesis:objenesis:2.2'

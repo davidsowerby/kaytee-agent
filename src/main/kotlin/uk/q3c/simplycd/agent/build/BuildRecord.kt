@@ -1,7 +1,8 @@
 package uk.q3c.simplycd.agent.build
 
 import org.slf4j.LoggerFactory
-import uk.q3c.rest.hal.HalResource
+import uk.q3c.simplycd.agent.app.buildRecords
+import uk.q3c.simplycd.agent.app.zeroDate
 import uk.q3c.simplycd.agent.i18n.BuildFailCauseKey.Build_Configuration
 import uk.q3c.simplycd.agent.i18n.BuildFailCauseKey.Not_Applicable
 import uk.q3c.simplycd.agent.i18n.BuildStateKey
@@ -20,17 +21,18 @@ import java.util.*
  *
  * Created by David Sowerby on 13 Jan 2017
  */
-class BuildRecord(val buildRequestId: UUID, val requestedAt: OffsetDateTime) : HalResource() {
-    var preparationStartedAt: OffsetDateTime = OffsetDateTime.MIN
-    var preparationCompletedAt: OffsetDateTime = OffsetDateTime.MIN
-    var buildStartedAt: OffsetDateTime = OffsetDateTime.MIN
-    var buildCompletedAt: OffsetDateTime = OffsetDateTime.MIN
+class BuildRecord(uid: UUID, val requestedAt: OffsetDateTime) : HalResourceWithId(uid, buildRecords) {
+    var preparationStartedAt: OffsetDateTime = zeroDate
+    var preparationCompletedAt: OffsetDateTime = zeroDate
+    var buildStartedAt: OffsetDateTime = zeroDate
+    var buildCompletedAt: OffsetDateTime = zeroDate
     var state: BuildStateKey = Not_Started
     var causeOfFailure = Not_Applicable
     private val stateLock = Any()
     private val taskLock = Any()
     // once parallel tasking enabled, contention risk
     val taskResults: MutableMap<TaskKey, TaskResult> = mutableMapOf()
+
 
     fun addTask(task: TaskKey, time: OffsetDateTime) {
         synchronized(taskLock) {
@@ -94,9 +96,9 @@ class InvalidTaskException(task: TaskKey) : RuntimeException(task.name)
 
 
 class TaskResult(val task: TaskKey, val requestedAt: OffsetDateTime) {
-    var completedAt: OffsetDateTime = OffsetDateTime.MIN
+    var completedAt: OffsetDateTime = zeroDate
     var outcome: TaskResultStateKey = TaskResultStateKey.Task_Not_Run
-    var startedAt: OffsetDateTime = OffsetDateTime.MIN
+    var startedAt: OffsetDateTime = zeroDate
 
     fun failed(): Boolean {
         return outcome == TaskResultStateKey.Task_Failed
@@ -112,7 +114,7 @@ class BuildRecordValidator(val record: BuildRecord) {
     val errors: MutableList<String> = mutableListOf()
     lateinit var validatedAt: BuildStateKey
     fun validate(): Boolean {
-        log.debug("Validating {}", record.buildRequestId)
+        log.debug("Validating {}", record.uid)
         when (record.state) {
             Not_Started -> {
                 shouldNotBeSet("preparationStartedAt", record.preparationStartedAt)
@@ -252,11 +254,11 @@ class BuildRecordValidator(val record: BuildRecord) {
     }
 
     fun shouldNotBeSet(name: String, time: OffsetDateTime) {
-        compare(time == OffsetDateTime.MIN, "$name should not be set")
+        compare(time == zeroDate, "$name should not be set")
     }
 
     fun shouldBeSet(name: String, time: OffsetDateTime) {
-        compare(time.isAfter(OffsetDateTime.MIN), "$name should be set")
+        compare(time.isAfter(zeroDate), "$name should be set")
     }
 
     fun mustBeLaterOrEqual(laterName: String, earlierName: String, later: OffsetDateTime, earlier: OffsetDateTime) {

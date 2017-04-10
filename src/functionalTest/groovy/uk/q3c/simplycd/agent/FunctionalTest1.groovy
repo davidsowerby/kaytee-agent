@@ -14,8 +14,8 @@ class FunctionalTest1 extends FunctionalTestBase {
     @SuppressWarnings("GroovyAssignabilityCheck")
     "run a known good build"() {
         given:
-        final String fullProjectName = "davidsowerby/q3c-testUtil"
-        final String commitId = "91a5818aced677660f0e25a7c57aa73601d8deb8"
+        final String fullProjectName = "davidsowerby/simplycd-test"
+        final String commitId = "7c3a779e17d65ec255b4c7d40b14950ea6ce232e"
         BuildRequest buildRequest = new BuildRequest(fullProjectName, commitId)
 
 
@@ -25,6 +25,7 @@ class FunctionalTest1 extends FunctionalTestBase {
             requestSpec.body.text(JsonOutput.toJson(buildRequest))
         }
         post(ConstantsKt.buildRequests)
+        Thread.sleep(10000)
 
         then:
         true

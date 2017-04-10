@@ -20,6 +20,7 @@ class ApiModule : AbstractModule() {
     override fun configure() {
         bind(RootHandler::class.java)
         bind(BuildRequestHandler::class.java)
+        bind(BuildRecordHandler::class.java)
         bind(ErrorResponseBuilder::class.java).to(DefaultErrorResponseBuilder::class.java)
         bind(TopicRegistrar::class.java).to(DefaultTopicRegistrar::class.java)
         bind(SubscriptionHandler::class.java)

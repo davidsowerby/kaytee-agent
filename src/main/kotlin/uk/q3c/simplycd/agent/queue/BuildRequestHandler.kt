@@ -7,11 +7,11 @@ import ratpack.handling.Context
 import ratpack.http.HttpMethod
 import ratpack.jackson.Jackson
 import uk.q3c.build.gitplus.GitSHA
-import uk.q3c.rest.hal.HalMapper
 import uk.q3c.simplycd.agent.api.BuildRequest
 import uk.q3c.simplycd.agent.api.BuildRequestResponse
 import uk.q3c.simplycd.agent.app.AbstractHandler
 import uk.q3c.simplycd.agent.app.ErrorResponseBuilder
+import uk.q3c.simplycd.agent.app.buildRequests
 import uk.q3c.simplycd.agent.i18n.DeveloperErrorMessageKey
 import uk.q3c.simplycd.agent.project.Projects
 import javax.inject.Inject
@@ -23,13 +23,13 @@ import javax.inject.Inject
 class BuildRequestHandler @Inject constructor(
         val requestQueue: RequestQueue,
         errorResponseBuilder: ErrorResponseBuilder,
-        val projects: Projects,
-        val halMapper: HalMapper)
+        val projects: Projects)
 
     : AbstractHandler(errorResponseBuilder) {
 
     init {
         validMethodCalls = ImmutableList.of(HttpMethod.POST)
+        uri = buildRequests
     }
 
     private val log = LoggerFactory.getLogger(this.javaClass.name)
@@ -44,7 +44,7 @@ class BuildRequestHandler @Inject constructor(
                         context.response.status(202)
                         context.render(Jackson.json(response))
                     } catch (e: Exception) {
-                        val errorResponse = errorResponseBuilder.build(DeveloperErrorMessageKey.Invalid_Project_Name, e.message ?: "no message")
+                        val errorResponse = errorResponseBuilder.build(uri, DeveloperErrorMessageKey.Invalid_Project_Name, e.message ?: "no message")
                         context.response.status(DeveloperErrorMessageKey.Invalid_Project_Name.httpCode)
                         context.render(Jackson.json(errorResponse))
                     }

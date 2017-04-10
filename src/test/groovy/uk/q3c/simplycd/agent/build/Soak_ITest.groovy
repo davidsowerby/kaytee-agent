@@ -12,6 +12,8 @@ import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import uk.q3c.build.gitplus.GitPlusModule
 import uk.q3c.build.gitplus.GitSHA
+import uk.q3c.simplycd.agent.app.ApiModule
+import uk.q3c.simplycd.agent.app.Hooks
 import uk.q3c.simplycd.agent.eventbus.GlobalBusModule
 import uk.q3c.simplycd.agent.i18n.BuildStateKey
 import uk.q3c.simplycd.agent.i18n.I18NModule
@@ -19,12 +21,12 @@ import uk.q3c.simplycd.agent.lifecycle.LifecycleModule
 import uk.q3c.simplycd.agent.prepare.PreparationStage
 import uk.q3c.simplycd.agent.project.DefaultProject
 import uk.q3c.simplycd.agent.project.Project
+import uk.q3c.simplycd.agent.project.ProjectModule
 import uk.q3c.simplycd.agent.queue.*
 import uk.q3c.simplycd.agent.system.InstallationInfo
 import uk.q3c.simplycd.agent.system.SystemModule
 
 import java.time.LocalDateTime
-
 /**
  * Integrates RequestQueue, BuildRunner and GradleExecutor
  *
@@ -35,6 +37,8 @@ class Soak_ITest extends Specification {
     @Rule
     TemporaryFolder temporaryFolder
     File temp
+
+    Hooks mockHooks = Mock(Hooks)
 
     BuildRecordCollator resultCollator
 
@@ -59,6 +63,14 @@ class Soak_ITest extends Specification {
         @Override
         protected void configure() {
             bind(BuildNumberReader.class).to(TestBuildNumberReader.class)
+        }
+    }
+
+    class TestApiModule extends AbstractModule {
+
+        @Override
+        protected void configure() {
+            bind(Hooks.class).toInstance(mockHooks)
         }
     }
 
@@ -142,6 +154,8 @@ class Soak_ITest extends Specification {
         bindings.add(Modules.override(new LifecycleModule()).with(new TestLifecycleModule()))
         bindings.add(new GitPlusModule())
         bindings.add(new I18NModule())
+        bindings.add(Modules.override(new ApiModule()).with(new TestApiModule()))
+        bindings.add(new ProjectModule())
 
         Injector injector = Guice.createInjector(bindings)
         queue = injector.getInstance(RequestQueue)
@@ -177,7 +191,7 @@ class Soak_ITest extends Specification {
         boolean allComplete = true
         List<String> validationErrors = new ArrayList<>()
 
-        for (BuildRecord result : resultCollator.results.values()) {
+        for (BuildRecord result : resultCollator.records.values()) {
             BuildRecordValidator resultValidator = new BuildRecordValidator(result)
             if (!result.requestedCompleted()) {
                 allComplete = false
@@ -202,12 +216,12 @@ class Soak_ITest extends Specification {
         println "Build requests sucessful: $buildsSuccessFul"
         println "Build requests completed: $buildsCompleted"
         println "Preparations failed: $preparationsFailed"
-        println "Build results held by resultsCollator: " + resultCollator.results.size()
+        println "Build results held by resultsCollator: " + resultCollator.records.size()
         allComplete // this could fail if processing is not allowed to complete, and test finishes too early
         validationErrors.isEmpty()
         buildsRequested == buildsCompleted
         buildsSuccessFul + buildsFailed + preparationsFailed == buildsCompleted
-        resultCollator.results.size() == buildsRequested
+        resultCollator.records.size() == buildsRequested
 
 
     }

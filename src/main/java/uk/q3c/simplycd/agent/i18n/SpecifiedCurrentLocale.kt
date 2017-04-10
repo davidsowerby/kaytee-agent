@@ -26,7 +26,7 @@ class SpecifiedCurrentLocale @Inject constructor(val globalBusProvider: GlobalBu
     }
 
     override fun setLocale(locale: Locale) {
-        currentLocale = locale
+        setLocale(locale, true)
     }
 
     override fun setLocale(locale: Locale, fireListeners: Boolean) {

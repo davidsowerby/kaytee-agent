@@ -15,6 +15,8 @@ enum class DeveloperErrorMessageKey(val httpCode: Int) : I18NKey {
     Invalid_Method(SC_METHOD_NOT_ALLOWED),
     Invalid_Project_Name(HttpStatus.SC_BAD_REQUEST),
     Invalid_Topic(HttpStatus.SC_BAD_REQUEST),
-    Exception_in_Handler(HttpStatus.SC_INTERNAL_SERVER_ERROR)
+    Exception_in_Handler(HttpStatus.SC_INTERNAL_SERVER_ERROR),
+
+    Unrecognised_Build_Record_Id(HttpStatus.SC_BAD_REQUEST)
 
 }
