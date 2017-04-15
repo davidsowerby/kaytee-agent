@@ -22,7 +22,7 @@ class ApiModule : AbstractModule() {
         bind(BuildRequestHandler::class.java)
         bind(BuildRecordHandler::class.java)
         bind(ErrorResponseBuilder::class.java).to(DefaultErrorResponseBuilder::class.java)
-        bind(TopicRegistrar::class.java).to(DefaultTopicRegistrar::class.java)
+        bind(TopicRegistrar::class.java).to(DefaultTopicRegistrar::class.java).asEagerSingleton()
         bind(SubscriptionHandler::class.java)
         bind(Hooks::class.java).to(DefaultHooks::class.java).`in`(Scopes.SINGLETON)
         bind(SubscriberNotifier::class.java).to(DefaultSubscriberNotifier::class.java)

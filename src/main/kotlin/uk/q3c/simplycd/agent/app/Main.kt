@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import org.apache.bval.guice.ValidationModule
 import org.slf4j.LoggerFactory.getLogger
 import ratpack.kotlin.handling.ratpack
+import ru.vyarus.guice.persist.orient.OrientModule
 import uk.q3c.build.gitplus.GitPlusModule
 import uk.q3c.rest.hal.HalMapper
 import uk.q3c.simplycd.agent.build.BuildModule
@@ -37,6 +38,8 @@ object Main {
                 module(SystemModule())
                 module(GitPlusModule())
                 module(ValidationModule())
+                module(OrientModule("memory:dbname", "admin", "admin"))
+                bind(PersistenceService::class.java)
             }
             handlers {
                 path(subscriptions, SubscriptionHandler::class.java)

@@ -1,12 +1,10 @@
 package uk.q3c.simplycd.agent.app
 
 import com.google.common.collect.ImmutableList
-import ratpack.server.PublicAddress
 import spock.lang.Specification
 import uk.q3c.simplycd.agent.build.BuildRecord
 
 import java.time.OffsetDateTime
-
 /**
  * Created by David Sowerby on 13 Mar 2017
  */
@@ -19,8 +17,8 @@ class DefaultHooksTest extends Specification {
     UUID uid3 = UUID.randomUUID()
 
     DefaultHooks hooks
-    PublicAddress publicAddress = Mock(PublicAddress)
-    URL topic0 = new URL(ConstantsKt.href("build"))
+    SharedPublicAddress publicAddress = new SharedPublicAddress()
+    URL topic0
     URL topic1
     URL topic2
     URL topic3
@@ -41,10 +39,10 @@ class DefaultHooksTest extends Specification {
         msg1 = new BuildRecord(uid1, OffsetDateTime.now())
         msg2 = new BuildRecord(uid2, OffsetDateTime.now())
         msg3 = new BuildRecord(uid3, OffsetDateTime.now())
-        topic1 = new URL(ConstantsKt.href(msg1.self().href))
-        topic2 = new URL(ConstantsKt.href(msg2.self().href))
-        topic3 = new URL(ConstantsKt.href(msg3.self().href))
-        publicAddress.get() >> new URI(ConstantsKt.baseUrl)
+        topic0 = new URL(publicAddress.get("build").toString())
+        topic1 = new URL(publicAddress.get(msg1.self().href).toString())
+        topic2 = new URL(publicAddress.get(msg2.self().href).toString())
+        topic3 = new URL(publicAddress.get(msg3.self().href).toString())
         hooks = new DefaultHooks(hookNotifier, publicAddress)
     }
 
@@ -68,14 +66,14 @@ class DefaultHooksTest extends Specification {
         hooks.publish(msg1)
 
         then:
-        1 * hookNotifier.notify(hook1, msg1)
+        1 * SubscriberNotifier.notify(hook1, msg1)
 
         when:
         hooks.unsubscribe(topic1, hookUrl1)
         hooks.publish(msg1)
 
         then:
-        0 * hookNotifier.notify(hook1, msg1)
+        0 * SubscriberNotifier.notify(hook1, msg1)
 
         when:
         hooks.registerTopic(topic0)
@@ -87,13 +85,13 @@ class DefaultHooksTest extends Specification {
         hooks.publish(msg2)
 
         then:
-        1 * hookNotifier.notify(hook1, msg1)
-        0 * hookNotifier.notify(hook2, msg1)
-        1 * hookNotifier.notify(hook3, msg1)
+        1 * SubscriberNotifier.notify(hook1, msg1)
+        0 * SubscriberNotifier.notify(hook2, msg1)
+        1 * SubscriberNotifier.notify(hook3, msg1)
 
-        0 * hookNotifier.notify(hook1, msg2)
-        1 * hookNotifier.notify(hook2, msg2)
-        1 * hookNotifier.notify(hook3, msg2)
+        0 * SubscriberNotifier.notify(hook1, msg2)
+        1 * SubscriberNotifier.notify(hook2, msg2)
+        1 * SubscriberNotifier.notify(hook3, msg2)
 
         when:
         hooks.registerTopic(topic3)
@@ -103,13 +101,13 @@ class DefaultHooksTest extends Specification {
 
 
         then:
-        0 * hookNotifier.notify(hook1, msg1)
-        0 * hookNotifier.notify(hook2, msg1)
-        1 * hookNotifier.notify(hook3, msg1)
+        0 * SubscriberNotifier.notify(hook1, msg1)
+        0 * SubscriberNotifier.notify(hook2, msg1)
+        1 * SubscriberNotifier.notify(hook3, msg1)
 
-        0 * hookNotifier.notify(hook1, msg2)
-        1 * hookNotifier.notify(hook2, msg2)
-        1 * hookNotifier.notify(hook3, msg2)
+        0 * SubscriberNotifier.notify(hook1, msg2)
+        1 * SubscriberNotifier.notify(hook2, msg2)
+        1 * SubscriberNotifier.notify(hook3, msg2)
 
         when: "2 subscribers added, one is a duplicate, but should not cause duplicate notification"
         subscribed = hooks.subscribe(topic1, ImmutableList.of(hookUrl2, hookUrl3))
@@ -122,13 +120,13 @@ class DefaultHooksTest extends Specification {
         hooks.publish(msg2)
 
         then:
-        0 * hookNotifier.notify(hook1, msg1)
-        1 * hookNotifier.notify(hook2, msg1)
-        1 * hookNotifier.notify(hook3, msg1)
+        0 * SubscriberNotifier.notify(hook1, msg1)
+        1 * SubscriberNotifier.notify(hook2, msg1)
+        1 * SubscriberNotifier.notify(hook3, msg1)
 
-        0 * hookNotifier.notify(hook1, msg2)
-        1 * hookNotifier.notify(hook2, msg2)
-        1 * hookNotifier.notify(hook3, msg2)
+        0 * SubscriberNotifier.notify(hook1, msg2)
+        1 * SubscriberNotifier.notify(hook2, msg2)
+        1 * SubscriberNotifier.notify(hook3, msg2)
 
         when: "topic removed"
         def removed = hooks.removeTopic(topic2)
@@ -141,13 +139,13 @@ class DefaultHooksTest extends Specification {
         hooks.publish(msg2)
 
         then: "hook3 will get both messages because it subscribed to topic0 (the topic 'root')"
-        0 * hookNotifier.notify(hook1, msg1)
-        1 * hookNotifier.notify(hook2, msg1)
-        1 * hookNotifier.notify(hook3, msg1)
+        0 * SubscriberNotifier.notify(hook1, msg1)
+        1 * SubscriberNotifier.notify(hook2, msg1)
+        1 * SubscriberNotifier.notify(hook3, msg1)
 
-        0 * hookNotifier.notify(hook1, msg2)
-        0 * hookNotifier.notify(hook2, msg2)
-        1 * hookNotifier.notify(hook3, msg2)
+        0 * SubscriberNotifier.notify(hook1, msg2)
+        0 * SubscriberNotifier.notify(hook2, msg2)
+        1 * SubscriberNotifier.notify(hook3, msg2)
 
         when:
         hooks.removeSubscriber(hookUrl3)
@@ -155,13 +153,13 @@ class DefaultHooksTest extends Specification {
         hooks.publish(msg2)
 
         then:
-        0 * hookNotifier.notify(hook1, msg1)
-        1 * hookNotifier.notify(hook2, msg1)
-        0 * hookNotifier.notify(hook3, msg1)
+        0 * SubscriberNotifier.notify(hook1, msg1)
+        1 * SubscriberNotifier.notify(hook2, msg1)
+        0 * SubscriberNotifier.notify(hook3, msg1)
 
-        0 * hookNotifier.notify(hook1, msg2)
-        0 * hookNotifier.notify(hook2, msg2)
-        0 * hookNotifier.notify(hook3, msg2)
+        0 * SubscriberNotifier.notify(hook1, msg2)
+        0 * SubscriberNotifier.notify(hook2, msg2)
+        0 * SubscriberNotifier.notify(hook3, msg2)
 
     }
 

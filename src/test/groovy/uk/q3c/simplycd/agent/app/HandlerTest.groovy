@@ -5,6 +5,8 @@ import ratpack.http.HttpMethod
 import ratpack.http.Status
 import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec
+import ratpack.impose.ForceServerListenPortImposition
+import ratpack.impose.ImpositionsSpec
 import ratpack.test.MainClassApplicationUnderTest
 import ratpack.test.http.TestHttpClient
 import spock.lang.AutoCleanup
@@ -73,7 +75,13 @@ abstract class HandlerTest extends Specification {
     }
 
     protected MainClassApplicationUnderTest createAut() {
-        return new MainClassApplicationUnderTest(Main.class)
+        return new MainClassApplicationUnderTest(Main.class) {
+
+            @Override
+            protected void addImpositions(ImpositionsSpec impositions) {
+                impositions.add(ForceServerListenPortImposition.of(9001))
+            }
+        }
     }
 
     def "supported methods"() {
@@ -131,7 +139,8 @@ abstract class HandlerTest extends Specification {
             if (errorKey == null) {
                 throw new TestConfigurationException("Must call with errorKey defined")
             }
-            responseCheck.selfCheck("$ConstantsKt.errorBaseUrl/${segmentFromErrorKey(errorKey)}", resource.self().href)
+
+            responseCheck.selfCheck(new SharedPublicAddress().errorDocUrl(errorKey).toString(), resource.href())
         }
 
         responseCheck.result = resource

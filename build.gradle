@@ -41,6 +41,7 @@ def toolingApiVersion = gradle.gradleVersion
 
 apply plugin: 'kotlin'
 apply plugin: "io.ratpack.ratpack-java"
+apply plugin: "io.ratpack.ratpack-groovy"
 apply from: "gradle/idea.gradle"
 apply plugin: 'uk.q3c.simplycd'
 
@@ -86,7 +87,7 @@ dependencies {
     compile 'org.apache.bval:bval-guice:0.5'
 
     // persistence
-    compile ('ru.vyarus:guice-persist-orient:3.1.1'){
+    compile ('ru.vyarus:guice-persist-orient:3.2.0'){
         exclude module: 'orientdb-object'
     }
 

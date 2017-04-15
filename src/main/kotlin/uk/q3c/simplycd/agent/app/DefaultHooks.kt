@@ -2,7 +2,6 @@ package uk.q3c.simplycd.agent.app
 
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
-import ratpack.server.PublicAddress
 import uk.q3c.rest.hal.HalResource
 import java.net.URL
 import javax.annotation.concurrent.ThreadSafe
@@ -14,7 +13,7 @@ import javax.annotation.concurrent.ThreadSafe
  */
 @Suppress("UNUSED_VARIABLE")
 @ThreadSafe
-class DefaultHooks @Inject constructor(val subscriberNotifier: SubscriberNotifier, val publicAddress: PublicAddress) : Hooks {
+class DefaultHooks @Inject constructor(val subscriberNotifier: SubscriberNotifier, val expandedPublicAddress: ExpandedPublicAddress) : Hooks {
     private val log = LoggerFactory.getLogger(this.javaClass.name)
 
     private val topicMap: MutableMap<Topic, MutableSet<Subscriber>> = mutableMapOf()
@@ -24,8 +23,8 @@ class DefaultHooks @Inject constructor(val subscriberNotifier: SubscriberNotifie
     override fun publish(message: HalResource) {
 
         synchronized(lock) {
-            val s = "${publicAddress.get()}/${message.href()}"
-            val requestedTopic = Topic(URL(s))
+            val messageHref = expandedPublicAddress.get(message.href())
+            val requestedTopic = Topic(messageHref.toURL())
             //to avoid sending duplicate messages where subscribers have been added to multiple 'levels' of a URL
             // capture the subscriber  URLs in a Set
             val notificationSet: MutableSet<Subscriber> = mutableSetOf()
@@ -34,9 +33,8 @@ class DefaultHooks @Inject constructor(val subscriberNotifier: SubscriberNotifie
                     notificationSet.addAll(v)
                 }
             }
-            for (subscriber in notificationSet) {
-                subscriberNotifier.notify(subscriber, message)
-            }
+
+            subscriberNotifier.notify(notificationSet, message)
         }
     }
 

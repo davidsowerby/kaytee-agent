@@ -7,13 +7,12 @@ import com.google.inject.Module
 import com.google.inject.util.Modules
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import ratpack.server.PublicAddress
-import ratpack.server.internal.ConstantPublicAddress
 import spock.lang.Specification
 import uk.q3c.build.gitplus.GitPlusModule
 import uk.q3c.build.gitplus.GitSHA
 import uk.q3c.simplycd.agent.app.ApiModule
-import uk.q3c.simplycd.agent.app.ConstantsKt
+import uk.q3c.simplycd.agent.app.ExpandedPublicAddress
+import uk.q3c.simplycd.agent.app.SharedPublicAddress
 import uk.q3c.simplycd.agent.build.*
 import uk.q3c.simplycd.agent.eventbus.GlobalBusModule
 import uk.q3c.simplycd.agent.i18n.I18NModule
@@ -43,10 +42,16 @@ class QueueAndBuildIntegrationTest extends Specification {
     BuildRecordCollator buildResultCollator
     InstallationInfo installationInfo
     class TestSystemModule extends AbstractModule {
+        SharedPublicAddress publicAddress = new SharedPublicAddress()
+
+        TestSystemModule() {
+            this.publicAddress.uri = new URI("http://localhost")
+        }
+
 
         @Override
         protected void configure() {
-            bind(PublicAddress.class).toInstance(new ConstantPublicAddress(new URI(ConstantsKt.baseUrl)))
+            bind(ExpandedPublicAddress.class).toInstance(publicAddress)
             bind(InstallationInfo.class).toInstance(installationInfo)
         }
     }

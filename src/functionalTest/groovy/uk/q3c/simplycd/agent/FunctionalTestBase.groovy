@@ -1,12 +1,18 @@
 package uk.q3c.simplycd.agent
 
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
+import ratpack.guice.BindingsImposition
+import ratpack.impose.ForceServerListenPortImposition
+import ratpack.impose.ImpositionsSpec
 import ratpack.test.MainClassApplicationUnderTest
 import ratpack.test.http.TestHttpClient
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 import uk.q3c.rest.hal.HalMapper
 import uk.q3c.simplycd.agent.app.Main
-
+import uk.q3c.simplycd.agent.system.DefaultInstallationInfo
+import uk.q3c.simplycd.agent.system.InstallationInfo
 /**
  * Base class for functional
  *
@@ -17,6 +23,10 @@ abstract class FunctionalTestBase extends Specification {
     @AutoCleanup
     MainClassApplicationUnderTest aut
 
+    @Rule
+    TemporaryFolder temporaryFolder
+    File temp
+
     // Set this to the URI stub to be interacted with, for example 'buildRequests'
     String uri
 
@@ -25,7 +35,12 @@ abstract class FunctionalTestBase extends Specification {
 
     HalMapper halMapper
 
+    InstallationInfo installationInfo
+
     def setup() {
+        temp = temporaryFolder.getRoot()
+        installationInfo = new DefaultInstallationInfo()
+        installationInfo.dataDirRoot = temp
         aut = createAut()
         client = aut.httpClient
         halMapper = new HalMapper()
@@ -33,7 +48,17 @@ abstract class FunctionalTestBase extends Specification {
     }
 
     protected MainClassApplicationUnderTest createAut() {
-        return new MainClassApplicationUnderTest(Main.class)
+        return new MainClassApplicationUnderTest(Main.class) {
+
+            @Override
+            protected void addImpositions(ImpositionsSpec impositions) {
+                impositions.add(ForceServerListenPortImposition.of(9001))
+                impositions.add(
+                        BindingsImposition.of {
+                            it.bindInstance(InstallationInfo.class, installationInfo)
+                        })
+            }
+        }
     }
 
 }

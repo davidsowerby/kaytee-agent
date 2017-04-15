@@ -10,7 +10,7 @@ import uk.q3c.simplycd.agent.i18n.UserErrorMessageKey
 /**
  * Created by David Sowerby on 04 Mar 2017
  */
-class DefaultErrorResponseBuilder @Inject constructor(val translate: Translate) : ErrorResponseBuilder {
+class DefaultErrorResponseBuilder @Inject constructor(val translate: Translate, val expandedPublicAddress: ExpandedPublicAddress) : ErrorResponseBuilder {
 
 
     override fun invalidMethod(uri: String, calledMethod: HttpMethod, validMethods: List<HttpMethod>): ErrorResponse {
@@ -29,11 +29,9 @@ class DefaultErrorResponseBuilder @Inject constructor(val translate: Translate) 
 
     private fun createResponse(messageKey: DeveloperErrorMessageKey, userMessage: String, developerMessage: String): ErrorResponse {
         val errorResponse = ErrorResponse(messageKey.httpCode, messageKey.name, userMessage, developerMessage)
-        errorResponse.self("$errorBaseUrl/${segmentFromErrorKey(messageKey)}")
+        errorResponse.self(expandedPublicAddress.errorDocUrl(messageKey).toString())
         return errorResponse
     }
 
-    private fun segmentFromErrorKey(key: DeveloperErrorMessageKey): String {
-        return key.name.replace("_", "").decapitalize()
-    }
+
 }

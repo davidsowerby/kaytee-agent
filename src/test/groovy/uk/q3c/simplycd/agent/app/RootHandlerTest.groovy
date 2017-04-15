@@ -36,7 +36,7 @@ class RootHandlerTest extends HandlerTest {
         ErrorResponse halResponse = responseCheck.getResult()
 
         then:
-        halResponse.self().href == "${ConstantsKt.errorBaseUrl}/invalidMethod".toString()
+        halResponse.self().href == new SharedPublicAddress().errorDocUrl(DeveloperErrorMessageKey.Invalid_Method).toString()
         halResponse.developerMessage == "Developer: A request was received with an Http method of 'POST'.  This URI ('/') only responds to '[GET]'"
         halResponse.userMessage == "User: A request was received with an Http method of 'POST'.  This URI ('/') only responds to '[GET]'"
         halResponse.detailCode == "Invalid_Method"

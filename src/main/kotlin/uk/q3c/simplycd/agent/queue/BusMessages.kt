@@ -1,6 +1,7 @@
 package uk.q3c.simplycd.agent.queue
 
 import uk.q3c.build.gitplus.notSpecified
+import uk.q3c.simplycd.agent.build.BuildRecord
 import uk.q3c.simplycd.agent.eventbus.BusMessage
 import uk.q3c.simplycd.agent.i18n.TaskKey
 import uk.q3c.simplycd.agent.i18n.TaskResultStateKey
@@ -19,7 +20,13 @@ abstract class TimedMessage : BusMessage {
 
 data class BuildRequestMessage(val buildRequestId: UUID, var repoUser: String = notSpecified) : TimedMessage()
 
-data class BuildRequestedMessage(val buildRequestId: UUID) : TimedMessage()
+data class BuildRequestedMessage(val buildRequestId: UUID) : TimedMessage() {
+    fun path(): String {
+        val buildRecord = BuildRecord(buildRequestId, time)
+        return buildRecord.path
+    }
+}
+
 data class BuildStartedMessage(val buildRequestId: UUID, val buildNumber: Int) : TimedMessage()
 data class BuildSuccessfulMessage(val buildRequestId: UUID) : TimedMessage()
 data class BuildFailedMessage(val buildRequestId: UUID, val e: Exception) : TimedMessage()

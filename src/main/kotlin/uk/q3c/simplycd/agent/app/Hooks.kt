@@ -1,5 +1,13 @@
 package uk.q3c.simplycd.agent.app
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.google.inject.Inject
+import org.apache.http.client.methods.HttpPut
+import org.apache.http.entity.ContentType
+import org.apache.http.entity.StringEntity
+import org.apache.http.impl.client.CloseableHttpClient
+import org.apache.http.impl.client.HttpClients
+import org.slf4j.LoggerFactory
 import uk.q3c.rest.hal.HalResource
 import java.net.URL
 
@@ -68,12 +76,32 @@ interface Hooks {
 }
 
 interface SubscriberNotifier {
-    fun notify(callback: Subscriber, message: HalResource)
+    fun notify(subscribers: MutableSet<Subscriber>, message: HalResource)
 }
 
-class DefaultSubscriberNotifier : SubscriberNotifier {
-    override fun notify(callback: Subscriber, message: HalResource) {
-        TODO()
+class DefaultSubscriberNotifier @Inject constructor(val halMapper: ObjectMapper) : SubscriberNotifier {
+    private val log = LoggerFactory.getLogger(this.javaClass.name)
+
+
+    override fun notify(subscribers: MutableSet<Subscriber>, message: HalResource) {
+        // Using Apache HttpClient here.  The Ratpack client is designed to work within the Thread management of Ratpack
+        // but we have broken out of that by using the Global Bus
+        val httpClient: CloseableHttpClient = HttpClients.createDefault()
+        for (subscriber in subscribers) {
+            log.debug("Notifying subscriber {} of change to {}", subscriber.callbackUrl, message.href())
+            val httpPut = HttpPut(subscriber.callbackUrl.toExternalForm())
+            httpPut.addHeader("accept", "application/hal+json")
+            val jsonString = halMapper.writeValueAsString(message)
+            val entity: StringEntity = StringEntity(jsonString, ContentType.APPLICATION_JSON)
+            httpPut.entity = entity
+            val response = httpClient.execute(httpPut)
+            try {
+                log.debug("Response from {} was '{}'", subscriber.callbackUrl, response.statusLine)
+            } finally {
+                response.close()
+            }
+        }
+        httpClient.close()
     }
 
 }

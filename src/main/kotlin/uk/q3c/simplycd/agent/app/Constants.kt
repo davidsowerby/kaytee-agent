@@ -6,8 +6,8 @@ import java.time.OffsetDateTime
  * Created by David Sowerby on 18 Feb 2017
  */
 
-val baseUrl = "http://localhost:5050"
-val errorBaseUrl = "$baseUrl/docs/errors"
+//val baseUrl = "http://localhost:9001"
+//val errorBaseUrl = "$baseUrl/docs/errors"
 val buildRequests = "buildRequests"
 val subscriptions = "subscriptions"
 val buildRecords = "buildRecords"
@@ -20,6 +20,6 @@ val unitProperty = "unit"
 val rangeProperty = "range"
 val rangeFromProperty = "rangeFrom"
 
-fun href(resourcePath: String) = "$baseUrl/$resourcePath"
+//fun href(resourcePath: String) = "$baseUrl/$resourcePath"
 
 
