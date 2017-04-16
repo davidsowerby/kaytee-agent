@@ -71,7 +71,7 @@ dependencies {
 //    compile 'ch.qos.logback:logback-core:1.1.2'
 
     compile ratpack.dependency("guice")
-    compile 'uk.q3c.rest:hal-kotlin:0.5.2.13'
+    compile 'uk.q3c.rest:hal-kotlin:0.5.2.14'
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.7.5"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.7.5"
     //krail for I18N only.  Reduce when I18N moved out of Krail

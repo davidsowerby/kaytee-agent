@@ -13,6 +13,9 @@ import uk.q3c.rest.hal.HalResource
 import uk.q3c.simplycd.agent.api.BuildRequest
 import uk.q3c.simplycd.agent.app.ConstantsKt
 import uk.q3c.simplycd.agent.app.SubscriptionRequest
+
+import java.time.LocalDateTime
+
 /**
  * Created by David Sowerby on 21 Mar 2017
  */
@@ -58,7 +61,7 @@ class FunctionalTest1 extends FunctionalTestBase {
         final String fullProjectName = "davidsowerby/simplycd-test"
         final String commitId = "7c3a779e17d65ec255b4c7d40b14950ea6ce232e"
         BuildRequest buildRequest = new BuildRequest(fullProjectName, commitId)
-
+        LocalDateTime timeout = LocalDateTime.now().plusSeconds(30)
 
         when:
         requestSpec { RequestSpec requestSpec ->
@@ -66,7 +69,11 @@ class FunctionalTest1 extends FunctionalTestBase {
             requestSpec.body.text(JsonOutput.toJson(buildRequest))
         }
         post(ConstantsKt.buildRequests)
-        Thread.sleep(10000)
+        while (LocalDateTime.now().isBefore(timeout) && !subscriberMessages.contains("Build_Successful")) {
+            println "Waiting for build to complete"
+            Thread.sleep(1000)
+        }
+
 
         then:
         subscriberMessages.containsAll("Preparation_Started", "Preparation_Successful", "Build_Started", "Build_Successful")
