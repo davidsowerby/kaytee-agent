@@ -9,10 +9,14 @@ import ratpack.http.client.RequestSpec
 import ratpack.jackson.Jackson
 import ratpack.test.embed.EmbeddedApp
 import uk.q3c.rest.hal.HalMapper
-import uk.q3c.rest.hal.HalResource
 import uk.q3c.simplycd.agent.api.BuildRequest
 import uk.q3c.simplycd.agent.app.ConstantsKt
 import uk.q3c.simplycd.agent.app.SubscriptionRequest
+import uk.q3c.simplycd.agent.build.BuildRecord
+import uk.q3c.simplycd.agent.build.TaskResult
+import uk.q3c.simplycd.agent.i18n.BuildStateKey
+import uk.q3c.simplycd.agent.i18n.TaskKey
+import uk.q3c.simplycd.agent.i18n.TaskResultStateKey
 
 import java.time.LocalDateTime
 
@@ -22,7 +26,7 @@ import java.time.LocalDateTime
 @SuppressWarnings("GroovyAssignabilityCheck")
 class FunctionalTest1 extends FunctionalTestBase {
 
-    static List<String> subscriberMessages = new ArrayList<>()
+    static List<BuildRecord> subscriberMessages = new ArrayList<>()
 
     EmbeddedApp subscriber = GroovyEmbeddedApp.ratpack {
         bindings {
@@ -30,9 +34,8 @@ class FunctionalTest1 extends FunctionalTestBase {
         }
         handlers {
             all {
-                context.parse(Jackson.fromJson(HalResource.class)).then { halResource ->
-                    String state = halResource.members().get("state")
-                    subscriberMessages.add(state)
+                context.parse(Jackson.fromJson(BuildRecord.class)).then { buildRecord ->
+                    subscriberMessages.add(buildRecord)
                 }
 
             }
@@ -61,7 +64,7 @@ class FunctionalTest1 extends FunctionalTestBase {
         final String fullProjectName = "davidsowerby/simplycd-test"
         final String commitId = "7c3a779e17d65ec255b4c7d40b14950ea6ce232e"
         BuildRequest buildRequest = new BuildRequest(fullProjectName, commitId)
-        LocalDateTime timeout = LocalDateTime.now().plusSeconds(30)
+        LocalDateTime timeout = LocalDateTime.now().plusSeconds(20)
 
         when:
         requestSpec { RequestSpec requestSpec ->
@@ -69,14 +72,19 @@ class FunctionalTest1 extends FunctionalTestBase {
             requestSpec.body.text(JsonOutput.toJson(buildRequest))
         }
         post(ConstantsKt.buildRequests)
-        while (LocalDateTime.now().isBefore(timeout) && !subscriberMessages.contains("Build_Successful")) {
+        while (LocalDateTime.now().isBefore(timeout) && subscriberMessages.size() < 8) {
             println "Waiting for build to complete"
             Thread.sleep(1000)
         }
 
 
         then:
-        subscriberMessages.containsAll("Preparation_Started", "Preparation_Successful", "Build_Started", "Build_Successful")
+        subscriberMessages.size() == 8
+        BuildRecord finalRecord = subscriberMessages.get(7)
+        finalRecord.state == BuildStateKey.Build_Successful
+        TaskResult taskResult = finalRecord.taskResults.get(TaskKey.Unit_Test)
+        taskResult.outcome == TaskResultStateKey.Task_Successful
+        taskResult.completedAt.isBefore(finalRecord.buildCompletedAt) || taskResult.completedAt.isEqual(finalRecord.buildCompletedAt)
     }
 
     private ReceivedResponse subscribe(String toTopic, String subscriberCallback) {

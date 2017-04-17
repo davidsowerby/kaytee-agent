@@ -21,7 +21,7 @@ class DefaultHooks @Inject constructor(val subscriberNotifier: SubscriberNotifie
     private val noTopicSubscribers: MutableSet<Subscriber> = mutableSetOf()
 
     override fun publish(message: HalResource) {
-
+        log.debug("Publishing message type {} for resource: {}", message::class.java.simpleName, message.self().href)
         synchronized(lock) {
             val messageHref = expandedPublicAddress.get(message.href())
             val requestedTopic = Topic(messageHref.toURL())
