@@ -14,6 +14,7 @@ import uk.q3c.simplycd.agent.app.ConstantsKt
 import uk.q3c.simplycd.agent.app.SubscriptionRequest
 import uk.q3c.simplycd.agent.build.BuildRecord
 import uk.q3c.simplycd.agent.build.TaskResult
+import uk.q3c.simplycd.agent.i18n.BuildFailCauseKey
 import uk.q3c.simplycd.agent.i18n.BuildStateKey
 import uk.q3c.simplycd.agent.i18n.TaskKey
 import uk.q3c.simplycd.agent.i18n.TaskResultStateKey
@@ -26,7 +27,7 @@ import java.time.LocalDateTime
 @SuppressWarnings("GroovyAssignabilityCheck")
 class FunctionalTest1 extends FunctionalTestBase {
 
-    static List<BuildRecord> subscriberMessages = new ArrayList<>()
+    static List<BuildRecord> subscriberMessages
 
     EmbeddedApp subscriber = GroovyEmbeddedApp.ratpack {
         bindings {
@@ -46,6 +47,7 @@ class FunctionalTest1 extends FunctionalTestBase {
 //    HttpClient httpClient
 
     def setup() {
+        subscriberMessages = new ArrayList<>()
         subscriberUri = subscriber.address.toString()
     }
 
@@ -58,7 +60,7 @@ class FunctionalTest1 extends FunctionalTestBase {
     }
 
 
-    def "run a known good build"() {
+    def "run a simple known good build"() {
         given:
         subscribe("http://localhost:9001/buildRecords", subscriberUri)
         final String fullProjectName = "davidsowerby/simplycd-test"
@@ -82,8 +84,39 @@ class FunctionalTest1 extends FunctionalTestBase {
         subscriberMessages.size() == 8
         BuildRecord finalRecord = subscriberMessages.get(7)
         finalRecord.state == BuildStateKey.Build_Successful
+        finalRecord.causeOfFailure == BuildFailCauseKey.Not_Applicable
         TaskResult taskResult = finalRecord.taskResults.get(TaskKey.Unit_Test)
         taskResult.outcome == TaskResultStateKey.Task_Successful
+        taskResult.completedAt.isBefore(finalRecord.buildCompletedAt) || taskResult.completedAt.isEqual(finalRecord.buildCompletedAt)
+    }
+
+    def "run a simple build, with failure"() {
+        given:
+        subscribe("http://localhost:9001/buildRecords", subscriberUri)
+        final String fullProjectName = "davidsowerby/simplycd-test"
+        final String commitId = "a118dc6598ae3f2b65ae2c4042a54e1418e0f3b9"
+        BuildRequest buildRequest = new BuildRequest(fullProjectName, commitId)
+        LocalDateTime timeout = LocalDateTime.now().plusSeconds(20)
+
+        when:
+        requestSpec { RequestSpec requestSpec ->
+            requestSpec.body.type("application/hal+json")
+            requestSpec.body.text(JsonOutput.toJson(buildRequest))
+        }
+        post(ConstantsKt.buildRequests)
+        while (LocalDateTime.now().isBefore(timeout) && subscriberMessages.size() < 8) {
+            println "Waiting for build to complete"
+            Thread.sleep(1000)
+        }
+
+
+        then:
+        subscriberMessages.size() == 8
+        BuildRecord finalRecord = subscriberMessages.get(7)
+        finalRecord.state == BuildStateKey.Build_Failed
+        finalRecord.causeOfFailure == BuildFailCauseKey.Task_Failure
+        TaskResult taskResult = finalRecord.taskResults.get(TaskKey.Unit_Test)
+        taskResult.outcome == TaskResultStateKey.Task_Failed
         taskResult.completedAt.isBefore(finalRecord.buildCompletedAt) || taskResult.completedAt.isEqual(finalRecord.buildCompletedAt)
     }
 

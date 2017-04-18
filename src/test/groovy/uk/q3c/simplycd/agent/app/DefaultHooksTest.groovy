@@ -1,6 +1,7 @@
 package uk.q3c.simplycd.agent.app
 
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableSet
 import spock.lang.Specification
 import uk.q3c.simplycd.agent.build.BuildRecord
 
@@ -66,14 +67,14 @@ class DefaultHooksTest extends Specification {
         hooks.publish(msg1)
 
         then:
-        1 * SubscriberNotifier.notify(hook1, msg1)
+        1 * hookNotifier.notify(ImmutableSet.of(hook1), msg1)
 
         when:
         hooks.unsubscribe(topic1, hookUrl1)
         hooks.publish(msg1)
 
         then:
-        0 * SubscriberNotifier.notify(hook1, msg1)
+        0 * hookNotifier.notify(ImmutableSet.of(hook1), msg1)
 
         when:
         hooks.registerTopic(topic0)
@@ -85,13 +86,9 @@ class DefaultHooksTest extends Specification {
         hooks.publish(msg2)
 
         then:
-        1 * SubscriberNotifier.notify(hook1, msg1)
-        0 * SubscriberNotifier.notify(hook2, msg1)
-        1 * SubscriberNotifier.notify(hook3, msg1)
-
-        0 * SubscriberNotifier.notify(hook1, msg2)
-        1 * SubscriberNotifier.notify(hook2, msg2)
-        1 * SubscriberNotifier.notify(hook3, msg2)
+        1 * hookNotifier.notify(ImmutableSet.of(hook1, hook3), msg1)
+        1 * hookNotifier.notify(ImmutableSet.of(hook2, hook3), msg2)
+        0 * hookNotifier.notify(_, _)
 
         when:
         hooks.registerTopic(topic3)
@@ -101,13 +98,9 @@ class DefaultHooksTest extends Specification {
 
 
         then:
-        0 * SubscriberNotifier.notify(hook1, msg1)
-        0 * SubscriberNotifier.notify(hook2, msg1)
-        1 * SubscriberNotifier.notify(hook3, msg1)
-
-        0 * SubscriberNotifier.notify(hook1, msg2)
-        1 * SubscriberNotifier.notify(hook2, msg2)
-        1 * SubscriberNotifier.notify(hook3, msg2)
+        1 * hookNotifier.notify(ImmutableSet.of(hook3), msg1)
+        1 * hookNotifier.notify(ImmutableSet.of(hook2, hook3), msg2)
+        0 * hookNotifier.notify(_, _)
 
         when: "2 subscribers added, one is a duplicate, but should not cause duplicate notification"
         subscribed = hooks.subscribe(topic1, ImmutableList.of(hookUrl2, hookUrl3))
@@ -120,13 +113,9 @@ class DefaultHooksTest extends Specification {
         hooks.publish(msg2)
 
         then:
-        0 * SubscriberNotifier.notify(hook1, msg1)
-        1 * SubscriberNotifier.notify(hook2, msg1)
-        1 * SubscriberNotifier.notify(hook3, msg1)
-
-        0 * SubscriberNotifier.notify(hook1, msg2)
-        1 * SubscriberNotifier.notify(hook2, msg2)
-        1 * SubscriberNotifier.notify(hook3, msg2)
+        1 * hookNotifier.notify(ImmutableSet.of(hook2, hook3), msg1)
+        1 * hookNotifier.notify(ImmutableSet.of(hook2, hook3), msg2)
+        0 * hookNotifier.notify(_, _)
 
         when: "topic removed"
         def removed = hooks.removeTopic(topic2)
@@ -139,13 +128,9 @@ class DefaultHooksTest extends Specification {
         hooks.publish(msg2)
 
         then: "hook3 will get both messages because it subscribed to topic0 (the topic 'root')"
-        0 * SubscriberNotifier.notify(hook1, msg1)
-        1 * SubscriberNotifier.notify(hook2, msg1)
-        1 * SubscriberNotifier.notify(hook3, msg1)
-
-        0 * SubscriberNotifier.notify(hook1, msg2)
-        0 * SubscriberNotifier.notify(hook2, msg2)
-        1 * SubscriberNotifier.notify(hook3, msg2)
+        1 * hookNotifier.notify(ImmutableSet.of(hook2, hook3), msg1)
+        1 * hookNotifier.notify(ImmutableSet.of(hook3), msg2)
+        0 * hookNotifier.notify(_, _)
 
         when:
         hooks.removeSubscriber(hookUrl3)
@@ -153,13 +138,13 @@ class DefaultHooksTest extends Specification {
         hooks.publish(msg2)
 
         then:
-        0 * SubscriberNotifier.notify(hook1, msg1)
-        1 * SubscriberNotifier.notify(hook2, msg1)
-        0 * SubscriberNotifier.notify(hook3, msg1)
+        0 * hookNotifier.notify(ImmutableSet.of(hook1), msg1)
+        1 * hookNotifier.notify(ImmutableSet.of(hook2), msg1)
+        0 * hookNotifier.notify(ImmutableSet.of(hook3), msg1)
 
-        0 * SubscriberNotifier.notify(hook1, msg2)
-        0 * SubscriberNotifier.notify(hook2, msg2)
-        0 * SubscriberNotifier.notify(hook3, msg2)
+        0 * hookNotifier.notify(ImmutableSet.of(hook1), msg2)
+        0 * hookNotifier.notify(ImmutableSet.of(hook2), msg2)
+        0 * hookNotifier.notify(ImmutableSet.of(hook3), msg2)
 
     }
 
