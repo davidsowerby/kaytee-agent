@@ -20,6 +20,12 @@ val unitProperty = "unit"
 val rangeProperty = "range"
 val rangeFromProperty = "rangeFrom"
 
+val baseDir_propertyName = "simplycd-basedir"
+val developmentMode_propertyName = "simplycd-developmentmode"
+val baseDirFolderName = "simplycd-data"
+val defaultDevelopmentBaseDir = "/tmp/$baseDirFolderName"
+
+
 //fun href(resourcePath: String) = "$baseUrl/$resourcePath"
 
 

@@ -10,6 +10,7 @@ import ratpack.test.http.TestHttpClient
 import spock.lang.AutoCleanup
 import spock.lang.Specification
 import uk.q3c.rest.hal.HalMapper
+import uk.q3c.simplycd.agent.app.ConstantsKt
 import uk.q3c.simplycd.agent.app.Main
 import uk.q3c.simplycd.agent.system.DefaultInstallationInfo
 import uk.q3c.simplycd.agent.system.InstallationInfo
@@ -39,8 +40,9 @@ abstract class FunctionalTestBase extends Specification {
 
     def setup() {
         temp = temporaryFolder.getRoot()
+        System.setProperty(ConstantsKt.developmentMode_propertyName, "true")
+        System.setProperty(ConstantsKt.baseDir_propertyName, temp.getAbsolutePath())
         installationInfo = new DefaultInstallationInfo()
-        installationInfo.dataDirRoot = temp
         aut = createAut()
         client = aut.httpClient
         halMapper = new HalMapper()

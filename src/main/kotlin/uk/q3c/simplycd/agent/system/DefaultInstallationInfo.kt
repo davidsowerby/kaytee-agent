@@ -2,6 +2,10 @@ package uk.q3c.simplycd.agent.system
 
 import com.google.inject.Inject
 import com.google.inject.Singleton
+import uk.q3c.simplycd.agent.app.baseDirFolderName
+import uk.q3c.simplycd.agent.app.baseDir_propertyName
+import uk.q3c.simplycd.agent.app.defaultDevelopmentBaseDir
+import uk.q3c.simplycd.agent.app.developmentMode_propertyName
 import uk.q3c.simplycd.agent.build.Build
 import java.io.File
 
@@ -12,6 +16,9 @@ import java.io.File
 class DefaultInstallationInfo @Inject constructor() : InstallationInfo {
 
     override var dataDirRoot = File(System.getProperty("user.home"))
+        get() {
+            return BaseDirectoryReader.baseDir()
+        }
     override var installDirRoot = File(System.getProperty("user.home"))
 
 
@@ -28,7 +35,7 @@ class DefaultInstallationInfo @Inject constructor() : InstallationInfo {
     }
 
     override fun dataDir(): File {
-        return File(dataDirRoot, "simplycd-data")
+        return dataDirRoot
     }
 
     override fun installDir(): File {
@@ -49,5 +56,27 @@ class DefaultInstallationInfo @Inject constructor() : InstallationInfo {
 
     override fun projectInstanceDir(build: Build): File {
         return File(buildNumberDir(build), build.buildRunner.project.shortProjectName)
+    }
+}
+
+/**
+ * Identifies the root directory being used by Ratpack and SimplyCd for data
+ */
+object BaseDirectoryReader {
+
+    fun baseDir(): File {
+        val developmentMode = System.getProperty(developmentMode_propertyName, "true").toBoolean()
+        val baseDirName = System.getProperty(baseDir_propertyName)
+        if (baseDirName == null) {
+            val defaultBaseDir = if (developmentMode) {
+                File(defaultDevelopmentBaseDir)
+            } else {
+                val userHome = File(System.getProperty("user.home"))
+                File(userHome, baseDirFolderName)
+            }
+            return defaultBaseDir
+        } else {
+            return File(baseDirName)
+        }
     }
 }

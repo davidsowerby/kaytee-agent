@@ -1,5 +1,6 @@
 package uk.q3c.simplycd.agent.build
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import org.slf4j.LoggerFactory
 import uk.q3c.simplycd.agent.app.buildRecords
 import uk.q3c.simplycd.agent.app.zeroDate
@@ -21,6 +22,7 @@ import java.util.*
  *
  * Created by David Sowerby on 13 Jan 2017
  */
+@JsonIgnoreProperties("stateLock", "taskLock")
 class BuildRecord(uid: UUID, val requestedAt: OffsetDateTime) : HalResourceWithId(uid, buildRecords) {
     var preparationStartedAt: OffsetDateTime = zeroDate
     var preparationCompletedAt: OffsetDateTime = zeroDate

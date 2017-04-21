@@ -14,6 +14,7 @@ import uk.q3c.simplycd.agent.lifecycle.LifecycleModule
 import uk.q3c.simplycd.agent.project.ProjectModule
 import uk.q3c.simplycd.agent.queue.BuildRequestHandler
 import uk.q3c.simplycd.agent.queue.QueueModule
+import uk.q3c.simplycd.agent.system.BaseDirectoryReader
 import uk.q3c.simplycd.agent.system.SystemModule
 
 
@@ -22,10 +23,13 @@ object Main {
 
     @JvmStatic fun main(args: Array<String>) {
         ratpack {
+
             serverConfig {
-                development(true)
+                development(System.getProperty(developmentMode_propertyName, "true").toBoolean())
+                baseDir(BaseDirectoryReader.baseDir())
                 port(9000)
             }
+
             bindings {
                 add(ObjectMapper::class.java, HalMapper())
                 module(BuildModule())
@@ -41,6 +45,7 @@ object Main {
                 module(OrientModule("memory:dbname", "admin", "admin"))
                 bind(PersistenceService::class.java)
             }
+
             handlers {
                 path(subscriptions, SubscriptionHandler::class.java)
                 path(buildRequests, BuildRequestHandler::class.java)
