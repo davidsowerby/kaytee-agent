@@ -8,18 +8,23 @@ import ratpack.http.client.ReceivedResponse
 import ratpack.http.client.RequestSpec
 import ratpack.jackson.Jackson
 import ratpack.test.embed.EmbeddedApp
+import spock.lang.Unroll
 import uk.q3c.rest.hal.HalMapper
 import uk.q3c.simplycd.agent.api.BuildRequest
 import uk.q3c.simplycd.agent.app.ConstantsKt
 import uk.q3c.simplycd.agent.app.SubscriptionRequest
 import uk.q3c.simplycd.agent.build.BuildRecord
 import uk.q3c.simplycd.agent.build.TaskResult
-import uk.q3c.simplycd.agent.i18n.BuildFailCauseKey
-import uk.q3c.simplycd.agent.i18n.BuildStateKey
 import uk.q3c.simplycd.agent.i18n.TaskKey
-import uk.q3c.simplycd.agent.i18n.TaskResultStateKey
 
 import java.time.LocalDateTime
+
+import static uk.q3c.simplycd.agent.i18n.BuildFailCauseKey.Not_Applicable
+import static uk.q3c.simplycd.agent.i18n.BuildFailCauseKey.Task_Failure
+import static uk.q3c.simplycd.agent.i18n.BuildStateKey.Build_Failed
+import static uk.q3c.simplycd.agent.i18n.BuildStateKey.Build_Successful
+import static uk.q3c.simplycd.agent.i18n.TaskResultStateKey.Task_Failed
+import static uk.q3c.simplycd.agent.i18n.TaskResultStateKey.Task_Successful
 
 /**
  * Created by David Sowerby on 21 Mar 2017
@@ -60,13 +65,13 @@ class FunctionalTest1 extends FunctionalTestBase {
     }
 
 
-    def "run a simple known good build"() {
+    @Unroll
+    def "run build #testDesc"() {
         given:
-        subscribe("http://localhost:9001/buildRecords", subscriberUri)
+        defaultSubscribe()
         final String fullProjectName = "davidsowerby/simplycd-test"
-        final String commitId = "7c3a779e17d65ec255b4c7d40b14950ea6ce232e"
         BuildRequest buildRequest = new BuildRequest(fullProjectName, commitId)
-        LocalDateTime timeout = LocalDateTime.now().plusSeconds(20)
+        LocalDateTime timeoutAt = LocalDateTime.now().plusSeconds(timeout)
 
         when:
         requestSpec { RequestSpec requestSpec ->
@@ -74,50 +79,31 @@ class FunctionalTest1 extends FunctionalTestBase {
             requestSpec.body.text(JsonOutput.toJson(buildRequest))
         }
         post(ConstantsKt.buildRequests)
-        while (LocalDateTime.now().isBefore(timeout) && subscriberMessages.size() < 8) {
+        while (LocalDateTime.now().isBefore(timeoutAt) && subscriberMessages.size() < expectedMessages) {
             println "Waiting for build to complete"
             Thread.sleep(1000)
         }
 
 
         then:
-        subscriberMessages.size() == 8
-        BuildRecord finalRecord = subscriberMessages.get(7)
-        finalRecord.state == BuildStateKey.Build_Successful
-        finalRecord.causeOfFailure == BuildFailCauseKey.Not_Applicable
+        subscriberMessages.size() == expectedMessages
+        BuildRecord finalRecord = subscriberMessages.get(expectedMessages - 1)
+        finalRecord.state == finalBuildState
+        finalRecord.causeOfFailure == causeOfFailure
         TaskResult taskResult = finalRecord.taskResults.get(TaskKey.Unit_Test)
-        taskResult.outcome == TaskResultStateKey.Task_Successful
+        taskResult.outcome == unitTestResult
         taskResult.completedAt.isBefore(finalRecord.buildCompletedAt) || taskResult.completedAt.isEqual(finalRecord.buildCompletedAt)
+
+
+        where:
+        commitId                                   | testDesc                    | timeout | expectedMessages | finalBuildState  | causeOfFailure | unitTestResult
+        "7c3a779e17d65ec255b4c7d40b14950ea6ce232e" | "successful unit test only" | 20      | 8                | Build_Successful | Not_Applicable | Task_Successful
+        "a118dc6598ae3f2b65ae2c4042a54e1418e0f3b9" | "unit test failure"         | 20      | 8                | Build_Failed     | Task_Failure   | Task_Failed
     }
 
-    def "run a simple build, with failure"() {
-        given:
+
+    private void defaultSubscribe() {
         subscribe("http://localhost:9001/buildRecords", subscriberUri)
-        final String fullProjectName = "davidsowerby/simplycd-test"
-        final String commitId = "a118dc6598ae3f2b65ae2c4042a54e1418e0f3b9"
-        BuildRequest buildRequest = new BuildRequest(fullProjectName, commitId)
-        LocalDateTime timeout = LocalDateTime.now().plusSeconds(20)
-
-        when:
-        requestSpec { RequestSpec requestSpec ->
-            requestSpec.body.type("application/hal+json")
-            requestSpec.body.text(JsonOutput.toJson(buildRequest))
-        }
-        post(ConstantsKt.buildRequests)
-        while (LocalDateTime.now().isBefore(timeout) && subscriberMessages.size() < 8) {
-            println "Waiting for build to complete"
-            Thread.sleep(1000)
-        }
-
-
-        then:
-        subscriberMessages.size() == 8
-        BuildRecord finalRecord = subscriberMessages.get(7)
-        finalRecord.state == BuildStateKey.Build_Failed
-        finalRecord.causeOfFailure == BuildFailCauseKey.Task_Failure
-        TaskResult taskResult = finalRecord.taskResults.get(TaskKey.Unit_Test)
-        taskResult.outcome == TaskResultStateKey.Task_Failed
-        taskResult.completedAt.isBefore(finalRecord.buildCompletedAt) || taskResult.completedAt.isEqual(finalRecord.buildCompletedAt)
     }
 
     private ReceivedResponse subscribe(String toTopic, String subscriberCallback) {
