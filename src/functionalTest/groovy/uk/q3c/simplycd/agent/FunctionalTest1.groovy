@@ -23,8 +23,7 @@ import static uk.q3c.simplycd.agent.i18n.BuildFailCauseKey.Not_Applicable
 import static uk.q3c.simplycd.agent.i18n.BuildFailCauseKey.Task_Failure
 import static uk.q3c.simplycd.agent.i18n.BuildStateKey.Build_Failed
 import static uk.q3c.simplycd.agent.i18n.BuildStateKey.Build_Successful
-import static uk.q3c.simplycd.agent.i18n.TaskResultStateKey.Task_Failed
-import static uk.q3c.simplycd.agent.i18n.TaskResultStateKey.Task_Successful
+import static uk.q3c.simplycd.agent.i18n.TaskResultStateKey.*
 
 /**
  * Created by David Sowerby on 21 Mar 2017
@@ -90,15 +89,20 @@ class FunctionalTest1 extends FunctionalTestBase {
         BuildRecord finalRecord = subscriberMessages.get(expectedMessages - 1)
         finalRecord.state == finalBuildState
         finalRecord.causeOfFailure == causeOfFailure
-        TaskResult taskResult = finalRecord.taskResults.get(TaskKey.Unit_Test)
-        taskResult.outcome == unitTestResult
-        taskResult.completedAt.isBefore(finalRecord.buildCompletedAt) || taskResult.completedAt.isEqual(finalRecord.buildCompletedAt)
+        TaskResult unitTestActual = finalRecord.taskResults.get(TaskKey.Unit_Test)
+        unitTestActual.outcome == unitTestExpected
+        unitTestActual.completedAt.isBefore(finalRecord.buildCompletedAt) || unitTestActual.completedAt.isEqual(finalRecord.buildCompletedAt)
+
+        TaskResult integrationTestActual = finalRecord.taskResults.get(TaskKey.Integration_Test)
+        integrationTestActual.outcome == integrationTestExpected
+        integrationTestActual.completedAt.isBefore(finalRecord.buildCompletedAt) || integrationTestActual.completedAt.isEqual(finalRecord.buildCompletedAt)
 
 
         where:
-        commitId                                   | testDesc                    | timeout | expectedMessages | finalBuildState  | causeOfFailure | unitTestResult
-        "7c3a779e17d65ec255b4c7d40b14950ea6ce232e" | "successful unit test only" | 20      | 8                | Build_Successful | Not_Applicable | Task_Successful
-        "a118dc6598ae3f2b65ae2c4042a54e1418e0f3b9" | "unit test failure"         | 20      | 8                | Build_Failed     | Task_Failure   | Task_Failed
+        commitId                                   | testDesc                    | timeout | expectedMessages | finalBuildState  | causeOfFailure | unitTestExpected | integrationTestExpected
+        "7c3a779e17d65ec255b4c7d40b14950ea6ce232e" | "successful unit test only" | 20      | 8                | Build_Successful | Not_Applicable | Task_Successful  | Task_Not_Run
+        "a118dc6598ae3f2b65ae2c4042a54e1418e0f3b9" | "unit test failure"         | 20      | 8                | Build_Failed     | Task_Failure   | Task_Failed      | Task_Not_Run
+        "fe21046af1fe9af18be569e83f8a1b901be6b7a5" | "integration test passes"   | 20      | 8                | Build_Successful | Not_Applicable | Task_Successful  | Task_Not_Run
     }
 
 

@@ -18,7 +18,7 @@ import java.util.*
  * Collates the results for a build.
  *
  * [tasksResults] is synchronised because parallel tasks could cause contention here.  [state] is also synchronised, but
- * other properties would only be accessed sequentially, and therefore not be subject to contention
+ * other properties would only be accessed sequentially, and therefore not subject to contention
  *
  * Created by David Sowerby on 13 Jan 2017
  */
@@ -34,6 +34,13 @@ class BuildRecord(uid: UUID, val requestedAt: OffsetDateTime) : HalResourceWithI
     private val taskLock = Any()
     // once parallel tasking enabled, contention risk
     val taskResults: MutableMap<TaskKey, TaskResult> = mutableMapOf()
+
+    init {
+        for (taskKey in TaskKey.values()) {
+            // empty results show tasks as 'not run' - better than null
+            taskResults.put(taskKey, TaskResult(taskKey, zeroDate))
+        }
+    }
 
 
     fun addTask(task: TaskKey, time: OffsetDateTime) {
@@ -101,6 +108,10 @@ class TaskResult(val task: TaskKey, val requestedAt: OffsetDateTime) {
     var completedAt: OffsetDateTime = zeroDate
     var outcome: TaskResultStateKey = TaskResultStateKey.Task_Not_Run
     var startedAt: OffsetDateTime = zeroDate
+
+    fun notRun(): Boolean {
+        return outcome == TaskResultStateKey.Task_Not_Run
+    }
 
     fun failed(): Boolean {
         return outcome == TaskResultStateKey.Task_Failed
