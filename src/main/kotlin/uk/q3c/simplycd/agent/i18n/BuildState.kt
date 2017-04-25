@@ -18,13 +18,13 @@ enum class BuildStateKey : I18NKey {
     Preparation_Successful,
     Build_Started,
 
-    Build_Cancelled,
-    Build_Failed,
-    Build_Successful,
+    Cancelled,
+    Failed,
+    Successful,
     Preparation_Failed,
 }
 
-val finalStates: EnumSet<BuildStateKey> = EnumSet.of(Build_Cancelled, Build_Failed, Build_Successful, Preparation_Failed)
+val finalStates: EnumSet<BuildStateKey> = EnumSet.of(Cancelled, Failed, Successful, Preparation_Failed)
 
 enum class BuildFailCauseKey : I18NKey {
     Unsupported_Build_Argument,

@@ -39,7 +39,7 @@ class MockManualTaskLauncher implements ManualTaskLauncher {
                 d--
             }
             LocalDateTime end = LocalDateTime.now()
-            BuildStateKey resultStateKey = randomiser.fail ? BuildStateKey.Build_Failed : BuildStateKey.Build_Successful
+            BuildStateKey resultStateKey = randomiser.fail ? BuildStateKey.Failed : BuildStateKey.Successful
             TaskSuccessfulMessage msg = new TaskSuccessfulMessage(taskRequest.build.buildRunner.uid, taskRequest.taskKey)
             globalBusProvider.get().publish(msg)
             println "Manual task completion message sent: $resultStateKey "

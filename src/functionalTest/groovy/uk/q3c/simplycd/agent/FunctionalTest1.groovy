@@ -21,9 +21,13 @@ import java.time.LocalDateTime
 
 import static uk.q3c.simplycd.agent.i18n.BuildFailCauseKey.Not_Applicable
 import static uk.q3c.simplycd.agent.i18n.BuildFailCauseKey.Task_Failure
-import static uk.q3c.simplycd.agent.i18n.BuildStateKey.Build_Failed
-import static uk.q3c.simplycd.agent.i18n.BuildStateKey.Build_Successful
+import static uk.q3c.simplycd.agent.i18n.BuildStateKey.Failed
+import static uk.q3c.simplycd.agent.i18n.BuildStateKey.Successful
 import static uk.q3c.simplycd.agent.i18n.TaskResultStateKey.*
+
+//import static uk.q3c.simplycd.agent.i18n.BuildFailCauseKey.*
+//import static uk.q3c.simplycd.agent.i18n.BuildStateKey.*
+//import static uk.q3c.simplycd.agent.i18n.TaskResultStateKey.*
 
 /**
  * Created by David Sowerby on 21 Mar 2017
@@ -42,7 +46,7 @@ class FunctionalTest1 extends FunctionalTestBase {
                 context.parse(Jackson.fromJson(BuildRecord.class)).then { buildRecord ->
                     subscriberMessages.add(buildRecord)
                 }
-
+//TODO response    WARN  r.s.internal.NettyHandlerAdapter - No response sent for PUT request to / (last handler: closure at line 40 of FunctionalTest1.groovy)
             }
         }
     }
@@ -82,7 +86,7 @@ class FunctionalTest1 extends FunctionalTestBase {
             println "Waiting for build to complete"
             Thread.sleep(1000)
         }
-
+        Thread.sleep(1000) // sometimes catches additional messages when expectedMessages is set too low
 
         then:
         subscriberMessages.size() == expectedMessages
@@ -99,10 +103,11 @@ class FunctionalTest1 extends FunctionalTestBase {
 
 
         where:
-        commitId                                   | testDesc                    | timeout | expectedMessages | finalBuildState  | causeOfFailure | unitTestExpected | integrationTestExpected
-        "7c3a779e17d65ec255b4c7d40b14950ea6ce232e" | "successful unit test only" | 20      | 8                | Build_Successful | Not_Applicable | Task_Successful  | Task_Not_Run
-        "a118dc6598ae3f2b65ae2c4042a54e1418e0f3b9" | "unit test failure"         | 20      | 8                | Build_Failed     | Task_Failure   | Task_Failed      | Task_Not_Run
-        "fe21046af1fe9af18be569e83f8a1b901be6b7a5" | "integration test passes"   | 20      | 8                | Build_Successful | Not_Applicable | Task_Successful  | Task_Not_Run
+        commitId                                   | testDesc                    | timeout | expectedMessages | finalBuildState | causeOfFailure | unitTestExpected | integrationTestExpected
+        "7c3a779e17d65ec255b4c7d40b14950ea6ce232e" | "successful unit test only" | 20      | 8                | Successful      | Not_Applicable | Task_Successful  | Task_Not_Run
+        "4b55add3e402758ce4e589d8e4bffb79d1d3dda2" | "unit test failure"         | 20      | 8                | Failed          | Task_Failure   | Task_Failed      | Task_Not_Run
+        "26baa588bd3a9b26928b840ddae87e40548a9005" | "integration test passes"   | 20      | 11               | Successful      | Not_Applicable | Task_Successful  | Task_Successful
+        "ebfea9da5835df16ab23931de18c5e728094028c" | "integration test fails"    | 20      | 11               | Failed          | Task_Failure   | Task_Successful  | Task_Failed
     }
 
 

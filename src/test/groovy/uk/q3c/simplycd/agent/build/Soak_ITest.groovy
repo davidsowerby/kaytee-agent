@@ -199,8 +199,8 @@ class Soak_ITest extends Specification {
                 buildsCompleted++
             }
             switch (result.state) {
-                case BuildStateKey.Build_Successful: buildsSuccessFul++; break
-                case BuildStateKey.Build_Failed: buildsFailed++; break
+                case BuildStateKey.Successful: buildsSuccessFul++; break
+                case BuildStateKey.Failed: buildsFailed++; break
                 case BuildStateKey.Preparation_Failed: preparationsFailed++; break
             }
             resultValidator.validate()

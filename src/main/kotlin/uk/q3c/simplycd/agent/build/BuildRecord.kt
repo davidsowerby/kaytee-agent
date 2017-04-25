@@ -68,7 +68,7 @@ class BuildRecord(uid: UUID, val requestedAt: OffsetDateTime) : HalResourceWithI
 
     fun passed(): Boolean {
         synchronized(stateLock) {
-            return state == Build_Successful
+            return state == Successful
         }
     }
 
@@ -151,7 +151,7 @@ class BuildRecordValidator(val record: BuildRecord) {
                 shouldBeSet("buildStartedAt", record.buildStartedAt)
                 tasksShouldNotBeEmpty()
             }
-            Build_Failed -> {
+            Failed -> {
                 if (record.causeOfFailure == Build_Configuration) {
                     buildEmpty()
                     noTaskFailed()
@@ -160,11 +160,11 @@ class BuildRecordValidator(val record: BuildRecord) {
                     taskFailed()
                 }
             }
-            Build_Cancelled -> {
+            Cancelled -> {
                 buildNotEmpty()
                 taskCancelled()
             }
-            Build_Successful -> {
+            Successful -> {
                 buildNotEmpty()
                 noTaskFailed()
             }
@@ -183,7 +183,7 @@ class BuildRecordValidator(val record: BuildRecord) {
     private fun buildEmpty() {
         shouldNotBeSet("buildStartedAt", record.buildStartedAt)
         shouldNotBeSet("buildCompletedAt", record.buildCompletedAt)
-        tasksShouldBeEmpty()
+        tasksShouldNotBeEmpty()  // there is now a record for every task, whether executed or not
     }
 
     /**

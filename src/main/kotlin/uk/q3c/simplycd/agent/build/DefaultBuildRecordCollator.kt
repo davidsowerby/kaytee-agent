@@ -45,7 +45,7 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
         log.debug("BuildSuccessfulMessage received, build id: {}", busMessage.buildRequestId)
         val record = getRecord(busMessage.buildRequestId)
         record.buildCompletedAt = busMessage.time
-        record.state = Build_Successful
+        record.state = Successful
         hooks.publish(record)
     }
 
@@ -54,7 +54,7 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
     fun busMessage(busMessage: BuildFailedMessage) {
         log.debug("BuildFailedMessage received, build id: {}", busMessage.buildRequestId)
         val record = getRecord(busMessage.buildRequestId)
-        record.state = Build_Failed
+        record.state = Failed
         record.causeOfFailure = BuildExceptionLookup().lookupKeyFromException(busMessage.e)
         if (record.causeOfFailure != Build_Configuration) {
             record.buildCompletedAt = busMessage.time

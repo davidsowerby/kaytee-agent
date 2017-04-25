@@ -114,6 +114,7 @@ class DefaultBuild @Inject constructor(
     private fun setupTasks(config: SimplyCDProjectExtension.GroupConfig, taskKey: TaskKey, qualityGateKey: TaskKey) {
         // not enabled at all, nothing to do
         if (!config.enabled) {
+            log.debug("Config is set 'disabled'")
             return
         }
 
