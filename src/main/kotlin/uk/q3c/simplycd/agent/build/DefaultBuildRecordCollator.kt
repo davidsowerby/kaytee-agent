@@ -111,7 +111,7 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
     fun busMessage(busMessage: TaskSuccessfulMessage) {
         log.debug("TaskSuccessfulMessage received, build id: {}, task: {}", busMessage.buildRequestId, busMessage.taskKey)
         val record = getRecord(busMessage.buildRequestId)
-        record.updateTaskOutcome(busMessage.taskKey, busMessage.time, TaskResultStateKey.Task_Successful)
+        record.updateTaskOutcome(busMessage.taskKey, busMessage.time, TaskResultStateKey.Task_Successful, busMessage.stdOut)
         hooks.publish(record)
     }
 
@@ -119,7 +119,7 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
     fun busMessage(busMessage: TaskFailedMessage) {
         log.debug("TaskFailedMessage received, build id: {}, task: {}", busMessage.buildRequestId, busMessage.taskKey)
         val record = getRecord(busMessage.buildRequestId)
-        record.updateTaskOutcome(busMessage.taskKey, busMessage.time, TaskResultStateKey.Task_Failed)
+        record.updateTaskOutcome(busMessage.taskKey, busMessage.time, busMessage.result, busMessage.stdOut, busMessage.stdErr)
         hooks.publish(record)
     }
 

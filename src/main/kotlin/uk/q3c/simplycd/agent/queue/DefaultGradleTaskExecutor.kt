@@ -17,10 +17,10 @@ class DefaultGradleTaskExecutor @Inject constructor(val taskNameMap: TaskNameMap
 
     private val log = LoggerFactory.getLogger(this.javaClass.name)
 
-    override fun execute(build: Build, taskKey: TaskKey) {
+    override fun execute(build: Build, taskKey: TaskKey, includeQualityGate: Boolean) {
         val tasks = Splitter.on(CharMatcher.WHITESPACE)
                 .omitEmptyStrings()
-                .split(taskNameMap.get(taskKey))
+                .split(taskNameMap.get(taskKey, includeQualityGate))
 
         if (!build.stderrOutputFile.exists()) {
             build.stderrOutputFile.createNewFile()
@@ -33,7 +33,7 @@ class DefaultGradleTaskExecutor @Inject constructor(val taskNameMap: TaskNameMap
                 build.gradleLauncher.forTasks(*Iterables.toArray(tasks, String::class.java))
                         .setStandardOutput(captureStdOut)
                         .setStandardError(captureStderr)
-                log.info("Executing Gradle task request for {}, with Gradle command: '{}'", taskKey, taskNameMap.get(taskKey))
+                log.info("Executing Gradle task request for {}, with Gradle command: '{}'", taskKey, tasks)
                 build.gradleLauncher.run()
             }
         }

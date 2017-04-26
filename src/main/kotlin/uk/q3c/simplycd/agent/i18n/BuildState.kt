@@ -51,4 +51,5 @@ enum class TaskResultStateKey : I18NKey {
     Task_Failed,
     Task_Not_Run,
     Task_Successful,
+    Quality_Gate_Failed
 }

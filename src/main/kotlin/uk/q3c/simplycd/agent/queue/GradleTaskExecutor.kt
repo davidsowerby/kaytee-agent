@@ -9,5 +9,5 @@ import uk.q3c.simplycd.agent.i18n.TaskKey
  * Created by David Sowerby on 25 Mar 2017
  */
 interface GradleTaskExecutor {
-    fun execute(build: Build, taskKey: TaskKey)
+    fun execute(build: Build, taskKey: TaskKey, includeQualityGate: Boolean)
 }

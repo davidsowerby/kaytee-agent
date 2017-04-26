@@ -90,11 +90,11 @@ class DefaultBuild @Inject constructor(
      */
     override fun configure(configuration: SimplyCDProjectExtension) {
         synchronized(taskRunners) {
-            setupTasks(configuration.unitTest, TaskKey.Unit_Test, TaskKey.Unit_Test_Quality_Gate)
-            setupTasks(configuration.integrationTest, TaskKey.Integration_Test, TaskKey.Integration_Test_Quality_Gate)
-            setupTasks(configuration.functionalTest, TaskKey.Functional_Test, TaskKey.Functional_Test_Quality_Gate)
-            setupTasks(configuration.acceptanceTest, TaskKey.Acceptance_Test, TaskKey.Acceptance_Test_Quality_Gate)
-            setupTasks(configuration.productionTest, TaskKey.Production_Test, TaskKey.Production_Test_Quality_Gate)
+            setupTasks(configuration.unitTest, TaskKey.Unit_Test)
+            setupTasks(configuration.integrationTest, TaskKey.Integration_Test)
+            setupTasks(configuration.functionalTest, TaskKey.Functional_Test)
+            setupTasks(configuration.acceptanceTest, TaskKey.Acceptance_Test)
+            setupTasks(configuration.productionTest, TaskKey.Production_Test)
         }
 
     }
@@ -111,26 +111,23 @@ class DefaultBuild @Inject constructor(
         }
     }
 
-    private fun setupTasks(config: SimplyCDProjectExtension.GroupConfig, taskKey: TaskKey, qualityGateKey: TaskKey) {
+    private fun setupTasks(config: SimplyCDProjectExtension.GroupConfig, taskKey: TaskKey) {
         // not enabled at all, nothing to do
         if (!config.enabled) {
             log.debug("Config is set 'disabled'")
             return
         }
 
-        // if quality gate is enabled, we only need to call that - it will invoke the associated test task
-        val actualTaskKey = if (config.qualityGate) {
-            qualityGateKey
-        } else {
-            taskKey
-        }
+        // if quality gate is enabled, we need to invoke the Gradle quality gate task rather than the test itself
+        // but that is managed within the GradleTaskRunner
+        val actualTaskKey = taskKey
 
         // if an auto step, we then need to know whether it is local Gradle,or a sub build
         if (config.auto) {
             if (config.external) {
                 createSubBuildTask(actualTaskKey, config)
             } else {
-                createLocalGradleTask(actualTaskKey, config)
+                createLocalGradleTask(actualTaskKey, config, config.qualityGate)
             }
         }
 
@@ -186,8 +183,8 @@ class DefaultBuild @Inject constructor(
     /**
      * Creates a [GradleTask] and adds it to [taskRunners]
      */
-    private fun createLocalGradleTask(taskKey: TaskKey, config: SimplyCDProjectExtension.GroupConfig) {
-        val taskRunner = gradleTaskRunnerFactory.create(build = this, taskKey = taskKey)
+    private fun createLocalGradleTask(taskKey: TaskKey, config: SimplyCDProjectExtension.GroupConfig, includeQualityGate: Boolean) {
+        val taskRunner = gradleTaskRunnerFactory.create(build = this, taskKey = taskKey, includeQualityGate = includeQualityGate)
         taskRunners.add(taskRunner)
     }
 

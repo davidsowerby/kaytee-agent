@@ -35,7 +35,7 @@ interface ProjectInstance {
 }
 
 interface GradleTaskRunnerFactory {
-    fun create(build: Build, taskKey: TaskKey): GradleTaskRunner
+    fun create(build: Build, taskKey: TaskKey, includeQualityGate: Boolean): GradleTaskRunner
 }
 
 interface ManualTaskRunnerFactory {

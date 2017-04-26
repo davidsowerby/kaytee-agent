@@ -10,6 +10,7 @@ import uk.q3c.simplycd.agent.i18n.BuildStateKey
 import uk.q3c.simplycd.agent.i18n.BuildStateKey.*
 import uk.q3c.simplycd.agent.i18n.TaskKey
 import uk.q3c.simplycd.agent.i18n.TaskResultStateKey
+import uk.q3c.simplycd.agent.i18n.TaskResultStateKey.*
 import uk.q3c.simplycd.agent.i18n.finalStates
 import java.time.OffsetDateTime
 import java.util.*
@@ -35,6 +36,7 @@ class BuildRecord(uid: UUID, val requestedAt: OffsetDateTime) : HalResourceWithI
     // once parallel tasking enabled, contention risk
     val taskResults: MutableMap<TaskKey, TaskResult> = mutableMapOf()
 
+    // initialise with empty results, so data set is always complete
     init {
         for (taskKey in TaskKey.values()) {
             // empty results show tasks as 'not run' - better than null
@@ -90,11 +92,13 @@ class BuildRecord(uid: UUID, val requestedAt: OffsetDateTime) : HalResourceWithI
         return finalStates.contains(state)
     }
 
-    fun updateTaskOutcome(taskKey: TaskKey, time: OffsetDateTime, outcome: TaskResultStateKey) {
+    fun updateTaskOutcome(taskKey: TaskKey, time: OffsetDateTime, outcome: TaskResultStateKey, stdOut: String = "", stdErr: String = "") {
         synchronized(taskLock) {
             val taskResult = taskResult(taskKey)
             taskResult.completedAt = time
             taskResult.outcome = outcome
+            taskResult.stdErr = stdErr
+            taskResult.stdOut = stdOut
         }
     }
 
@@ -104,21 +108,23 @@ class BuildRecord(uid: UUID, val requestedAt: OffsetDateTime) : HalResourceWithI
 class InvalidTaskException(task: TaskKey) : RuntimeException(task.name)
 
 
-class TaskResult(val task: TaskKey, val requestedAt: OffsetDateTime) {
+data class TaskResult(val task: TaskKey, val requestedAt: OffsetDateTime) {
     var completedAt: OffsetDateTime = zeroDate
-    var outcome: TaskResultStateKey = TaskResultStateKey.Task_Not_Run
+    var outcome: TaskResultStateKey = Task_Not_Run
     var startedAt: OffsetDateTime = zeroDate
+    var stdOut: String = ""
+    var stdErr: String = ""
 
     fun notRun(): Boolean {
-        return outcome == TaskResultStateKey.Task_Not_Run
+        return outcome == Task_Not_Run
     }
 
     fun failed(): Boolean {
-        return outcome == TaskResultStateKey.Task_Failed
+        return outcome == Task_Failed || outcome == Quality_Gate_Failed
     }
 
     fun cancelled(): Boolean {
-        return outcome == TaskResultStateKey.Task_Cancelled
+        return outcome == Task_Cancelled
     }
 }
 

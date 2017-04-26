@@ -38,8 +38,8 @@ data class PreparationFailedMessage(val buildRequestId: UUID, val e: Exception) 
 
 data class TaskRequestedMessage(val buildRequestId: UUID, val taskKey: TaskKey) : TimedMessage()
 data class TaskStartedMessage(val buildRequestId: UUID, val taskKey: TaskKey) : TimedMessage()
-data class TaskSuccessfulMessage(val buildRequestId: UUID, val taskKey: TaskKey) : TimedMessage()
-data class TaskFailedMessage(val buildRequestId: UUID, val taskKey: TaskKey, val result: TaskResultStateKey) : TimedMessage()
+data class TaskSuccessfulMessage(val buildRequestId: UUID, val taskKey: TaskKey, val stdOut: String) : TimedMessage()
+data class TaskFailedMessage(val buildRequestId: UUID, val taskKey: TaskKey, val result: TaskResultStateKey, val stdErr: String, val stdOut: String) : TimedMessage()
 
 
 

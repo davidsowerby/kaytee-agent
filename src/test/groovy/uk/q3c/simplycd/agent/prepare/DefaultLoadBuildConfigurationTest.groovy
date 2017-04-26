@@ -6,6 +6,9 @@ import uk.q3c.simplycd.agent.i18n.LabelKey
 import uk.q3c.simplycd.agent.queue.GradleTaskExecutor
 import uk.q3c.simplycd.agent.queue.GradleTaskRunner
 import uk.q3c.util.testutil.TestResource
+
+import static uk.q3c.simplycd.agent.i18n.TaskKey.Extract_Gradle_Configuration
+
 /**
  * Created by David Sowerby on 20 Jan 2017
  */
@@ -46,7 +49,7 @@ class DefaultLoadBuildConfigurationTest extends PreparationStepSpecification {
     def "execute successfully"() {
         given:
         GradleTaskRunner gradleTaskRequest = Mock(GradleTaskRunner)
-        gradleTaskRequestFactory.create(_, _) >> gradleTaskRequest
+        gradleTaskRequestFactory.create(_, _, false) >> gradleTaskRequest
         File ref = TestResource.resource(this, 'simplycd.json')
         File target = new File(codeDir, "build/simplycd.json")
         FileUtils.copyFile(ref, target)
@@ -56,7 +59,7 @@ class DefaultLoadBuildConfigurationTest extends PreparationStepSpecification {
 
         then:
         1 * installationInfo.projectInstanceDir(build) >> codeDir
-        1 * gradleTaskExecutor.execute(build, _) // Groovy cannot deal with TaskKey, so have to use wildcard
-        1 * gradleTaskRequestFactory.create(build, _) >> this.gradleTaskRequest
+        1 * gradleTaskExecutor.execute(build, Extract_Gradle_Configuration, false)
+        1 * gradleTaskRequestFactory.create(build, _, false) >> this.gradleTaskRequest
     }
 }

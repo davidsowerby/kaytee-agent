@@ -5,7 +5,9 @@ import org.slf4j.LoggerFactory
 import uk.q3c.simplycd.agent.build.Build
 import uk.q3c.simplycd.agent.eventbus.BusMessage
 import uk.q3c.simplycd.agent.i18n.TaskKey
-import uk.q3c.simplycd.agent.i18n.TaskResultStateKey
+import uk.q3c.simplycd.agent.i18n.TaskResultStateKey.Quality_Gate_Failed
+import uk.q3c.simplycd.agent.i18n.TaskResultStateKey.Task_Failed
+import uk.q3c.simplycd.agent.system.InstallationInfo
 
 /**
  * Created by David Sowerby on 26 Jan 2017
@@ -13,6 +15,7 @@ import uk.q3c.simplycd.agent.i18n.TaskResultStateKey
 abstract class AbstractTaskRunner constructor(
         override val build: Build,
         override val taskKey: TaskKey,
+        val installationInfo: InstallationInfo,
         val globalBus: PubSubSupport<BusMessage>) :
 
         TaskRunner {
@@ -25,9 +28,22 @@ abstract class AbstractTaskRunner constructor(
             globalBus.publish(TaskStartedMessage(this.build.buildRunner.uid, taskKey))
             log.info("Executing task request {}", identity())
             doRun()
+            log.info("Build successful for {}", identity())
+            val stdOutFile = installationInfo.gradleStdOutFile(build)
+            val outcome = TaskSuccessfulMessage(build.buildRunner.uid, taskKey, stdOutFile.readText()) // any error would cause exception
+            globalBus.publish(outcome)
         } catch (e: Exception) {
-            globalBus.publish(TaskFailedMessage(this.build.buildRunner.uid, taskKey, TaskResultStateKey.Task_Failed))
-            log.error("Exception thrown by task execution", e)
+            val stdErrFile = installationInfo.gradleStdErrFile(build)
+            val stdOutFile = installationInfo.gradleStdOutFile(build)
+            val errText = stdErrFile.readText()
+            log.info("Build failed for {}", identity())
+            val resultKey = if (errText.contains("Code coverage failed")) {
+                Quality_Gate_Failed
+            } else {
+                Task_Failed
+            }
+            val outcome = TaskFailedMessage(build.buildRunner.uid, taskKey, resultKey, errText, stdOutFile.readText())
+            globalBus.publish(outcome)
         }
         // we cannot send the end message here - some tasks are executed asynchronously
     }

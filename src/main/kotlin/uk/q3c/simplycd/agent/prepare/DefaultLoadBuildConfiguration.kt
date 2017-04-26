@@ -36,7 +36,7 @@ class DefaultLoadBuildConfiguration @Inject constructor(
         val inputFile = File(installationInfo.projectInstanceDir(build), fileLocation)
         try {
             // call Gradle task to extract the config
-            gradleTaskExecutor.execute(build, TaskKey.Extract_Gradle_Configuration)
+            gradleTaskExecutor.execute(build, TaskKey.Extract_Gradle_Configuration, false)
             // import from the file generated above
             val configuration = ObjectMapper().readValue(inputFile, SimplyCDProjectExtension::class.java)
             build.configure(configuration)
