@@ -27,7 +27,7 @@ data class BuildRequestedMessage(val buildRequestId: UUID) : TimedMessage() {
     }
 }
 
-data class BuildStartedMessage(val buildRequestId: UUID, val buildNumber: Int) : TimedMessage()
+data class BuildStartedMessage(val buildRequestId: UUID, val buildNumber: String) : TimedMessage()
 data class BuildSuccessfulMessage(val buildRequestId: UUID) : TimedMessage()
 data class BuildFailedMessage(val buildRequestId: UUID, val e: Exception) : TimedMessage()
 

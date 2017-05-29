@@ -5,21 +5,24 @@ package uk.q3c.simplycd.agent.i18n
  */
 
 import com.google.common.collect.ImmutableMap
+import uk.q3c.kaytee.plugin.TaskNames.*
 import uk.q3c.krail.core.i18n.I18NKey
 import uk.q3c.simplycd.agent.i18n.TaskKey.*
-import uk.q3c.simplycd.lifecycle.TaskNames.*
 import java.util.*
 
 enum class TaskKey : I18NKey {
-    Acceptance_Test,
-    Build_Info,
-    Change_Log,
     Extract_Gradle_Configuration,
-    Integration_Test,
-    Functional_Test,
-    Local_Publish,
-    Production_Test,
     Unit_Test,
+    Integration_Test,
+    Generate_Build_Info,
+    Generate_Change_Log,
+    Local_Publish,
+    Functional_Test,
+    Acceptance_Test,
+    Merge_to_Master,
+    Bintray_Upload,
+    Production_Test,
+
 }
 
 enum class TaskQualityGateKey : I18NKey {
@@ -47,14 +50,16 @@ class TaskNameMap {
     init {
         val temp: MutableMap<TaskKey, String> = mutableMapOf()
         temp.put(Acceptance_Test, ACCEPTANCE_TEST)
-        temp.put(Build_Info, CREATE_BUILD_INFO_TASK_NAME)
-        temp.put(Change_Log, GENERATE_CHANGE_LOG_TASK_NAME)
+        temp.put(Generate_Build_Info, GENERATE_BUILD_INFO_TASK_NAME)
+        temp.put(Generate_Change_Log, GENERATE_CHANGE_LOG_TASK_NAME)
         temp.put(Extract_Gradle_Configuration, GENERATE_CONFIG_TASK_NAME)
         temp.put(Integration_Test, "clean $INTEGRATION_TEST")
         temp.put(Functional_Test, FUNCTIONAL_TEST)
         temp.put(Local_Publish, LOCAL_PUBLISH)
         temp.put(Production_Test, PRODUCTION_TEST)
         temp.put(Unit_Test, UNIT_TEST)
+
+        temp.put(Merge_to_Master, MERGE_TO_MASTER)
         taskPhrases = ImmutableMap.copyOf(temp)
 
         val tempQG: MutableMap<TaskQualityGateKey, String> = mutableMapOf()
@@ -68,7 +73,7 @@ class TaskNameMap {
 
 
     fun commitStage(): EnumSet<TaskKey> {
-        return EnumSet.of(Unit_Test, Integration_Test, Build_Info, Change_Log, Local_Publish)
+        return EnumSet.of(Unit_Test, Integration_Test, Generate_Build_Info, Generate_Change_Log, Local_Publish)
     }
 
     fun functionalStage(): EnumSet<TaskKey> {

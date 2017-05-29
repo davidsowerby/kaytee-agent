@@ -14,17 +14,19 @@ class TestBuildNumberReader implements BuildNumberReader {
 
 
     @Override
-    int nextBuildNumber(@NotNull String projectName) {
+    String nextBuildNumber(@NotNull Build build) {
 
         synchronized (mapLock) {
-            Integer counter = numbers.get(projectName)
+            Integer counter = numbers.get(build.project.shortProjectName)
             if (counter == null) {
                 counter = 0
             }
             counter++
-            numbers.put(projectName, counter)
-            return numbers.get(projectName)
+            numbers.put(build.project.shortProjectName, counter)
+            return numbers.get(build.project.shortProjectName)
         }
 
     }
+
+
 }

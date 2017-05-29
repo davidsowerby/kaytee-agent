@@ -34,8 +34,8 @@ class DefaultGitClone @Inject constructor(val installationInfo: InstallationInfo
             gitPlus.execute()
             log.debug("Cloning complete")
 
-            gitPlus.local.checkoutCommit(build.gitHash)
-            log.debug("Checked out commit {}", build.gitHash)
+            gitPlus.local.checkoutCommit(build.gitHash, "simplycd")
+            log.debug("Checked out commit {} to new branch 'simplycd'", build.gitHash)
         } catch (e: Exception) {
             val msg = "Git clone or checkout operation failed"
             throw BuildPreparationException(msg, e)

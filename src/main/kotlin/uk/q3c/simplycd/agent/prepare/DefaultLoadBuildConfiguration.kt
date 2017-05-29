@@ -2,6 +2,7 @@ package uk.q3c.simplycd.agent.prepare
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.google.inject.Inject
+import uk.q3c.kaytee.plugin.KayTeeExtension
 import uk.q3c.simplycd.agent.build.Build
 import uk.q3c.simplycd.agent.build.BuildPreparationException
 import uk.q3c.simplycd.agent.i18n.LabelKey
@@ -11,7 +12,6 @@ import uk.q3c.simplycd.agent.queue.GradleTaskExecutor
 import uk.q3c.simplycd.agent.queue.GradleTaskRunnerFactory
 import uk.q3c.simplycd.agent.system.InstallationInfo
 import uk.q3c.simplycd.i18n.Named
-import uk.q3c.simplycd.lifecycle.SimplyCDProjectExtension
 import java.io.File
 
 /**
@@ -38,7 +38,7 @@ class DefaultLoadBuildConfiguration @Inject constructor(
             // call Gradle task to extract the config
             gradleTaskExecutor.execute(build, TaskKey.Extract_Gradle_Configuration, false)
             // import from the file generated above
-            val configuration = ObjectMapper().readValue(inputFile, SimplyCDProjectExtension::class.java)
+            val configuration = ObjectMapper().readValue(inputFile, KayTeeExtension::class.java)
             build.configure(configuration)
         } catch (e: Exception) {
             val msg = "Unable to load configuration from $inputFile"

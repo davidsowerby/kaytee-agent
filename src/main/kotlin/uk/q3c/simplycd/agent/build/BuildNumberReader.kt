@@ -5,5 +5,5 @@ package uk.q3c.simplycd.agent.build
  */
 interface BuildNumberReader {
 
-    fun nextBuildNumber(projectName: String): Int
+    fun nextBuildNumber(build: Build): String
 }

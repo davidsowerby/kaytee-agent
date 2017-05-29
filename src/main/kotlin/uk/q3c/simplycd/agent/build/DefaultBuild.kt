@@ -6,15 +6,17 @@ import net.engio.mbassy.listener.Handler
 import net.engio.mbassy.listener.Listener
 import org.gradle.tooling.BuildLauncher
 import org.slf4j.LoggerFactory
+import uk.q3c.kaytee.plugin.GroupConfig
+import uk.q3c.kaytee.plugin.KayTeeExtension
 import uk.q3c.simplycd.agent.eventbus.BusMessage
 import uk.q3c.simplycd.agent.eventbus.GlobalBus
 import uk.q3c.simplycd.agent.eventbus.GlobalBusProvider
 import uk.q3c.simplycd.agent.eventbus.SubscribeTo
 import uk.q3c.simplycd.agent.i18n.TaskKey
+import uk.q3c.simplycd.agent.i18n.TaskKey.*
 import uk.q3c.simplycd.agent.i18n.TaskResultStateKey
 import uk.q3c.simplycd.agent.prepare.PreparationStage
 import uk.q3c.simplycd.agent.queue.*
-import uk.q3c.simplycd.lifecycle.SimplyCDProjectExtension
 import java.io.File
 import java.util.*
 
@@ -49,10 +51,10 @@ class DefaultBuild @Inject constructor(
     private val completedTasksLock = Any()
     private var generatedTaskRunners: Int = 0
 
-    private var buildNumber: Int = -1
+    private var buildNumber: String = ""
         get() {
-            if (field < 0) {
-                buildNumber = buildNumberReader.nextBuildNumber(buildRunner.project.shortProjectName)
+            if (field.isEmpty()) {
+                buildNumber = buildNumberReader.nextBuildNumber(this)
             }
             return field
         }
@@ -76,7 +78,7 @@ class DefaultBuild @Inject constructor(
     }
 
 
-    override fun buildNumber(): Int {
+    override fun buildNumber(): String {
         return buildNumber
     }
 
@@ -88,16 +90,19 @@ class DefaultBuild @Inject constructor(
      * Each enabled step produces one or more tasks (usually there is only one task per step, but if
      * both *auto* and *manual* properties are set, two tasks are created, with the auto task to run first
      */
-    override fun configure(configuration: SimplyCDProjectExtension) {
+    override fun configure(configuration: KayTeeExtension) {
         synchronized(taskRunners) {
-            setupTasks(configuration.unitTest, TaskKey.Unit_Test)
-            setupTasks(configuration.integrationTest, TaskKey.Integration_Test)
-            setupTasks(configuration.functionalTest, TaskKey.Functional_Test)
-            setupTasks(configuration.acceptanceTest, TaskKey.Acceptance_Test)
-            setupTasks(configuration.productionTest, TaskKey.Production_Test)
+            setupTasks(configuration.unitTest, Unit_Test)
+            setupTasks(configuration.integrationTest, Integration_Test)
+            setupTasks(configuration, Generate_Build_Info, Generate_Change_Log, Local_Publish)
+            setupTasks(configuration.functionalTest, Functional_Test)
+            setupTasks(configuration.acceptanceTest, Acceptance_Test)
+            setupTasks(configuration, Merge_to_Master, Bintray_Upload)
+            setupTasks(configuration.productionTest, Production_Test)
         }
 
     }
+
 
     private fun pushTaskToRequestQueue() {
         synchronized(completedTasksLock) {
@@ -111,7 +116,28 @@ class DefaultBuild @Inject constructor(
         }
     }
 
-    private fun setupTasks(config: SimplyCDProjectExtension.GroupConfig, taskKey: TaskKey) {
+    private fun setupTasks(configuration: KayTeeExtension, vararg taskKeys: TaskKey) {
+        for (taskKey in taskKeys) {
+            when (taskKey) {
+                Unit_Test, Integration_Test, Functional_Test, Acceptance_Test, Production_Test -> throw IllegalArgumentException("Test tasks should be set up using the call with GroupConfig")
+                Local_Publish -> createLocalGradleTask(taskKey, false)
+                Generate_Build_Info -> optionalTask(taskKey, configuration.generateBuildInfo)
+
+                TaskKey.Extract_Gradle_Configuration -> createLocalGradleTask(taskKey, false) // not normally expected here but does no harm
+                TaskKey.Generate_Change_Log -> optionalTask(taskKey, configuration.generateChangeLog)
+                TaskKey.Merge_to_Master -> createLocalGradleTask(taskKey, false)
+                TaskKey.Bintray_Upload -> optionalTask(taskKey, configuration.publishToBintray)
+            }
+        }
+    }
+
+    private fun optionalTask(taskKey: TaskKey, optionValue: Boolean) {
+        if (optionValue) {
+            createLocalGradleTask(taskKey, false)
+        }
+    }
+
+    private fun setupTasks(config: GroupConfig, taskKey: TaskKey) {
         // not enabled at all, nothing to do
         if (!config.enabled) {
             log.debug("Config is set 'disabled'")
@@ -127,7 +153,7 @@ class DefaultBuild @Inject constructor(
             if (config.external) {
                 createSubBuildTask(actualTaskKey, config)
             } else {
-                createLocalGradleTask(actualTaskKey, config, config.qualityGate)
+                createLocalGradleTask(actualTaskKey, config.qualityGate)
             }
         }
 
@@ -176,14 +202,14 @@ class DefaultBuild @Inject constructor(
     /**
      * Creates a [SubBuildTask] and adds it to [taskRunners]
      */
-    private fun createSubBuildTask(taskNameKey: TaskKey, config: SimplyCDProjectExtension.GroupConfig) {
+    private fun createSubBuildTask(taskNameKey: TaskKey, config: GroupConfig) {
         TODO()
     }
 
     /**
      * Creates a [GradleTask] and adds it to [taskRunners]
      */
-    private fun createLocalGradleTask(taskKey: TaskKey, config: SimplyCDProjectExtension.GroupConfig, includeQualityGate: Boolean) {
+    private fun createLocalGradleTask(taskKey: TaskKey, includeQualityGate: Boolean) {
         val taskRunner = gradleTaskRunnerFactory.create(build = this, taskKey = taskKey, includeQualityGate = includeQualityGate)
         taskRunners.add(taskRunner)
     }
@@ -191,7 +217,7 @@ class DefaultBuild @Inject constructor(
     /**
      * Creates a [ManualTask] and adds it to [taskRunners]
      */
-    private fun createManualTask(taskKey: TaskKey, config: SimplyCDProjectExtension.GroupConfig) {
+    private fun createManualTask(taskKey: TaskKey, config: GroupConfig) {
         val taskRunner = manualTaskRunnerFactory.create(build = this, taskKey = taskKey)
         taskRunners.add(taskRunner)
     }

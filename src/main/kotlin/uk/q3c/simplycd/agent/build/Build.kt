@@ -1,9 +1,9 @@
 package uk.q3c.simplycd.agent.build
 
 import org.gradle.tooling.BuildLauncher
+import uk.q3c.kaytee.plugin.KayTeeExtension
 import uk.q3c.simplycd.agent.queue.BuildRunner
 import uk.q3c.simplycd.agent.queue.ProjectInstance
-import uk.q3c.simplycd.lifecycle.SimplyCDProjectExtension
 import java.io.File
 
 /**
@@ -33,7 +33,7 @@ interface Build : ProjectInstance {
     var parentBuild: Build
 
 
-    fun buildNumber(): Int
+    fun buildNumber(): String
 
     /**
      * Configures the build as defined by the [SimplyCDProjectExtension] provided by the 'simplycd-lifecycle' Gradle plugin
@@ -42,7 +42,7 @@ interface Build : ProjectInstance {
      *
      * Specific task requests are generated and the first one added to the [RequestQueue] to start the build process
      */
-    fun configure(configuration: SimplyCDProjectExtension)
+    fun configure(configuration: KayTeeExtension)
 
     var gradleLauncher: BuildLauncher
 
