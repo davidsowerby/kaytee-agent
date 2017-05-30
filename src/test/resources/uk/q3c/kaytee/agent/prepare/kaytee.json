@@ -1,0 +1,202 @@
+{
+  "remoteRepoUserName": "davidsowerby",
+  "baseVersion": "0.1.2.0",
+  "generateBuildInfo": true,
+  "generateChangeLog": false,
+  "publishToBintray": true,
+  "unitTest": {
+    "enabled": true,
+    "qualityGate": false,
+    "auto": true,
+    "manual": false,
+    "external": false,
+    "externalRepoUrl": "",
+    "externalRepoTask": "test",
+    "thresholds": {
+      "instruction": 81.0,
+      "branch": 70.0,
+      "line": 90.0,
+      "complexity": 90.0,
+      "method": 90.0,
+      "clazz": 90.0
+    }
+  },
+  "integrationTest": {
+    "enabled": false,
+    "qualityGate": false,
+    "auto": true,
+    "manual": false,
+    "external": false,
+    "externalRepoUrl": "",
+    "externalRepoTask": "test",
+    "thresholds": {
+      "instruction": 81.0,
+      "branch": 70.0,
+      "line": 90.0,
+      "complexity": 90.0,
+      "method": 90.0,
+      "clazz": 90.0
+    }
+  },
+  "functionalTest": {
+    "enabled": false,
+    "qualityGate": false,
+    "auto": true,
+    "manual": false,
+    "external": false,
+    "externalRepoUrl": "",
+    "externalRepoTask": "test",
+    "thresholds": {
+      "instruction": 81.0,
+      "branch": 70.0,
+      "line": 90.0,
+      "complexity": 90.0,
+      "method": 90.0,
+      "clazz": 90.0
+    }
+  },
+  "acceptanceTest": {
+    "enabled": false,
+    "qualityGate": false,
+    "auto": true,
+    "manual": false,
+    "external": false,
+    "externalRepoUrl": "",
+    "externalRepoTask": "test",
+    "thresholds": {
+      "instruction": 81.0,
+      "branch": 70.0,
+      "line": 90.0,
+      "complexity": 90.0,
+      "method": 90.0,
+      "clazz": 90.0
+    }
+  },
+  "productionTest": {
+    "enabled": false,
+    "qualityGate": false,
+    "auto": true,
+    "manual": false,
+    "external": false,
+    "externalRepoUrl": "",
+    "externalRepoTask": "test",
+    "thresholds": {
+      "instruction": 81.0,
+      "branch": 70.0,
+      "line": 90.0,
+      "complexity": 90.0,
+      "method": 90.0,
+      "clazz": 90.0
+    }
+  },
+  "release": {
+    "toBintray": true
+  },
+  "changeLog": {
+    "remoteRepoUser": "not specified",
+    "templateName": "markdown.vm",
+    "labelGroups": {
+      "Pull Requests": [],
+      "Fixes": [
+        "bug"
+      ],
+      "Quality": [
+        "testing",
+        "quality"
+      ],
+      "Enhancements": [
+        "enhancement",
+        "performance"
+      ],
+      "Tasks": [
+        "task"
+      ],
+      "Documentation": [
+        "documentation"
+      ]
+    },
+    "separatePullRequests": true,
+    "exclusionTags": [],
+    "typoMap": {
+      "Fix#": "Fix #",
+      "fix#": "fix #",
+      "Fixes#": "Fixes #",
+      "fixes#": "fixes #",
+      "See#": "See #",
+      "see#": "see #",
+      "Close#": "Close #",
+      "close#": "close #",
+      "Closes#": "Closes #",
+      "closes#": "closes #",
+      "Resolve#": "Resolve #",
+      "resolve#": "resolve #",
+      "Resolves#": "Resolves #",
+      "resolves#": "resolves #"
+    },
+    "correctTypos": false,
+    "outputFilename": "changelog.md",
+    "pullRequestTitle": "Pull Requests",
+    "outputTarget": "WIKI_ROOT",
+    "outputFileSpec": "/home/david/git/kaytee-plugin/./changelog.md",
+    "fromCommitId": "not specified",
+    "toCommitId": "not specified",
+    "fromVersionId": "not specified",
+    "toVersionId": "not specified",
+    "branch": {
+      "name": "develop"
+    },
+    "autoTagLatestCommit": true,
+    "maxCommits": 1000,
+    "maxVersions": 50,
+    "processingAsVersions": true,
+    "showDetail": true,
+    "projectDirParent": "/home/david/git/kaytee-plugin/.",
+    "currentBuildTagName": "current build",
+    "projectName": "not specified"
+  },
+  "gitLocalConfiguration": {
+    "active": true,
+    "cloneExistsResponse": "EXCEPTION",
+    "projectDirParent": "/home/david/git/kaytee-plugin/.",
+    "taggerName": "not specified",
+    "taggerEmail": "not specified",
+    "create": false,
+    "cloneFromRemote": false,
+    "projectName": "not specified"
+  },
+  "wikiLocalConfiguration": {
+    "active": true,
+    "cloneExistsResponse": "EXCEPTION",
+    "projectDirParent": "/home/david/git/kaytee-plugin/.",
+    "taggerName": "not specified",
+    "taggerEmail": "not specified",
+    "create": false,
+    "cloneFromRemote": false,
+    "projectName": "not specified"
+  },
+  "gitRemoteConfiguration": {
+    "active": true,
+    "confirmDelete": "",
+    "projectDescription": "",
+    "projectHomePage": "",
+    "publicProject": false,
+    "create": false,
+    "issueLabels": {
+      "bug": "fc2929",
+      "duplicate": "cccccc",
+      "enhancement": "84b6eb",
+      "question": "cc317c",
+      "wontfix": "d7e102",
+      "task": "0b02e1",
+      "quality": "02d7e1",
+      "documentation": "eb6420",
+      "build": "fbca04",
+      "performance": "d4c5f9",
+      "critical": "e11d21"
+    },
+    "mergeIssueLabels": false,
+    "providerBaseUrl": "github.com",
+    "repoUser": "not specified",
+    "repoName": "not specified"
+  }
+}

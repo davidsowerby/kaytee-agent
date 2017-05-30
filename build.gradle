@@ -113,5 +113,5 @@ dependencies {
 
 
 
-mainClassName = "uk.q3c.simplycd.agent.app.Main"
+mainClassName = "uk.q3c.kaytee.agent.app.Main"
 

@@ -5,8 +5,6 @@ build/*
 *.log
 *.log.gz
 classes
-simplycd-agent.iml
-simplycd-agent.ipr
 out
 
 
