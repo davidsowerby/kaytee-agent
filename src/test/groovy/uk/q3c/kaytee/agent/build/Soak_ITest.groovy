@@ -193,7 +193,7 @@ class Soak_ITest extends Specification {
 
         for (BuildRecord result : resultCollator.records.values()) {
             BuildRecordValidator resultValidator = new BuildRecordValidator(result)
-            if (!result.requestedCompleted()) {
+            if (!result.hasCompleted()) {
                 allComplete = false
             } else {
                 buildsCompleted++

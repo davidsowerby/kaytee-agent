@@ -13,6 +13,7 @@ import uk.q3c.kaytee.agent.i18n.TaskResultStateKey
 import uk.q3c.kaytee.agent.i18n.TaskResultStateKey.*
 import uk.q3c.kaytee.agent.i18n.finalStates
 import java.time.OffsetDateTime
+import java.time.temporal.ChronoUnit
 import java.util.*
 
 /**
@@ -33,7 +34,7 @@ class BuildRecord(uid: UUID, val requestedAt: OffsetDateTime) : HalResourceWithI
     var causeOfFailure = Not_Applicable
     private val stateLock = Any()
     private val taskLock = Any()
-    // once parallel tasking enabled, contention risk
+    // once parallel tasking enabled, there is a contention risk here.
     val taskResults: MutableMap<TaskKey, TaskResult> = mutableMapOf()
 
     // initialise with empty results, so data set is always complete
@@ -88,7 +89,7 @@ class BuildRecord(uid: UUID, val requestedAt: OffsetDateTime) : HalResourceWithI
      * Returns true if the request has been completed - this only means that all processing that can be done has been, the build itself could have failed.
      * To be sure a build was successful, use [passed]
      */
-    fun requestedCompleted(): Boolean {
+    fun hasCompleted(): Boolean {
         return finalStates.contains(state)
     }
 
@@ -100,6 +101,22 @@ class BuildRecord(uid: UUID, val requestedAt: OffsetDateTime) : HalResourceWithI
             taskResult.stdErr = stdErr
             taskResult.stdOut = stdOut
         }
+    }
+
+    override fun toString(): String {
+        return summary()
+    }
+
+    fun summary(): String {
+        val sortedResults = taskResults.values.sortedBy { it.startedAt }
+        val buf = StringBuilder()
+        for (result in sortedResults) {
+            if (!result.notRun()) {
+                buf.append(result.summary())
+                buf.append("\n")
+            }
+        }
+        return buf.toString()
     }
 
 
@@ -125,6 +142,12 @@ data class TaskResult(val task: TaskKey, val requestedAt: OffsetDateTime) {
 
     fun cancelled(): Boolean {
         return outcome == Task_Cancelled
+    }
+
+    fun summary(): String {
+        val units = ChronoUnit.SECONDS
+        val elapsedTime = units.between(startedAt, completedAt)
+        return "${task.name} : $outcome : $elapsedTime secs $stdErr"
     }
 }
 

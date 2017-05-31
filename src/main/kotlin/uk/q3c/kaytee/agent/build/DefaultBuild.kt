@@ -125,8 +125,8 @@ class DefaultBuild @Inject constructor(
 
                 TaskKey.Extract_Gradle_Configuration -> createLocalGradleTask(taskKey, false) // not normally expected here but does no harm
                 TaskKey.Generate_Change_Log -> optionalTask(taskKey, configuration.generateChangeLog)
-                TaskKey.Merge_to_Master -> createLocalGradleTask(taskKey, false)
-                TaskKey.Bintray_Upload -> optionalTask(taskKey, configuration.publishToBintray)
+                TaskKey.Merge_to_Master -> optionalTask(taskKey, configuration.release.mergeToMaster)
+                TaskKey.Bintray_Upload -> optionalTask(taskKey, configuration.release.toBintray)
             }
         }
     }
