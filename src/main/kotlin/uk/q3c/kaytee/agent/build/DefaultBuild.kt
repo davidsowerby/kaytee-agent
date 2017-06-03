@@ -61,7 +61,7 @@ class DefaultBuild @Inject constructor(
 
 
     private fun closeTask(taskKey: TaskKey, passed: Boolean, busMessage: BusMessage) {
-        log.debug("closing task {}", taskKey)
+        log.debug("Build {} is closing task {}", buildRunner.uid, taskKey)
         synchronized(completedTasksLock) {
             results.add(taskKey)
             if (passed) {
@@ -108,7 +108,7 @@ class DefaultBuild @Inject constructor(
         synchronized(completedTasksLock) {
             if (taskRunners.isNotEmpty()) {
                 val taskRunner = taskRunners.poll()
-                log.debug("Adding task '{}' to queue for processing", taskRunner.identity())
+                log.debug("Build {} is adding task '{}' to queue for processing", buildRunner.uid, taskRunner.identity())
                 requestQueue.addRequest(taskRunner)
             } else {
                 log.error("Attempted to push task from empty taskRunners {}", buildRunner.identity())
@@ -168,7 +168,7 @@ class DefaultBuild @Inject constructor(
     fun taskCompleted(message: TaskSuccessfulMessage) {
         // filter for messages which apply to this build - probably could make better use of MBassador filtering
         if (message.buildRequestId == this.buildRunner.uid) {
-            log.debug("Received completion message for task: {}", message.taskKey)
+            log.debug("Build {} received task successful message for task: {}", this.buildRunner.uid, message.taskKey)
             closeTask(message.taskKey, true, message)
         }
     }
@@ -177,7 +177,7 @@ class DefaultBuild @Inject constructor(
     fun taskCompleted(message: TaskFailedMessage) {
         // filter for messages which apply to this build - probably could make better use of MBassador filtering
         if (message.buildRequestId == this.buildRunner.uid) {
-            log.debug("Received completion message for task: {}", message.taskKey)
+            log.debug("Build {} received task failed message for task: {}", this.buildRunner.uid, message.taskKey)
             closeTask(message.taskKey, false, message)
         }
     }
@@ -191,10 +191,10 @@ class DefaultBuild @Inject constructor(
                 val exception = TaskException(busMessage.result)
                 globalBusProvider.get().publish(BuildFailedMessage(buildRunner.uid, exception))
             } else {
-                throw QueueException("Only a TaskFailedMessage should get this far")
+                throw QueueException("Build ${buildRunner.uid}, only a TaskFailedMessage should get this far, but received a ${busMessage.javaClass.simpleName}")
             }
         }
-        log.info("Closing build for {}, build {}", project.shortProjectName, buildNumber)
+        log.info("Closing build for {}, build {}", project.shortProjectName, buildRunner.uid)
 
     }
 

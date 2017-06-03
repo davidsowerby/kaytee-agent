@@ -52,8 +52,8 @@ class MockGradleLauncher implements BuildLauncher {
 
 
         if (randomiser.fail) {
-            println "task failed throw exception"
-            throw randomiser.failureException
+//            println "task failed throw exception"
+//            throw randomiser.failureException
         } else {
             "task has completed successfully"
         }

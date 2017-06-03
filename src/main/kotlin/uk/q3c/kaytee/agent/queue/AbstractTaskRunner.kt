@@ -28,7 +28,7 @@ abstract class AbstractTaskRunner constructor(
             globalBus.publish(TaskStartedMessage(this.build.buildRunner.uid, taskKey))
             log.info("Executing task request {}", identity())
             doRun()
-            log.info("Build successful for {}", identity())
+            log.info("Task successful for {}", identity())
             val stdOutFile = installationInfo.gradleStdOutFile(build)
             val outcome = TaskSuccessfulMessage(build.buildRunner.uid, taskKey, stdOutFile.readText()) // any error would cause exception
             globalBus.publish(outcome)
@@ -36,7 +36,7 @@ abstract class AbstractTaskRunner constructor(
             val stdErrFile = installationInfo.gradleStdErrFile(build)
             val stdOutFile = installationInfo.gradleStdOutFile(build)
             val errText = stdErrFile.readText()
-            log.info("Build failed for {}", identity())
+            log.info("Task failed for {}", identity())
             val resultKey = if (errText.contains("Code coverage failed")) {
                 Quality_Gate_Failed
             } else {
@@ -49,7 +49,7 @@ abstract class AbstractTaskRunner constructor(
     }
 
     override fun identity(): String {
-        return "${build.buildRunner.project.shortProjectName}:${build.buildNumber()}:$taskKey}"
+        return "${build.buildRunner.project.shortProjectName}:${build.buildRunner.uid}:$taskKey}"
     }
 
     override fun toString(): String {

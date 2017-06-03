@@ -33,7 +33,7 @@ class DefaultGradleTaskExecutor @Inject constructor(val taskNameMap: TaskNameMap
                 build.gradleLauncher.forTasks(*Iterables.toArray(tasks, String::class.java))
                         .setStandardOutput(captureStdOut)
                         .setStandardError(captureStderr)
-                log.info("Executing Gradle task request for {}, with Gradle command: '{}'", taskKey, tasks)
+                log.info("Build {} executing Gradle task request for {}, with Gradle command: '{}'", build.buildRunner.uid, taskKey, tasks)
                 build.gradleLauncher.run()
             }
         }
