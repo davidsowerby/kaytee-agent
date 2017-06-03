@@ -23,12 +23,14 @@ class BuildConfigurationRandomiser {
     def configureTest(GroupConfig config, Random random) {
         config.enabled = random.nextBoolean()
         if (config.enabled) {
-            config.auto = random.nextBoolean()
+            config.auto = true
+//            config.auto = random.nextBoolean()
             config.qualityGate = random.nextBoolean()
-            config.manual = random.nextBoolean()
-            if (!(config.auto || config.manual)) {  // if both false, make it auto
-                config.auto = true
-            }
+            config.manual = false
+//            config.manual = random.nextBoolean()
+//            if (!(config.auto || config.manual)) {  // if both false, make it auto
+//                config.auto = true
+//            }
             boolean external = false
             String externalRepoUrl = ""
             String externalRepoTask = "test"

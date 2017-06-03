@@ -50,8 +50,6 @@ class Soak_ITest extends Specification {
     List<Project> projects = new ArrayList<>()
 
     static int buildsRequested = 0
-    int preparationFailures = 0
-    int buildsStarted = 0
     int buildsCompleted = 0
     def buildsSuccessFul = 0
     def buildsFailed = 0
