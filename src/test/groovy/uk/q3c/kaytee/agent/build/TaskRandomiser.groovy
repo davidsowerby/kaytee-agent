@@ -12,9 +12,9 @@ import org.gradle.tooling.exceptions.UnsupportedOperationConfigurationException
  */
 class TaskRandomiser {
 
-    final int maxDuration = 1000
+    final int maxDuration = 5000
     final int minDuration = 100
-    int failureRate = 5  // for example 1 in every 5 fails
+    int failureRate = 20  // for example 1 in every 5 fails
     int exceptionTypes = 6 // change this if we add an expected exception
 
     int duration

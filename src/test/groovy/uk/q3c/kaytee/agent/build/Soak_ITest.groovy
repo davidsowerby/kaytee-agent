@@ -26,6 +26,7 @@ import uk.q3c.kaytee.agent.queue.*
 import uk.q3c.kaytee.agent.system.InstallationInfo
 import uk.q3c.kaytee.agent.system.SystemModule
 
+import java.time.Duration
 import java.time.LocalDateTime
 /**
  * Integrates RequestQueue, BuildRunner and GradleExecutor
@@ -54,6 +55,7 @@ class Soak_ITest extends Specification {
     def buildsSuccessFul = 0
     def buildsFailed = 0
     def preparationsFailed = 0
+    ArrayList validationErrors
 
 
     static class TestBuildModule extends AbstractModule {
@@ -108,6 +110,8 @@ class Soak_ITest extends Specification {
 
         @Override
         void run() {
+            LocalDateTime started = LocalDateTime.now()
+            println "Started request generation at ${started}"
             int i = 0
             targetEnd = LocalDateTime.now().plusSeconds(generationPeriod)
             Random random = new Random()
@@ -116,14 +120,16 @@ class Soak_ITest extends Specification {
             buildsRequested++
 
             while (LocalDateTime.now().isBefore(targetEnd)) {
-                int delay = random.nextInt(800) + 200
+                int delay = random.nextInt(300) + 200
                 projectIndex = random.nextInt(4)
                 Thread.sleep(delay)
                 i++
                 queue.addRequest(projects.get(projectIndex), sha(i))
                 buildsRequested++
             }
-
+            LocalDateTime finished = LocalDateTime.now()
+            println "Finished request generation at ${finished}"
+            println "${buildsRequested} requests generated in: ${Duration.between(started, finished).toMillis() / 1000} seconds"
         }
 
         private GitSHA sha(int i) {
@@ -167,33 +173,43 @@ class Soak_ITest extends Specification {
 
     def "Single runner"() {
         given:
-        int requestGenerationPeriodInSeconds = 5
+        int requestGenerationPeriodInSeconds = 20
         Thread requestGeneratorThread = new Thread(new BuildRequestGenerator(requestGenerationPeriodInSeconds, queue, projects))
         requestGeneratorThread.run()
+        Thread.sleep(200) // let queue fill up a bit so we don't finish before we start
 
         when:
 
-        LocalDateTime timeout = LocalDateTime.now().plusSeconds(requestGenerationPeriodInSeconds * 2)
+        LocalDateTime timeout = LocalDateTime.now().plusSeconds(requestGenerationPeriodInSeconds + 5)
 
         //wait for queue to drain
-        while (!(queue.size() == 0)) {
-            println ">>>>> Waiting for queue to empty"
-            Thread.sleep(1000)
+        while (!allBuildsComplete() && LocalDateTime.now().isBefore(timeout)) {
+            println ">>>>> Waiting builds to complete"
+
         }
 
-        // wait for last jobs to complete
-        println ">>>>> Waiting for last jobs to complete"
-        Thread.sleep(2000)
 
-        println ">>>>> Validating results"
-        boolean allComplete = true
-        List<String> validationErrors = new ArrayList<>()
+        then:
+        println "Build requests generated: $buildsRequested"
+        println "Build requests failed: $buildsFailed"
+        println "Build requests sucessful: $buildsSuccessFul"
+        println "Build requests completed: $buildsCompleted"
+        println "Preparations failed: $preparationsFailed"
+        println "Build results held by resultsCollator: " + resultCollator.records.size()
+        validationErrors.isEmpty()
+        buildsRequested == buildsCompleted
+        buildsSuccessFul + buildsFailed + preparationsFailed == buildsCompleted
+        resultCollator.records.size() == buildsRequested
+
+
+    }
+
+    private boolean allBuildsComplete() {
+        validationErrors = new ArrayList<>()
 
         for (BuildRecord result : resultCollator.records.values()) {
             BuildRecordValidator resultValidator = new BuildRecordValidator(result)
-            if (!result.hasCompleted()) {
-                allComplete = false
-            } else {
+            if (result.hasCompleted()) {
                 buildsCompleted++
             }
             switch (result.state) {
@@ -207,21 +223,7 @@ class Soak_ITest extends Specification {
         if (!validationErrors.isEmpty()) {
             println validationErrors
         }
-
-        then:
-        println "Build requests generated: $buildsRequested"
-        println "Build requests failed: $buildsFailed"
-        println "Build requests sucessful: $buildsSuccessFul"
-        println "Build requests completed: $buildsCompleted"
-        println "Preparations failed: $preparationsFailed"
-        println "Build results held by resultsCollator: " + resultCollator.records.size()
-        allComplete // this could fail if processing is not allowed to complete, and test finishes too early
-        validationErrors.isEmpty()
-        buildsRequested == buildsCompleted
-        buildsSuccessFul + buildsFailed + preparationsFailed == buildsCompleted
-        resultCollator.records.size() == buildsRequested
-
-
+        return buildsCompleted == buildsRequested
     }
 
 
