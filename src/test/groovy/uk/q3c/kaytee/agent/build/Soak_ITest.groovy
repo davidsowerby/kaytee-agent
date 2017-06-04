@@ -56,6 +56,7 @@ class Soak_ITest extends Specification {
     def buildsFailed = 0
     def preparationsFailed = 0
     ArrayList validationErrors
+    GlobalBusMonitor busMonitor
 
 
     static class TestBuildModule extends AbstractModule {
@@ -91,6 +92,7 @@ class Soak_ITest extends Specification {
             install(new FactoryModuleBuilder()
                     .implement(GradleTaskRunner.class, DefaultGradleTaskRunner.class)
                     .build(GradleTaskRunnerFactory.class))
+            bind(GlobalBusMonitor)
         }
     }
 
@@ -166,6 +168,7 @@ class Soak_ITest extends Specification {
         InstallationInfo installationInfo = injector.getInstance(InstallationInfo)
         installationInfo.dataDirRoot = temp
         resultCollator = injector.getInstance(BuildRecordCollator)
+        busMonitor = injector.getInstance(GlobalBusMonitor)
     }
 
     def cleanup() {
@@ -173,7 +176,7 @@ class Soak_ITest extends Specification {
 
     def "Single runner"() {
         given:
-        int requestGenerationPeriodInSeconds = 20
+        int requestGenerationPeriodInSeconds = 10
         Thread requestGeneratorThread = new Thread(new BuildRequestGenerator(requestGenerationPeriodInSeconds, queue, projects))
         requestGeneratorThread.run()
         Thread.sleep(200) // let queue fill up a bit so we don't finish before we start

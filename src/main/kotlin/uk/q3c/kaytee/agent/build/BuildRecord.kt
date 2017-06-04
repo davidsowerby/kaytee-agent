@@ -12,6 +12,7 @@ import uk.q3c.kaytee.agent.i18n.TaskKey
 import uk.q3c.kaytee.agent.i18n.TaskResultStateKey
 import uk.q3c.kaytee.agent.i18n.TaskResultStateKey.*
 import uk.q3c.kaytee.agent.i18n.finalStates
+import java.time.Duration
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -25,7 +26,7 @@ import java.util.*
  * Created by David Sowerby on 13 Jan 2017
  */
 @JsonIgnoreProperties("stateLock", "taskLock")
-class BuildRecord(uid: UUID, val requestedAt: OffsetDateTime) : HalResourceWithId(uid, buildRecords) {
+class BuildRecord(uid: UUID, var requestedAt: OffsetDateTime) : HalResourceWithId(uid, buildRecords) {
     var preparationStartedAt: OffsetDateTime = zeroDate
     var preparationCompletedAt: OffsetDateTime = zeroDate
     var buildStartedAt: OffsetDateTime = zeroDate
@@ -304,8 +305,8 @@ class BuildRecordValidator(val record: BuildRecord) {
     }
 
     fun mustBeLaterOrEqual(laterName: String, earlierName: String, later: OffsetDateTime, earlier: OffsetDateTime) {
-        val diff = later.compareTo(earlier)
-        compare(diff >= 0, "$laterName must be at same instant or later than $earlierName")
+        val duration = Duration.between(earlier, later)
+        compare(duration.seconds >= 0, "Build:${this.record.uid}:: $laterName must be at same instant or later than $earlierName, but $laterName is $later and $earlierName is $earlier")
     }
 
     fun tasksShouldBeEmpty() {

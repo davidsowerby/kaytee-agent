@@ -13,7 +13,7 @@ enum class BuildFinalStateKey : I18NKey
 
 enum class BuildStateKey : I18NKey {
     Not_Started,
-
+    Requested,
     Preparation_Started,
     Preparation_Successful,
     Build_Started,
