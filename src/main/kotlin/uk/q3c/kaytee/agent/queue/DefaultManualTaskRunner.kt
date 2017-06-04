@@ -12,14 +12,13 @@ import uk.q3c.kaytee.agent.system.InstallationInfo
  * Created by David Sowerby on 30 Jan 2017
  */
 class DefaultManualTaskRunner @Inject constructor(
-        globalBusProvider: GlobalBusProvider,
+        val globalBusProvider: GlobalBusProvider,
         val manualTaskLauncher: ManualTaskLauncher,
-        installationInfo: InstallationInfo,
-        @Assisted build: Build,
-        @Assisted taskKey: TaskKey) :
+        val installationInfo: InstallationInfo,
+        @Assisted override val build: Build,
+        @Assisted override val taskKey: TaskKey) :
 
-        ManualTaskRunner,
-        AbstractTaskRunner(build, taskKey, installationInfo, globalBusProvider.get()) {
+        ManualTaskRunner {
 
     private val log = LoggerFactory.getLogger(this.javaClass.name)
 
@@ -27,8 +26,12 @@ class DefaultManualTaskRunner @Inject constructor(
      * Sends a request to the manual approval handler (expected to be a separate microservice).  The same service would reply with
      * a pass / fail message to the Build responsible for [TaskRunner]
      */
-    override fun doRun() {
+    override fun run() {
         manualTaskLauncher.run(this)
+    }
+
+    override fun identity(): String {
+        return "${build.buildRunner.project.shortProjectName}:${build.buildRunner.uid}:$taskKey}"
     }
 
 }
