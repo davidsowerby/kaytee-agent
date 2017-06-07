@@ -244,7 +244,6 @@ class DefaultBuild @Inject constructor(
     }
 
     override fun execute() {
-//        log.info("starting build")
         log.info("starting build {} ", this)
         try {
             preparationStage.execute(this)

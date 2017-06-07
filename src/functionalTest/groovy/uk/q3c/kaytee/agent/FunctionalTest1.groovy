@@ -104,6 +104,7 @@ class FunctionalTest1 extends FunctionalTestBase {
 
         then:
         BuildRecord finalRecord = finalRecord()
+        finalRecord.failureDescription == ""
         finalRecord.state == finalBuildState
         finalRecord.causeOfFailure == causeOfFailure
         TaskResult unitTestActual = finalRecord.taskResults.get(TaskKey.Unit_Test)

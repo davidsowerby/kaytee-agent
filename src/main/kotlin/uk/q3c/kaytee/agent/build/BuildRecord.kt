@@ -33,6 +33,7 @@ class BuildRecord(uid: UUID, var requestedAt: OffsetDateTime) : HalResourceWithI
     var buildCompletedAt: OffsetDateTime = zeroDate
     var state: BuildStateKey = Not_Started
     var causeOfFailure = Not_Applicable
+    var failureDescription = ""
     private val stateLock = Any()
     private val taskLock = Any()
     // once parallel tasking enabled, there is a contention risk here.

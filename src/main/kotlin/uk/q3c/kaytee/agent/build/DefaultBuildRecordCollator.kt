@@ -67,6 +67,12 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
         if (record.causeOfFailure != Build_Configuration) {
             record.buildCompletedAt = busMessage.time
         }
+        record.failureDescription =
+                if (busMessage.e.message != null) {
+                    busMessage.e.message as String
+                } else {
+                    busMessage.e.javaClass.simpleName
+                }
         hooks.publish(record)
     }
 
@@ -95,6 +101,12 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
         val record = getRecord(busMessage)
         record.preparationCompletedAt = busMessage.time
         record.state = Preparation_Failed
+        record.failureDescription =
+                if (busMessage.e.message != null) {
+                    busMessage.e.message as String
+                } else {
+                    busMessage.e.javaClass.simpleName
+                }
         hooks.publish(record)
     }
 
