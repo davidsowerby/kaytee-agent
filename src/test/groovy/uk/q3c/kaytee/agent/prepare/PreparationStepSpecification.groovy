@@ -44,16 +44,17 @@ abstract class PreparationStepSpecification extends Specification {
     GlobalBusProvider busProvider = Mock(GlobalBusProvider)
     PreparationStage preparationStage = Mock(PreparationStage)
     RequestQueue requestQueue = Mock(RequestQueue)
-    GradleTaskRunnerFactory gradleTaskRequestFactory = Mock(GradleTaskRunnerFactory)
-    ManualTaskRunnerFactory manualTaskRequestFactory = Mock(ManualTaskRunnerFactory)
+    GradleTaskRunnerFactory gradleTaskRunnerFactory = Mock(GradleTaskRunnerFactory)
+    ManualTaskRunnerFactory manualTaskRunnerFactory = Mock(ManualTaskRunnerFactory)
     PubSubSupport<BusMessage> globalBus = Mock(PubSubSupport)
+    DelegatedProjectTaskRunnerFactory delegatedProjectTaskRunnerFactory = Mock(DelegatedProjectTaskRunnerFactory)
 
     def setup() {
         gitHash = new GitSHA(DigestUtils.sha1Hex('any'))
         project.shortProjectName >> projectName
         project.remoteUserName >> repoUserName
-        BuildRunner buildRequest = new DefaultBuildRunner(buildFactory, busProvider, gitHash, project, UUID.randomUUID())
-        build = new DefaultBuild(preparationStage, buildNumberReader, requestQueue, busProvider, gradleTaskRequestFactory, manualTaskRequestFactory, buildRequest)
+        BuildRunner buildRunner = new DefaultBuildRunner(buildFactory, busProvider, false, "", gitHash, project, UUID.randomUUID())
+        build = new DefaultBuild(preparationStage, buildNumberReader, requestQueue, busProvider, gradleTaskRunnerFactory, manualTaskRunnerFactory, delegatedProjectTaskRunnerFactory, buildRunner)
         translate.from(_) >> translatedKey
         temp = temporaryFolder.getRoot()
         codeDir = new File(temp, projectName)

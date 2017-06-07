@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentLinkedQueue
 @Listener
 @SubscribeTo(GlobalBus.class)
 class QueueMessageReceiver {
-    Queue<BuildRequestedMessage> buildRequests = new ConcurrentLinkedQueue<>()
+    Queue<BuildQueuedMessage> buildRequests = new ConcurrentLinkedQueue<>()
     Queue<BuildStartedMessage> buildStarts = new ConcurrentLinkedQueue<>()
     Queue<BuildFailedMessage> buildFails = new ConcurrentLinkedQueue<>()
     Queue<BusMessage> buildCompletions = new ConcurrentLinkedQueue<>()
@@ -36,7 +36,7 @@ class QueueMessageReceiver {
     }
 
     @Handler
-    void busMessage(BuildRequestedMessage busMessage) {
+    void busMessage(BuildQueuedMessage busMessage) {
         buildRequests.add(busMessage)
     }
 

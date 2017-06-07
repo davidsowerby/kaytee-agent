@@ -8,6 +8,9 @@ import java.util.*
  * Created by David Sowerby on 08 Mar 2017
  */
 class DefaultProjects : Projects {
+    override fun getProject(projectUserName: String, projectRepoName: String): Project {
+        return getProject("$projectUserName/$projectRepoName")
+    }
 
     override fun getProject(buildRequestRequest: BuildRequest): Project {
         return getProject(buildRequestRequest.projectFullName)

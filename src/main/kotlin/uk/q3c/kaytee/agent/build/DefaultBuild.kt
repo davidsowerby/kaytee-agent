@@ -1,5 +1,6 @@
 package uk.q3c.kaytee.agent.build
 
+import com.google.common.collect.ImmutableList.of
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
 import net.engio.mbassy.listener.Handler
@@ -12,6 +13,7 @@ import uk.q3c.kaytee.agent.eventbus.GlobalBusProvider
 import uk.q3c.kaytee.agent.eventbus.SubscribeTo
 import uk.q3c.kaytee.agent.i18n.TaskKey
 import uk.q3c.kaytee.agent.i18n.TaskKey.*
+import uk.q3c.kaytee.agent.i18n.TaskNameMap
 import uk.q3c.kaytee.agent.i18n.TaskResultStateKey
 import uk.q3c.kaytee.agent.prepare.PreparationStage
 import uk.q3c.kaytee.agent.queue.*
@@ -33,6 +35,7 @@ class DefaultBuild @Inject constructor(
         val globalBusProvider: GlobalBusProvider,
         val gradleTaskRunnerFactory: GradleTaskRunnerFactory,
         val manualTaskRunnerFactory: ManualTaskRunnerFactory,
+        val delegatedProjectTaskRunnerFactory: DelegatedProjectTaskRunnerFactory,
         @Assisted override val buildRunner: BuildRunner) :
 
         Build,
@@ -45,6 +48,9 @@ class DefaultBuild @Inject constructor(
     lateinit override var stdoutOutputFile: File
     lateinit override var parentBuild: Build
     lateinit override var gradleLauncher: BuildLauncher
+
+    private val standardLifecycle: List<TaskKey> = of(Unit_Test, Integration_Test, Generate_Build_Info, Generate_Change_Log, Local_Publish, Functional_Test, Acceptance_Test, Merge_to_Master, Bintray_Upload, Production_Test)
+    private val delegatedLifecycle: List<TaskKey> = of()
 
     private val results: MutableList<TaskKey> = mutableListOf()
     private val taskRunners = ArrayDeque<TaskRunner>()
@@ -92,15 +98,8 @@ class DefaultBuild @Inject constructor(
      */
     override fun configure(configuration: KayTeeExtension) {
         synchronized(taskRunners) {
-            setupTasks(configuration.unitTest, Unit_Test)
-            setupTasks(configuration.integrationTest, Integration_Test)
-            setupTasks(configuration, Generate_Build_Info, Generate_Change_Log, Local_Publish)
-            setupTasks(configuration.functionalTest, Functional_Test)
-            setupTasks(configuration.acceptanceTest, Acceptance_Test)
-            setupTasks(configuration, Merge_to_Master, Bintray_Upload)
-            setupTasks(configuration.productionTest, Production_Test)
+            generateTasks(configuration)
         }
-
     }
 
 
@@ -116,20 +115,35 @@ class DefaultBuild @Inject constructor(
         }
     }
 
-    private fun setupTasks(configuration: KayTeeExtension, vararg taskKeys: TaskKey) {
-        for (taskKey in taskKeys) {
-            when (taskKey) {
-                Unit_Test, Integration_Test, Functional_Test, Acceptance_Test, Production_Test -> throw IllegalArgumentException("Test tasks should be set up using the call with GroupConfig")
-                Local_Publish -> createLocalGradleTask(taskKey, false)
-                Generate_Build_Info -> optionalTask(taskKey, configuration.generateBuildInfo)
-
-                TaskKey.Extract_Gradle_Configuration -> createLocalGradleTask(taskKey, false) // not normally expected here but does no harm
-                TaskKey.Generate_Change_Log -> optionalTask(taskKey, configuration.generateChangeLog)
-                TaskKey.Merge_to_Master -> optionalTask(taskKey, configuration.release.mergeToMaster)
-                TaskKey.Bintray_Upload -> optionalTask(taskKey, configuration.release.toBintray)
+    private fun generateTasks(configuration: KayTeeExtension) {
+        if (buildRunner.delegated) {
+            generateCustomTask(buildRunner.delegateTask)
+        } else {
+            for (task in standardLifecycle) {
+                generateTask(configuration, task)
             }
         }
     }
+
+    private fun generateCustomTask(delegateTask: String) {
+        log.debug("Generating TaskRunner for task '$delegateTask' in build ${buildRunner.uid}")
+        val taskRunner = gradleTaskRunnerFactory.create(this, TaskKey.Custom, false)
+        taskRunners.add(taskRunner)
+    }
+
+    private fun generateTask(configuration: KayTeeExtension, taskKey: TaskKey) {
+        when (taskKey) {
+            Unit_Test, Integration_Test, Functional_Test, Acceptance_Test, Production_Test -> generateTestGroupTask(configuration, taskKey)
+            Local_Publish -> createLocalGradleTask(taskKey, false)
+            Generate_Build_Info -> optionalTask(taskKey, configuration.generateBuildInfo)
+
+            Extract_Gradle_Configuration -> createLocalGradleTask(taskKey, false) // not normally expected here but does no harm
+            Generate_Change_Log -> optionalTask(taskKey, configuration.generateChangeLog)
+            Merge_to_Master -> optionalTask(taskKey, configuration.release.mergeToMaster)
+            Bintray_Upload -> optionalTask(taskKey, configuration.release.toBintray)
+        }
+    }
+
 
     private fun optionalTask(taskKey: TaskKey, optionValue: Boolean) {
         if (optionValue) {
@@ -137,7 +151,9 @@ class DefaultBuild @Inject constructor(
         }
     }
 
-    private fun setupTasks(config: GroupConfig, taskKey: TaskKey) {
+    private fun generateTestGroupTask(configuration: KayTeeExtension, taskKey: TaskKey) {
+        val taskNameMap = TaskNameMap()
+        val config: GroupConfig = configuration.testConfig(taskNameMap.get(taskKey))
         // not enabled at all, nothing to do
         if (!config.enabled) {
             log.debug("Config is set 'disabled'")
@@ -150,8 +166,8 @@ class DefaultBuild @Inject constructor(
 
         // if an auto step, we then need to know whether it is local Gradle,or a sub build
         if (config.auto) {
-            if (config.external) {
-                createSubBuildTask(actualTaskKey, config)
+            if (config.delegated) {
+                createDelegatedProjectTask(actualTaskKey, config)
             } else {
                 createLocalGradleTask(actualTaskKey, config.qualityGate)
             }
@@ -168,7 +184,7 @@ class DefaultBuild @Inject constructor(
     fun taskCompleted(message: TaskSuccessfulMessage) {
         // filter for messages which apply to this build - probably could make better use of MBassador filtering
         if (message.buildRequestId == this.buildRunner.uid) {
-            log.debug("Build {} received task successful message for task: {}", this.buildRunner.uid, message.taskKey)
+            log.debug("{} received task successful message for task: {}", this, message.taskKey)
             closeTask(message.taskKey, true, message)
         }
     }
@@ -177,7 +193,7 @@ class DefaultBuild @Inject constructor(
     fun taskCompleted(message: TaskFailedMessage) {
         // filter for messages which apply to this build - probably could make better use of MBassador filtering
         if (message.buildRequestId == this.buildRunner.uid) {
-            log.debug("Build {} received task failed message for task: {}", this.buildRunner.uid, message.taskKey)
+            log.debug("{} received task failed message for task: {}", this, message.taskKey)
             closeTask(message.taskKey, false, message)
         }
     }
@@ -202,8 +218,9 @@ class DefaultBuild @Inject constructor(
     /**
      * Creates a [SubBuildTask] and adds it to [taskRunners]
      */
-    private fun createSubBuildTask(taskNameKey: TaskKey, config: GroupConfig) {
-        TODO()
+    private fun createDelegatedProjectTask(taskKey: TaskKey, config: GroupConfig) {
+        val taskRunner = delegatedProjectTaskRunnerFactory.create(build = this, taskKey = taskKey, groupConfig = config)
+        taskRunners.add(taskRunner)
     }
 
     /**
@@ -222,10 +239,13 @@ class DefaultBuild @Inject constructor(
         taskRunners.add(taskRunner)
     }
 
+    override fun toString(): String {
+        return "Build ${buildRunner.uid} for project ${project.fullProjectName}"
+    }
 
     override fun execute() {
 //        log.info("starting build")
-        log.info("starting build {} for project: {}", buildNumber, project.shortProjectName)
+        log.info("starting build {} ", this)
         try {
             preparationStage.execute(this)
         } catch (e: Exception) {
@@ -234,7 +254,7 @@ class DefaultBuild @Inject constructor(
             return
         }
         generatedTaskRunners = taskRunners.size
-        log.debug("Build {} has {} tasks to execute", buildRunner.identity(), generatedTaskRunners)
+        log.debug("Build {} has {} tasks to execute", this, generatedTaskRunners)
         if (taskRunners.isNotEmpty()) {
             // in effect this starts the build proper - the first task is placed into the queue, and as the task requests are
             // completed, another is pushed to the request queue until the build completes or fails
@@ -242,7 +262,6 @@ class DefaultBuild @Inject constructor(
             globalBusProvider.get().publish(BuildStartedMessage(buildRunner.uid, buildNumber))
         } else {
             // there is nothing to do
-            val msg = "There were no tasks to carry out, check the kaytee configuration in build.gradle, they may all be disabled"
             globalBusProvider.get().publish(BuildFailedMessage(buildRunner.uid, BuildConfigurationException()))
         }
     }

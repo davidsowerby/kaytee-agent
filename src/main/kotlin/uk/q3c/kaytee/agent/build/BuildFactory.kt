@@ -8,5 +8,5 @@ import uk.q3c.kaytee.agent.queue.BuildRunner
  */
 interface BuildFactory {
 
-    fun create(buildRunner: BuildRunner): Build
+    fun create(buildRunner: BuildRunner, delegatedTask: Boolean = false): Build
 }

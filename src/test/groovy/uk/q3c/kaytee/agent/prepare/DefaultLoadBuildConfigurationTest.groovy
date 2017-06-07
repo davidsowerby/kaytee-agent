@@ -49,7 +49,7 @@ class DefaultLoadBuildConfigurationTest extends PreparationStepSpecification {
     def "execute successfully"() {
         given:
         GradleTaskRunner gradleTaskRequest = Mock(GradleTaskRunner)
-        gradleTaskRequestFactory.create(_, _, false) >> gradleTaskRequest
+        gradleTaskRunnerFactory.create(_, _, false) >> gradleTaskRequest
         File ref = TestResource.resource(this, 'kaytee.json')
         File target = new File(codeDir, "build/kaytee.json")
         FileUtils.copyFile(ref, target)
@@ -60,11 +60,11 @@ class DefaultLoadBuildConfigurationTest extends PreparationStepSpecification {
         then: "we should get a gradleTaskRequestFactory.create for each task that is not disabled"
         1 * installationInfo.projectInstanceDir(build) >> codeDir
         1 * gradleTaskExecutor.execute(build, Extract_Gradle_Configuration, false)
-        1 * gradleTaskRequestFactory.create(build, TaskKey.Unit_Test, false) >> this.gradleTaskRequest
-        1 * gradleTaskRequestFactory.create(build, TaskKey.Generate_Build_Info, false) >> this.gradleTaskRequest
-        0 * gradleTaskRequestFactory.create(build, TaskKey.Generate_Change_Log, false) >> this.gradleTaskRequest
-        1 * gradleTaskRequestFactory.create(build, TaskKey.Local_Publish, false) >> this.gradleTaskRequest
-        0 * gradleTaskRequestFactory.create(build, TaskKey.Merge_to_Master, false) >> this.gradleTaskRequest
-        1 * gradleTaskRequestFactory.create(build, TaskKey.Bintray_Upload, false) >> this.gradleTaskRequest
+        1 * gradleTaskRunnerFactory.create(build, TaskKey.Unit_Test, false) >> this.gradleTaskRequest
+        1 * gradleTaskRunnerFactory.create(build, TaskKey.Generate_Build_Info, false) >> this.gradleTaskRequest
+        0 * gradleTaskRunnerFactory.create(build, TaskKey.Generate_Change_Log, false) >> this.gradleTaskRequest
+        1 * gradleTaskRunnerFactory.create(build, TaskKey.Local_Publish, false) >> this.gradleTaskRequest
+        0 * gradleTaskRunnerFactory.create(build, TaskKey.Merge_to_Master, false) >> this.gradleTaskRequest
+        1 * gradleTaskRunnerFactory.create(build, TaskKey.Bintray_Upload, false) >> this.gradleTaskRequest
     }
 }

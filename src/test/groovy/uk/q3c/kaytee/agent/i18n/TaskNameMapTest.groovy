@@ -23,7 +23,7 @@ class TaskNameMapTest extends Specification {
         map.get(TaskKey.Production_Test, true) == "productionTestQualityGate"
 
         map.get(TaskKey.Unit_Test) == "test"
-        map.get(TaskKey.Integration_Test) == "clean integrationTest"
+        map.get(TaskKey.Integration_Test) == "integrationTest"
         map.get(TaskKey.Functional_Test) == "functionalTest"
         map.get(TaskKey.Acceptance_Test) == "acceptanceTest"
         map.get(TaskKey.Production_Test) == "productionTest"

@@ -2,11 +2,14 @@ package uk.q3c.kaytee.agent.queue
 
 import com.google.inject.Inject
 import com.google.inject.Singleton
+import net.engio.mbassy.listener.Listener
 import org.gradle.tooling.CancellationTokenSource
 import org.slf4j.LoggerFactory
 import uk.q3c.build.gitplus.GitSHA
-import uk.q3c.kaytee.agent.build.BuildRequestFactory
+import uk.q3c.kaytee.agent.build.BuildRunnerFactory
+import uk.q3c.kaytee.agent.eventbus.GlobalBus
 import uk.q3c.kaytee.agent.eventbus.GlobalBusProvider
+import uk.q3c.kaytee.agent.eventbus.SubscribeTo
 import uk.q3c.kaytee.agent.i18n.MessageKey
 import uk.q3c.kaytee.agent.i18n.MessageKey.*
 import uk.q3c.kaytee.agent.project.Project
@@ -24,10 +27,10 @@ import java.util.concurrent.TimeUnit
  *
  * Created by David Sowerby on 07 Jan 2017
  */
-@Singleton
+@Singleton @Listener @SubscribeTo(GlobalBus::class)
 class DefaultRequestQueue @Inject constructor(
         val restNotifier: RestNotifier,
-        val buildRequestFactory: BuildRequestFactory,
+        val buildRunnerFactory: BuildRunnerFactory,
         val globalBusProvider: GlobalBusProvider)
 
 
@@ -42,15 +45,20 @@ class DefaultRequestQueue @Inject constructor(
         Thread.setDefaultUncaughtExceptionHandler(ThreadExceptionHandler())
     }
 
-    override fun addRequest(project: Project, gitSHA: GitSHA): UUID {
+    override fun addRequest(project: Project, commitId: GitSHA): UUID {
+        return addRequest(project, commitId, false, "")
+    }
+
+    override fun addRequest(project: Project, commitId: GitSHA, delegated: Boolean, delegatedTask: String): UUID {
         //TODO not atomic, but does it matter?
         val uid = UUID.randomUUID()
-        val buildRequest = buildRequestFactory.create(project, gitSHA, uid)
-        executor.submit(buildRequest)
-        globalBusProvider.get().publish(BuildRequestedMessage(buildRequest.uid))
-//        log.info("Build queueRequest added to queue for project '{}'.  Queue size is: {}", buildRequest.project.name, queue.size)
+        val buildRunner = buildRunnerFactory.create(project, commitId, uid, delegated, delegatedTask)
+        executor.submit(buildRunner)
+        globalBusProvider.get().publish(BuildQueuedMessage(buildRunner.uid))
+        log.info("Build request for build ${uid} (Project '{}').  Current (transient) queue size is: {}", buildRunner.project.fullProjectName, this.size())
         return uid
     }
+
 
     override fun addRequest(taskRunner: TaskRunner) {
         globalBusProvider.get().publish(TaskRequestedMessage(taskRunner.build.buildRunner.uid, taskRunner.taskKey))

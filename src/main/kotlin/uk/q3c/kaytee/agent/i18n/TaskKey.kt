@@ -11,6 +11,7 @@ import uk.q3c.krail.core.i18n.I18NKey
 import java.util.*
 
 enum class TaskKey : I18NKey {
+    Custom,
     Extract_Gradle_Configuration,
     Unit_Test,
     Integration_Test,
@@ -53,7 +54,7 @@ class TaskNameMap {
         temp.put(Generate_Build_Info, GENERATE_BUILD_INFO_TASK_NAME)
         temp.put(Generate_Change_Log, GENERATE_CHANGE_LOG_TASK_NAME)
         temp.put(Extract_Gradle_Configuration, EXTRACT_CONFIG_TASK_NAME)
-        temp.put(Integration_Test, "clean $INTEGRATION_TEST")
+        temp.put(Integration_Test, INTEGRATION_TEST)
         temp.put(Functional_Test, FUNCTIONAL_TEST)
         temp.put(Local_Publish, LOCAL_PUBLISH)
         temp.put(Production_Test, PRODUCTION_TEST)

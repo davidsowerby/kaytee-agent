@@ -39,8 +39,8 @@ class DefaultInstallationInfoTest extends Specification {
         given:
         System.setProperty(ConstantsKt.developmentMode_propertyName, "false")
         project.shortProjectName >> 'wiggly'
-        buildRequest = new DefaultBuildRunner(buildFactory, globalBusProvider, new GitSHA(sha), project, UUID.randomUUID())
-        buildFactory.create(buildRequest) >> build
+        buildRequest = new DefaultBuildRunner(buildFactory, globalBusProvider, false, "", new GitSHA(sha), project, UUID.randomUUID())
+        buildFactory.create(buildRequest, false) >> build
         build.buildNumber() >> 12
         build.buildRunner >> buildRequest
 
@@ -61,8 +61,8 @@ class DefaultInstallationInfoTest extends Specification {
         System.setProperty(ConstantsKt.developmentMode_propertyName, "true")
         System.setProperty(ConstantsKt.baseDir_propertyName, temp.getAbsolutePath())
         project.shortProjectName >> 'wiggly'
-        buildRequest = new DefaultBuildRunner(buildFactory, globalBusProvider, new GitSHA(sha), project, UUID.randomUUID())
-        buildFactory.create(buildRequest) >> build
+        buildRequest = new DefaultBuildRunner(buildFactory, globalBusProvider, false, "", new GitSHA(sha), project, UUID.randomUUID())
+        buildFactory.create(buildRequest, false) >> build
         build.buildNumber() >> 12
         build.buildRunner >> buildRequest
 

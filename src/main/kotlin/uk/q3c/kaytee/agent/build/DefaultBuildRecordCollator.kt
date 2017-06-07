@@ -26,7 +26,7 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
     private val log = LoggerFactory.getLogger(this.javaClass.name)
 
     @Handler
-    fun busMessage(busMessage: BuildRequestedMessage) {
+    fun busMessage(busMessage: BuildQueuedMessage) {
         log.debug("BuildRequestedMessage received, build id: {}", busMessage.buildRequestId)
         val record = getRecord(busMessage)
         record.requestedAt = busMessage.time
@@ -132,7 +132,7 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
     }
 
     /**
-     * In theory, the [BuildRequestedMessage] should arrive before the [PreparationStartedMessage] for a given build, but in practice
+     * In theory, the [BuildQueuedMessage] should arrive before the [PreparationStartedMessage] for a given build, but in practice
      * they are so close together that the order they are received may be reversed by the time they have been transported by
      * the event bus.
      *
@@ -141,11 +141,11 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
      *
      */
 
-    override fun getRecord(buildMessage: TimedMessage): BuildRecord {
+    override fun getRecord(buildMessage: AbstractBuildMessage): BuildRecord {
         synchronized(lock) {
             var record = records[buildMessage.buildRequestId]
             if (record == null) {
-                if (buildMessage is BuildRequestedMessage || buildMessage is PreparationStartedMessage) {
+                if (buildMessage is BuildQueuedMessage || buildMessage is PreparationStartedMessage) {
                     log.debug("creating build record for {}", buildMessage.buildRequestId)
                     record = BuildRecord(buildMessage.buildRequestId, buildMessage.time)
                     records.put(buildMessage.buildRequestId, record)

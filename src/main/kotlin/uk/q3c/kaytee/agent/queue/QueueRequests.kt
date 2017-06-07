@@ -4,6 +4,7 @@ import uk.q3c.build.gitplus.GitSHA
 import uk.q3c.kaytee.agent.build.Build
 import uk.q3c.kaytee.agent.i18n.TaskKey
 import uk.q3c.kaytee.agent.project.Project
+import uk.q3c.kaytee.plugin.GroupConfig
 import java.util.*
 
 /**
@@ -17,6 +18,11 @@ interface QueueRequest : Runnable {
 
 interface BuildRunner : ProjectInstance, QueueRequest {
     val uid: UUID
+    /**
+     * Set to true when this build represents a task delegated to another project (for example, a standalone functional test)
+     */
+    val delegated: Boolean
+    val delegateTask: String
 }
 
 
@@ -27,6 +33,9 @@ interface TaskRunner : QueueRequest {
 
 interface GradleTaskRunner : TaskRunner
 interface ManualTaskRunner : TaskRunner
+interface DelegatedProjectTaskRunner : TaskRunner {
+    val groupConfig: GroupConfig
+}
 
 
 interface ProjectInstance {
@@ -36,6 +45,10 @@ interface ProjectInstance {
 
 interface GradleTaskRunnerFactory {
     fun create(build: Build, taskKey: TaskKey, includeQualityGate: Boolean): GradleTaskRunner
+}
+
+interface DelegatedProjectTaskRunnerFactory {
+    fun create(build: Build, taskKey: TaskKey, groupConfig: GroupConfig): DelegatedProjectTaskRunner
 }
 
 interface ManualTaskRunnerFactory {

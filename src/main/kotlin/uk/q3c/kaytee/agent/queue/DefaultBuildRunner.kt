@@ -16,6 +16,8 @@ import java.util.*
  */
 data class DefaultBuildRunner @Inject constructor(val buildFactory: BuildFactory,
                                                   val globalBusProvider: GlobalBusProvider,
+                                                  @Assisted override val delegated: Boolean,
+                                                  @Assisted override val delegateTask: String,
                                                   @Assisted override val gitHash: GitSHA,
                                                   @Assisted override val project: Project,
                                                   @Assisted override val uid: UUID) : BuildRunner {
@@ -24,7 +26,7 @@ data class DefaultBuildRunner @Inject constructor(val buildFactory: BuildFactory
     override fun run() {
         try {
             log.debug("creating build instance")
-            val build = buildFactory.create(this)
+            val build = buildFactory.create(this, delegated)
             log.debug("executing build instance, project '{}' build number: {}", build.buildRunner.project.shortProjectName, build.buildNumber())
             build.execute()
         } catch (e: Exception) {

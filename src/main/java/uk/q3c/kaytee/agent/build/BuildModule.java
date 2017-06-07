@@ -17,7 +17,7 @@ public class BuildModule extends AbstractModule {
         bind(BuildNumberReader.class).to(DefaultBuildNumberReader.class);
         install(new FactoryModuleBuilder()
                 .implement(BuildRunner.class, DefaultBuildRunner.class)
-                .build(BuildRequestFactory.class));
+                .build(BuildRunnerFactory.class));
 
         install(new FactoryModuleBuilder()
                 .implement(Build.class, DefaultBuild.class)

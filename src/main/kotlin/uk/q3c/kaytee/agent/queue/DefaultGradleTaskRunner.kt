@@ -34,7 +34,11 @@ class DefaultGradleTaskRunner @Inject constructor(
         try {
             globalBus.publish(TaskStartedMessage(this.build.buildRunner.uid, taskKey))
             log.info("Executing task request {}", identity())
-            gradleTaskExecutor.execute(build, taskKey, includeQualityGate)
+            if (build.buildRunner.delegated) {
+                gradleTaskExecutor.execute(build, build.buildRunner.delegateTask)
+            } else {
+                gradleTaskExecutor.execute(build, taskKey, includeQualityGate)
+            }
             log.info("Task successful for {}", identity())
             val stdOutFile = installationInfo.gradleStdOutFile(build)
             val outcome = TaskSuccessfulMessage(build.buildRunner.uid, taskKey, stdOutFile.readText()) // any error would cause exception

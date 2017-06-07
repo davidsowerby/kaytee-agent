@@ -1,6 +1,6 @@
 package uk.q3c.kaytee.agent.app
 
-import uk.q3c.kaytee.agent.queue.BuildRequestedMessage
+import uk.q3c.kaytee.agent.queue.BuildQueuedMessage
 
 /**
  * Registers / de-registers topic from [Hooks]
@@ -9,5 +9,5 @@ import uk.q3c.kaytee.agent.queue.BuildRequestedMessage
  */
 interface TopicRegistrar {
 
-    fun buildRequest(message: BuildRequestedMessage)
+    fun buildRequest(message: BuildQueuedMessage)
 }

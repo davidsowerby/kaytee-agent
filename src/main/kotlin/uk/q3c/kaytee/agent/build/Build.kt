@@ -29,6 +29,7 @@ import java.io.File
  * Created by David Sowerby on 07 Jan 2017
  */
 interface Build : ProjectInstance {
+
     val buildRunner: BuildRunner
     var parentBuild: Build
 

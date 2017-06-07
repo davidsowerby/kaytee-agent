@@ -25,6 +25,7 @@ val developmentMode_propertyName = "kaytee-developmentmode"
 val baseDirFolderName = "kaytee-data"
 val defaultDevelopmentBaseDir = "/tmp/$baseDirFolderName"
 
+val notSpecified: String = "not specified"
 
 //fun href(resourcePath: String) = "$baseUrl/$resourcePath"
 

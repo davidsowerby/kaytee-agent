@@ -8,7 +8,7 @@ import java.util.*
 /**
  * Created by David Sowerby on 27 Jan 2017
  */
-interface BuildRequestFactory {
+interface BuildRunnerFactory {
 
-    fun create(project: Project, gitSHA: GitSHA, uid: UUID): BuildRunner
+    fun create(project: Project, gitSHA: GitSHA, uid: UUID, delegated: Boolean, delegateTask: String): BuildRunner
 }

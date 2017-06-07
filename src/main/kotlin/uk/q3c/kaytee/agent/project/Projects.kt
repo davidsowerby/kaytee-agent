@@ -8,4 +8,5 @@ import uk.q3c.kaytee.agent.api.BuildRequest
 interface Projects {
     fun getProject(buildRequestRequest: BuildRequest): Project
     fun getProject(projectFullName: String): Project
+    fun getProject(projectUserName: String, projectRepoName: String): Project
 }

@@ -2,7 +2,7 @@ package uk.q3c.kaytee.agent.queue;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-import uk.q3c.kaytee.agent.build.BuildRequestFactory;
+import uk.q3c.kaytee.agent.build.BuildRunnerFactory;
 
 /**
  * Created by David Sowerby on 06 May 2016
@@ -17,7 +17,7 @@ public class QueueModule extends AbstractModule {
 
         install(new FactoryModuleBuilder()
                 .implement(BuildRunner.class, DefaultBuildRunner.class)
-                .build(BuildRequestFactory.class));
+                .build(BuildRunnerFactory.class));
 
         install(new FactoryModuleBuilder()
                 .implement(GradleTaskRunner.class, DefaultGradleTaskRunner.class)
@@ -26,6 +26,10 @@ public class QueueModule extends AbstractModule {
         install(new FactoryModuleBuilder()
                 .implement(ManualTaskRunner.class, DefaultManualTaskRunner.class)
                 .build(ManualTaskRunnerFactory.class));
+
+        install(new FactoryModuleBuilder()
+                .implement(DelegatedProjectTaskRunner.class, DefaultDelegatedProjectTaskRunner.class)
+                .build(DelegatedProjectTaskRunnerFactory.class));
     }
 
 

@@ -24,11 +24,15 @@ interface RequestQueue {
      * The original [BuildRunner] is broken down into a sequence of [TaskRunner]s, which are placed onto the queue
      *
      * @param project the project to build
-     * @param gitSHA the Git commit id to build
+     * @param commitId the Git commit id to build
+     * @param delegated if true, the Build is set to delegated, meaning that it is a separate build project being used as a delegate for a build task - for example to run a functional test as a separate application
      *
      * @return the UUID for the request - this is a permanent id for the build request, which also then becomes the Id for build itself
      */
-    fun addRequest(project: Project, gitSHA: GitSHA): UUID
+
+    fun addRequest(project: Project, commitId: GitSHA, delegated: Boolean, delegatedTask: String): UUID
+
+    fun addRequest(project: Project, commitId: GitSHA): UUID
 
     /**
      * Add a [TaskRunner] to the queue
