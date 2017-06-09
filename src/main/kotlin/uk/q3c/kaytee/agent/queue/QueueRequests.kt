@@ -2,9 +2,9 @@ package uk.q3c.kaytee.agent.queue
 
 import uk.q3c.build.gitplus.GitSHA
 import uk.q3c.kaytee.agent.build.Build
-import uk.q3c.kaytee.agent.i18n.TaskKey
 import uk.q3c.kaytee.agent.project.Project
 import uk.q3c.kaytee.plugin.GroupConfig
+import uk.q3c.kaytee.plugin.TaskKey
 import java.util.*
 
 /**

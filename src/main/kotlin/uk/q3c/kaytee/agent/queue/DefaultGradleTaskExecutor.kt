@@ -6,14 +6,13 @@ import com.google.common.collect.Iterables
 import com.google.inject.Inject
 import org.slf4j.LoggerFactory
 import uk.q3c.kaytee.agent.build.Build
-import uk.q3c.kaytee.agent.i18n.TaskKey
-import uk.q3c.kaytee.agent.i18n.TaskNameMap
+import uk.q3c.kaytee.plugin.TaskKey
 import java.io.FileOutputStream
 
 /**
  * Created by David Sowerby on 25 Mar 2017
  */
-class DefaultGradleTaskExecutor @Inject constructor(val taskNameMap: TaskNameMap) : GradleTaskExecutor {
+class DefaultGradleTaskExecutor @Inject constructor() : GradleTaskExecutor {
 
     private val log = LoggerFactory.getLogger(this.javaClass.name)
 
@@ -22,11 +21,21 @@ class DefaultGradleTaskExecutor @Inject constructor(val taskNameMap: TaskNameMap
         doExecute(build, customTaskName)
     }
 
-
+//TODO Custom?
 
     override fun execute(build: Build, taskKey: TaskKey, includeQualityGate: Boolean) {
-        val taskName = taskNameMap.get(taskKey, includeQualityGate)
-        log.debug("executing standard task $taskName, for task key $taskKey, for build ${build.buildRunner.uid}")
+        var taskName = ""
+        if (taskKey.isTestKey) {
+            if (includeQualityGate) {
+                taskKey.qualityGateGradleTask()
+            } else {
+                taskName = taskKey.gradleTask()
+            }
+        } else {
+            taskName = taskKey.gradleTask()
+        }
+
+        log.debug("executing standard task key $taskKey, for build ${build.buildRunner.uid}")
         doExecute(build, taskName)
     }
 

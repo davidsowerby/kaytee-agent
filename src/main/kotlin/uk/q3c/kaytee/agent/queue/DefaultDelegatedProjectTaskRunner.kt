@@ -12,10 +12,10 @@ import uk.q3c.kaytee.agent.eventbus.BusMessage
 import uk.q3c.kaytee.agent.eventbus.GlobalBus
 import uk.q3c.kaytee.agent.eventbus.GlobalBusProvider
 import uk.q3c.kaytee.agent.eventbus.SubscribeTo
-import uk.q3c.kaytee.agent.i18n.TaskKey
 import uk.q3c.kaytee.agent.i18n.TaskResultStateKey
 import uk.q3c.kaytee.agent.project.Projects
 import uk.q3c.kaytee.plugin.GroupConfig
+import uk.q3c.kaytee.plugin.TaskKey
 import java.util.*
 
 /**

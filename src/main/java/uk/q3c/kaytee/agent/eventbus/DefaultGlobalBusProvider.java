@@ -26,10 +26,6 @@ public class DefaultGlobalBusProvider implements GlobalBusProvider {
         this.globalBus = globalBus;
     }
 
-    @Override
-    public PubSubSupport<BusMessage> getGlobalBus() {
-        return globalBus;
-    }
 
     @Override
     public PubSubSupport<BusMessage> get() {

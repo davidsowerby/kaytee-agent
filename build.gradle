@@ -1,6 +1,6 @@
 buildscript {
     ext.kotlin_version = '1.1.2-2'
-    ext.kaytee_plugin ="0.9.25.69"
+    ext.kaytee_plugin_version = "0.11.2.0"
 
     repositories {
         mavenLocal()
@@ -12,7 +12,7 @@ buildscript {
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.7.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "io.ratpack:ratpack-gradle:1.4.5"
-        classpath "uk.q3c.kaytee:kaytee-plugin:$kaytee_plugin"
+        classpath "uk.q3c.kaytee:kaytee-plugin:$kaytee_plugin_version"
     }
 }
 
@@ -78,7 +78,7 @@ dependencies {
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.7.5"
     //krail for I18N only.  Reduce when I18N moved out of Krail
     compile "uk.q3c.krail:krail:0.9.9"
-    compile "uk.q3c.kaytee:kaytee-plugin:$kaytee_plugin"
+    compile "uk.q3c.kaytee:kaytee-plugin:$kaytee_plugin_version"
     compile "org.gradle:gradle-tooling-api:" + toolingApiVersion
 
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"

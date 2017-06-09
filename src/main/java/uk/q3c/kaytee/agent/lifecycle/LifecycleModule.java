@@ -1,7 +1,6 @@
 package uk.q3c.kaytee.agent.lifecycle;
 
 import com.google.inject.AbstractModule;
-import uk.q3c.kaytee.agent.i18n.TaskNameMap;
 import uk.q3c.kaytee.agent.prepare.*;
 
 /**
@@ -15,6 +14,5 @@ public class LifecycleModule extends AbstractModule {
         bind(PrepareWorkspace.class).to(DefaultPrepareWorkspace.class);
         bind(LoadBuildConfiguration.class).to(DefaultLoadBuildConfiguration.class);
         bind(ConnectBuildToGradle.class).to(DefaultConnectBuildToGradle.class);
-        bind(TaskNameMap.class).asEagerSingleton();
     }
 }

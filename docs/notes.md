@@ -8,5 +8,8 @@
 1. Build.execute() continues and releases the first TaskRunner into the main queue
 1. The RequestQueue executor invokes the first TaskRunner, which will complete by sending either a TaskSuccessfulMessage or a TaskFailedMessage   
 1. Build receives these messages via the GlobalBus.  If the task was successful, Build releases the next TaskRunner into the RequestQueue, or closes the build if all done or failed
+1. The BuildCollator also monitors the GlobalBus for all build messages and collates a BuildRecord for each Build
 
-For a delegated task (DelegatedProjectTask), step 5 calls Build.configureAsDelegate() instead of Build.configure(), with a build configuration defined by the owning project.  A delegated build never uses tasks such as bintrayUpload, and that is reflected in the configuration
+For a delegated task (DelegatedProjectTask) ...tbd
+
+DelegateProjectTaskRunner waits for BuildSuccessful or BuildFailedMessage for its delegate build and issues a TaskCompletedMessage or TaskFailedMessage as appropriate

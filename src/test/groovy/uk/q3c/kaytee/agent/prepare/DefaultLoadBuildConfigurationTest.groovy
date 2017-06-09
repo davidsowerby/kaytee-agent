@@ -1,14 +1,15 @@
 package uk.q3c.kaytee.agent.prepare
 
 import org.apache.commons.io.FileUtils
+import uk.q3c.kaytee.agent.build.Build
 import uk.q3c.kaytee.agent.build.BuildPreparationException
 import uk.q3c.kaytee.agent.i18n.LabelKey
-import uk.q3c.kaytee.agent.i18n.TaskKey
 import uk.q3c.kaytee.agent.queue.GradleTaskExecutor
 import uk.q3c.kaytee.agent.queue.GradleTaskRunner
+import uk.q3c.kaytee.plugin.KayTeeExtension
 import uk.q3c.util.testutil.TestResource
 
-import static uk.q3c.kaytee.agent.i18n.TaskKey.Extract_Gradle_Configuration
+import static uk.q3c.kaytee.plugin.TaskKey.*
 /**
  * Created by David Sowerby on 20 Jan 2017
  */
@@ -58,13 +59,38 @@ class DefaultLoadBuildConfigurationTest extends PreparationStepSpecification {
         step.execute(build)
 
         then: "we should get a gradleTaskRequestFactory.create for each task that is not disabled"
-        1 * installationInfo.projectInstanceDir(build) >> codeDir
+        installationInfo.projectInstanceDir(build) >> codeDir
         1 * gradleTaskExecutor.execute(build, Extract_Gradle_Configuration, false)
-        1 * gradleTaskRunnerFactory.create(build, TaskKey.Unit_Test, false) >> this.gradleTaskRequest
-        1 * gradleTaskRunnerFactory.create(build, TaskKey.Generate_Build_Info, false) >> this.gradleTaskRequest
-        0 * gradleTaskRunnerFactory.create(build, TaskKey.Generate_Change_Log, false) >> this.gradleTaskRequest
-        1 * gradleTaskRunnerFactory.create(build, TaskKey.Local_Publish, false) >> this.gradleTaskRequest
-        0 * gradleTaskRunnerFactory.create(build, TaskKey.Merge_to_Master, false) >> this.gradleTaskRequest
-        1 * gradleTaskRunnerFactory.create(build, TaskKey.Bintray_Upload, false) >> this.gradleTaskRequest
+        1 * gradleTaskRunnerFactory.create(build, Unit_Test, true) >> this.gradleTaskRequest
+        1 * gradleTaskRunnerFactory.create(build, Integration_Test, true) >> this.gradleTaskRequest
+        1 * gradleTaskRunnerFactory.create(build, Functional_Test, true) >> this.gradleTaskRequest
+        1 * gradleTaskRunnerFactory.create(build, Generate_Build_Info, false) >> this.gradleTaskRequest
+        0 * gradleTaskRunnerFactory.create(build, Generate_Change_Log, true) >> this.gradleTaskRequest
+        1 * gradleTaskRunnerFactory.create(build, Local_Publish, false) >> this.gradleTaskRequest
+        0 * gradleTaskRunnerFactory.create(build, Merge_to_Master, false) >> this.gradleTaskRequest
+        0 * gradleTaskRunnerFactory.create(build, Bintray_Upload, false) >> this.gradleTaskRequest
+    }
+
+    def "values correct"() {
+        given:
+        GradleTaskRunner gradleTaskRequest = Mock(GradleTaskRunner)
+        gradleTaskRunnerFactory.create(_, _, false) >> gradleTaskRequest
+        File ref = TestResource.resource(this, 'kaytee.json')
+        File target = new File(codeDir, "build/kaytee.json")
+        FileUtils.copyFile(ref, target)
+        KayTeeExtension config
+        build = Mock(Build)
+
+        when:
+        step.execute(build)
+
+        then:
+        1 * installationInfo.projectInstanceDir(build) >> codeDir
+        1 * build.configure(_) >> { arguments -> config = arguments[0] }
+        config.integrationTest.enabled
+        config.integrationTest.qualityGate
+
+        !config.acceptanceTest.enabled
+        !config.acceptanceTest.qualityGate
     }
 }

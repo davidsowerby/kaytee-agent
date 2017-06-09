@@ -11,14 +11,13 @@ import uk.q3c.kaytee.agent.eventbus.BusMessage
 import uk.q3c.kaytee.agent.eventbus.GlobalBus
 import uk.q3c.kaytee.agent.eventbus.GlobalBusProvider
 import uk.q3c.kaytee.agent.eventbus.SubscribeTo
-import uk.q3c.kaytee.agent.i18n.TaskKey
-import uk.q3c.kaytee.agent.i18n.TaskKey.*
-import uk.q3c.kaytee.agent.i18n.TaskNameMap
 import uk.q3c.kaytee.agent.i18n.TaskResultStateKey
 import uk.q3c.kaytee.agent.prepare.PreparationStage
 import uk.q3c.kaytee.agent.queue.*
 import uk.q3c.kaytee.plugin.GroupConfig
 import uk.q3c.kaytee.plugin.KayTeeExtension
+import uk.q3c.kaytee.plugin.TaskKey
+import uk.q3c.kaytee.plugin.TaskKey.*
 import java.io.File
 import java.util.*
 
@@ -116,6 +115,7 @@ class DefaultBuild @Inject constructor(
     }
 
     private fun generateTasks(configuration: KayTeeExtension) {
+        log.debug("generating task for ${buildRunner}")
         if (buildRunner.delegated) {
             generateCustomTask(buildRunner.delegateTask)
         } else {
@@ -152,11 +152,10 @@ class DefaultBuild @Inject constructor(
     }
 
     private fun generateTestGroupTask(configuration: KayTeeExtension, taskKey: TaskKey) {
-        val taskNameMap = TaskNameMap()
-        val config: GroupConfig = configuration.testConfig(taskNameMap.get(taskKey))
+        val config: GroupConfig = configuration.testConfig(taskKey)
         // not enabled at all, nothing to do
         if (!config.enabled) {
-            log.debug("Config is set 'disabled'")
+            log.debug("Test group is disabled: ", taskKey)
             return
         }
 
@@ -219,6 +218,7 @@ class DefaultBuild @Inject constructor(
      * Creates a [SubBuildTask] and adds it to [taskRunners]
      */
     private fun createDelegatedProjectTask(taskKey: TaskKey, config: GroupConfig) {
+        log.debug("Creating a task runner for {}, type 'DelegatedProject'", taskKey)
         val taskRunner = delegatedProjectTaskRunnerFactory.create(build = this, taskKey = taskKey, groupConfig = config)
         taskRunners.add(taskRunner)
     }
@@ -227,6 +227,7 @@ class DefaultBuild @Inject constructor(
      * Creates a [GradleTask] and adds it to [taskRunners]
      */
     private fun createLocalGradleTask(taskKey: TaskKey, includeQualityGate: Boolean) {
+        log.debug("Creating a task runner for {}, type 'LocalGradle'", taskKey)
         val taskRunner = gradleTaskRunnerFactory.create(build = this, taskKey = taskKey, includeQualityGate = includeQualityGate)
         taskRunners.add(taskRunner)
     }
@@ -235,6 +236,7 @@ class DefaultBuild @Inject constructor(
      * Creates a [ManualTask] and adds it to [taskRunners]
      */
     private fun createManualTask(taskKey: TaskKey, config: GroupConfig) {
+        log.debug("Creating a task runner for {}, type 'Manual'", taskKey)
         val taskRunner = manualTaskRunnerFactory.create(build = this, taskKey = taskKey)
         taskRunners.add(taskRunner)
     }

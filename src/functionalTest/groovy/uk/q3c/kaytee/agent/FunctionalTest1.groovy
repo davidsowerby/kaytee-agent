@@ -14,7 +14,6 @@ import uk.q3c.kaytee.agent.app.ConstantsKt
 import uk.q3c.kaytee.agent.app.SubscriptionRequest
 import uk.q3c.kaytee.agent.build.BuildRecord
 import uk.q3c.kaytee.agent.build.TaskResult
-import uk.q3c.kaytee.agent.i18n.TaskKey
 import uk.q3c.rest.hal.HalMapper
 
 import java.time.LocalDateTime
@@ -22,6 +21,7 @@ import java.time.LocalDateTime
 import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Not_Applicable
 import static uk.q3c.kaytee.agent.i18n.BuildStateKey.Successful
 import static uk.q3c.kaytee.agent.i18n.TaskResultStateKey.Task_Successful
+import static uk.q3c.kaytee.plugin.TaskKey.*
 /**
  * Created by David Sowerby on 21 Mar 2017
  */
@@ -104,26 +104,52 @@ class FunctionalTest1 extends FunctionalTestBase {
 
         then:
         BuildRecord finalRecord = finalRecord()
+        TaskResult unitTestResult = finalRecord.taskResult(Unit_Test)
+        TaskResult changeLogResult = finalRecord.taskResult(Generate_Change_Log)
+        TaskResult buildInfoResult = finalRecord.taskResult(Generate_Build_Info)
+        TaskResult publishToLocalResult = finalRecord.taskResult(Local_Publish)
+        TaskResult integrationTestResult = finalRecord.taskResult(Integration_Test)
+        TaskResult functionalTestResult = finalRecord.taskResult(Functional_Test)
+        TaskResult acceptanceTestResult = finalRecord.taskResult(Acceptance_Test)
+        TaskResult bintrayUploadResult = finalRecord.taskResult(Bintray_Upload)
+        TaskResult mergeToMasterResult = finalRecord.taskResult(Merge_to_Master)
+        TaskResult productionTestResult = finalRecord.taskResult(Production_Test)
+
+
+
+
+
+
         finalRecord.failureDescription == ""
+
         finalRecord.state == finalBuildState
         finalRecord.causeOfFailure == causeOfFailure
-        TaskResult unitTestActual = finalRecord.taskResults.get(TaskKey.Unit_Test)
-        unitTestActual.outcome == unitTestExpected
-        unitTestActual.completedAt.isBefore(finalRecord.buildCompletedAt) || unitTestActual.completedAt.isEqual(finalRecord.buildCompletedAt)
-        unitTestActual.stdOut.contains(unitStdOut)
-        unitTestActual.stdErr.contains(unitStdErr)
 
-        TaskResult integrationTestActual = finalRecord.taskResults.get(TaskKey.Integration_Test)
-        integrationTestActual.outcome == integrationTestExpected
-        integrationTestActual.completedAt.isBefore(finalRecord.buildCompletedAt) || integrationTestActual.completedAt.isEqual(finalRecord.buildCompletedAt)
-        integrationTestActual.stdOut.contains(iTestStdOut)
-        integrationTestActual.stdErr.contains(iTestStdErr)
+        unitTestResult.outcome == unitTestExpected
+        unitTestResult.completedAt.isBefore(finalRecord.buildCompletedAt) || unitTestResult.completedAt.isEqual(finalRecord.buildCompletedAt)
+        unitTestResult.stdOut.contains(unitStdOut)
+        unitTestResult.stdErr.contains(unitStdErr)
 
-        subscriberMessages.size() == expectedMessages
+
+        integrationTestResult.outcome == integrationTestExpected
+        integrationTestResult.completedAt.isBefore(finalRecord.buildCompletedAt) || integrationTestResult.completedAt.isEqual(finalRecord.buildCompletedAt)
+        integrationTestResult.stdOut.contains(iTestStdOut)
+        integrationTestResult.stdErr.contains(iTestStdErr)
+
+        buildInfoResult.passed()
+        changeLogResult.passed()
+        publishToLocalResult.passed()
+        functionalTestResult.passed()
+        acceptanceTestResult.passed()
+        productionTestResult.passed()
+        bintrayUploadResult.notRun()
+        mergeToMasterResult.notRun()
+
+
 
         where:
         commitId                                   | testDesc                    | expectedMessages | finalBuildState | causeOfFailure | unitTestExpected | integrationTestExpected | unitStdOut         | unitStdErr | iTestStdOut        | iTestStdErr
-        "75a46e67e737d576788a8eb2bcc2f8a67ad790af" | "full cycle, simple tests " | 29               | Successful      | Not_Applicable | Task_Successful  | Task_Successful         | "BUILD SUCCESSFUL" | ""         | "BUILD SUCCESSFUL" | ""
+        "2e2e31505dc8ccd27300a63eae07ebf43ea4eede" | "full cycle, simple tests " | 29               | Successful      | Not_Applicable | Task_Successful  | Task_Successful         | "BUILD SUCCESSFUL" | ""         | "BUILD SUCCESSFUL" | ""
 //        "922a7d39d68ab5a95b879a92477a7d0e0dd3f76d" | "unit test failure"              | 20      | 8                | Failed          | Task_Failure   | Task_Failed         | Task_Not_Run            | "BUILD FAILED"         | "failing tests"        | ""                 | ""
 //        "ddedcf08ee724fb059da8365143eeb23c3b58b44" | "unit test pass, QG fail"        | 20      | 8                | Failed          | Task_Failure   | Quality_Gate_Failed | Task_Not_Run            | "Code Coverage Failed" | "Code coverage failed" | ""                 | ""
 //        "7dce1f433e9d8bf42fbb5bba2f88ea540c239628" | "integration test passes"        | 20      | 11               | Successful      | Not_Applicable | Task_Successful     | Task_Successful         | "BUILD SUCCESSFUL"     | ""                     | "BUILD SUCCESSFUL" | ""

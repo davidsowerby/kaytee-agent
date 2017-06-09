@@ -1,11 +1,11 @@
 {
   "remoteRepoUserName": "davidsowerby",
-  "baseVersion": "0.0.0.0",
+  "baseVersion": "0.0.4.15",
   "generateBuildInfo": true,
-  "generateChangeLog": false,
+  "generateChangeLog": true,
   "unitTest": {
     "enabled": true,
-    "qualityGate": false,
+    "qualityGate": true,
     "auto": true,
     "manual": false,
     "delegated": false,
@@ -14,7 +14,7 @@
       "branch": 70.0,
       "line": 90.0,
       "complexity": 90.0,
-      "method": 90.0,
+      "method": 20.0,
       "clazz": 90.0
     },
     "delegate": {
@@ -27,8 +27,8 @@
     }
   },
   "integrationTest": {
-    "enabled": false,
-    "qualityGate": false,
+    "enabled": true,
+    "qualityGate": true,
     "auto": true,
     "manual": false,
     "delegated": false,
@@ -50,8 +50,8 @@
     }
   },
   "functionalTest": {
-    "enabled": false,
-    "qualityGate": false,
+    "enabled": true,
+    "qualityGate": true,
     "auto": true,
     "manual": false,
     "delegated": false,
@@ -97,7 +97,7 @@
   },
   "productionTest": {
     "enabled": false,
-    "qualityGate": false,
+    "qualityGate": true,
     "auto": true,
     "manual": false,
     "delegated": false,
@@ -119,7 +119,7 @@
     }
   },
   "release": {
-    "toBintray": true,
+    "toBintray": false,
     "mergeToMaster": false
   },
   "changeLog": {
@@ -167,7 +167,7 @@
     "outputFilename": "changelog.md",
     "pullRequestTitle": "Pull Requests",
     "outputTarget": "WIKI_ROOT",
-    "outputFileSpec": "/home/david/git/kaytee-plugin/./changelog.md",
+    "outputFileSpec": "/home/david/git/kaytee-agent/./changelog.md",
     "fromCommitId": "not specified",
     "toCommitId": "not specified",
     "fromVersionId": "not specified",
@@ -180,29 +180,29 @@
     "maxVersions": 50,
     "processingAsVersions": true,
     "showDetail": true,
-    "projectDirParent": "/home/david/git/kaytee-plugin/.",
+    "projectDirParent": "/home/david/git/kaytee-agent/.",
     "currentBuildTagName": "current build",
-    "projectName": "not specified"
+    "projectName": "kaytee-test"
   },
   "gitLocalConfiguration": {
     "active": true,
     "cloneExistsResponse": "EXCEPTION",
-    "projectDirParent": "/home/david/git/kaytee-plugin/.",
+    "projectDirParent": "/home/david/git/kaytee-agent/.",
     "taggerName": "not specified",
     "taggerEmail": "not specified",
     "create": false,
     "cloneFromRemote": false,
-    "projectName": "not specified"
+    "projectName": "kaytee-test"
   },
   "wikiLocalConfiguration": {
     "active": true,
     "cloneExistsResponse": "EXCEPTION",
-    "projectDirParent": "/home/david/git/kaytee-plugin/.",
+    "projectDirParent": "/home/david/git/kaytee-agent/.",
     "taggerName": "not specified",
     "taggerEmail": "not specified",
     "create": false,
     "cloneFromRemote": false,
-    "projectName": "not specified"
+    "projectName": "kaytee-test"
   },
   "gitRemoteConfiguration": {
     "active": true,
@@ -226,7 +226,7 @@
     },
     "mergeIssueLabels": false,
     "providerBaseUrl": "github.com",
-    "repoUser": "not specified",
-    "repoName": "not specified"
+    "repoUser": "davidsowerby",
+    "repoName": "kaytee-test"
   }
 }

@@ -5,9 +5,9 @@ import com.google.inject.assistedinject.Assisted
 import org.slf4j.LoggerFactory
 import uk.q3c.kaytee.agent.build.Build
 import uk.q3c.kaytee.agent.eventbus.GlobalBusProvider
-import uk.q3c.kaytee.agent.i18n.TaskKey
 import uk.q3c.kaytee.agent.i18n.TaskResultStateKey
 import uk.q3c.kaytee.agent.system.InstallationInfo
+import uk.q3c.kaytee.plugin.TaskKey
 
 
 /**

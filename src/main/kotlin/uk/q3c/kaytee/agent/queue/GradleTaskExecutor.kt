@@ -1,7 +1,7 @@
 package uk.q3c.kaytee.agent.queue
 
 import uk.q3c.kaytee.agent.build.Build
-import uk.q3c.kaytee.agent.i18n.TaskKey
+import uk.q3c.kaytee.plugin.TaskKey
 
 /**
  * Executes a gradle task (or tasks) for the supplied [Build]

@@ -8,10 +8,10 @@ import uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Build_Configuration
 import uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Not_Applicable
 import uk.q3c.kaytee.agent.i18n.BuildStateKey
 import uk.q3c.kaytee.agent.i18n.BuildStateKey.*
-import uk.q3c.kaytee.agent.i18n.TaskKey
 import uk.q3c.kaytee.agent.i18n.TaskResultStateKey
 import uk.q3c.kaytee.agent.i18n.TaskResultStateKey.*
 import uk.q3c.kaytee.agent.i18n.finalStates
+import uk.q3c.kaytee.plugin.TaskKey
 import java.time.Duration
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
@@ -150,6 +150,10 @@ data class TaskResult(val task: TaskKey, val requestedAt: OffsetDateTime) {
         val units = ChronoUnit.SECONDS
         val elapsedTime = units.between(startedAt, completedAt)
         return "${task.name} : $outcome : $elapsedTime secs $stdErr"
+    }
+
+    fun passed(): Boolean {
+        return !failed()
     }
 }
 

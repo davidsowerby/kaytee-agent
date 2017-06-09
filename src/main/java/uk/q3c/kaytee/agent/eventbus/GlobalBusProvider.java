@@ -13,8 +13,6 @@
 
 package uk.q3c.kaytee.agent.eventbus;
 
-import net.engio.mbassy.bus.common.PubSubSupport;
-
 /**
  * Equivalent to injecting PubSubSupport with @GlobalBus annotation.  Used to prevent accidental overloading with wrong
  * bus.
@@ -22,9 +20,5 @@ import net.engio.mbassy.bus.common.PubSubSupport;
  * Created by David Sowerby on 17/11/15.
  */
 public interface GlobalBusProvider extends BusProvider {
-    /**
-     * Use {@link #get()} instead
-     */
-    @Deprecated
-    PubSubSupport<BusMessage> getGlobalBus();
+
 }

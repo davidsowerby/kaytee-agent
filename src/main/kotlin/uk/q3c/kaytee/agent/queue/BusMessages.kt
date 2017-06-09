@@ -2,9 +2,9 @@ package uk.q3c.kaytee.agent.queue
 
 import uk.q3c.kaytee.agent.build.BuildRecord
 import uk.q3c.kaytee.agent.eventbus.BusMessage
-import uk.q3c.kaytee.agent.i18n.TaskKey
 import uk.q3c.kaytee.agent.i18n.TaskResultStateKey
 import uk.q3c.kaytee.agent.project.Project
+import uk.q3c.kaytee.plugin.TaskKey
 import java.time.OffsetDateTime
 import java.util.*
 

@@ -7,10 +7,10 @@ import uk.q3c.kaytee.agent.build.BuildPreparationException
 import uk.q3c.kaytee.agent.i18n.LabelKey
 import uk.q3c.kaytee.agent.i18n.Named
 import uk.q3c.kaytee.agent.i18n.NamedFactory
-import uk.q3c.kaytee.agent.i18n.TaskKey
 import uk.q3c.kaytee.agent.queue.GradleTaskExecutor
 import uk.q3c.kaytee.agent.system.InstallationInfo
 import uk.q3c.kaytee.plugin.KayTeeExtension
+import uk.q3c.kaytee.plugin.TaskKey
 import java.io.File
 
 /**
@@ -31,7 +31,8 @@ class DefaultLoadBuildConfiguration @Inject constructor(
      */
     override fun execute(build: Build) {
         val fileLocation = "build/kaytee.json"
-        val inputFile = File(installationInfo.projectInstanceDir(build), fileLocation)
+        val f = installationInfo.projectInstanceDir(build)
+        val inputFile = File(f, fileLocation)
         try {
             // call Gradle task to extract the config
             gradleTaskExecutor.execute(build, TaskKey.Extract_Gradle_Configuration, false)
