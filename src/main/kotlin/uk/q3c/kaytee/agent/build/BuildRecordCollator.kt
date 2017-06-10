@@ -1,6 +1,6 @@
 package uk.q3c.kaytee.agent.build
 
-import uk.q3c.kaytee.agent.queue.AbstractBuildMessage
+import uk.q3c.kaytee.agent.queue.BuildMessage
 import java.util.*
 
 /**
@@ -8,5 +8,5 @@ import java.util.*
  */
 interface BuildRecordCollator {
     val records: MutableMap<UUID, BuildRecord>
-    fun getRecord(buildMessage: AbstractBuildMessage): BuildRecord
+    fun getRecord(buildMessage: BuildMessage): BuildRecord
 }

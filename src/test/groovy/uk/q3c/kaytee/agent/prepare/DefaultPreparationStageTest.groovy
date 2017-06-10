@@ -55,7 +55,7 @@ class DefaultPreparationStageTest extends Specification {
 
         then:
         stage.name() == "Preparation Stage"
-        1 * globalBus.publish(new PreparationStartedMessage(buildRunner.uid))
+        1 * globalBus.publish(new PreparationStartedMessage(buildRunner.uid, false))
 
         stage.steps.size() == 4
         stage.steps.get(0) == prepareWorkspace

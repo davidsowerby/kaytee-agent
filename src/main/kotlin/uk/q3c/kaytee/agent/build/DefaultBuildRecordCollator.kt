@@ -22,6 +22,7 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
 
 
     override val records: MutableMap<UUID, BuildRecord> = ConcurrentHashMap()
+    val delegateBuildRecords: MutableMap<UUID, BuildRecord> = ConcurrentHashMap()
     private val lock = Any()
     private val log = LoggerFactory.getLogger(this.javaClass.name)
 
@@ -145,22 +146,31 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
 
     /**
      * In theory, the [BuildQueuedMessage] should arrive before the [PreparationStartedMessage] for a given build, but in practice
-     * they are so close together that the order they are received may be reversed by the time they have been transported by
-     * the event bus.
+     * it seemed that the order they are received may be reversed by the time they have been transported by the event bus.
      *
      * For that reason, a record is constructed and added to [records] for either message, if one does not exist already
      *
+     * (Note: This diagnosis is a little in doubt, as there were some questions about the way the block was synchronized
+     * - now resolved - but the fix code has been left in place as it does no harm)
      *
      */
 
-    override fun getRecord(buildMessage: AbstractBuildMessage): BuildRecord {
+    override fun getRecord(buildMessage: BuildMessage): BuildRecord {
         synchronized(lock) {
             var record = records[buildMessage.buildRequestId]
             if (record == null) {
-                if (buildMessage is BuildQueuedMessage || buildMessage is PreparationStartedMessage) {
+                record = delegateBuildRecords[buildMessage.buildRequestId]
+            }
+            if (record == null) {
+                if (buildMessage is InitialBuildMessage) {
                     log.debug("creating build record for {}", buildMessage.buildRequestId)
                     record = BuildRecord(buildMessage.buildRequestId, buildMessage.time)
-                    records.put(buildMessage.buildRequestId, record)
+
+                    if (buildMessage.delegateBuild) {
+                        delegateBuildRecords.put(buildMessage.buildRequestId, record)
+                    } else {
+                        records.put(buildMessage.buildRequestId, record)
+                    }
                 } else {
                     throw InvalidBuildRequestIdException(buildMessage.buildRequestId)
                 }

@@ -9,6 +9,7 @@ import uk.q3c.kaytee.plugin.KayTeeExtension
 class BuildConfigurationRandomiser {
 
     KayTeeExtension config
+    int delegated = 0
 
     BuildConfigurationRandomiser() {
         this.config = new KayTeeExtension()
@@ -27,13 +28,18 @@ class BuildConfigurationRandomiser {
 //            config.auto = random.nextBoolean()
             config.qualityGate = random.nextBoolean()
             config.manual = false
+//            config.delegated = false
+            config.delegated = random.nextInt(20) == 1
+            if (config.delegated) {
+                config.delegate.repoUserName = 'davidsowerby'
+                config.delegate.repoName = 'scratch'
+                config.delegate.commitId = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+                delegated++
+            }
 //            config.manual = random.nextBoolean()
 //            if (!(config.auto || config.manual)) {  // if both false, make it auto
 //                config.auto = true
 //            }
-            boolean external = false
-            String externalRepoUrl = ""
-            String externalRepoTask = "test"
         }
     }
 }

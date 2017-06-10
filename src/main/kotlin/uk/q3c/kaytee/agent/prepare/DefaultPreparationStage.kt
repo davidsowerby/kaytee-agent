@@ -30,7 +30,7 @@ class DefaultPreparationStage @Inject constructor(
 
     override fun execute(build: Build) {
         log.info("Started preparation for build: {}", build.buildRunner.identity())
-        globalBusProvider.get().publish(PreparationStartedMessage(build.buildRunner.uid))
+        globalBusProvider.get().publish(PreparationStartedMessage(build.buildRunner.uid, build.buildRunner.delegated))
 
         for (step in steps) {
             step.execute(build)

@@ -57,6 +57,7 @@ class Soak_ITest extends Specification {
     def preparationsFailed = 0
     ArrayList validationErrors
     GlobalBusMonitor busMonitor
+    static ArrayList<UUID> originalBuildRequests
 
 
     static class TestBuildModule extends AbstractModule {
@@ -118,15 +119,16 @@ class Soak_ITest extends Specification {
             targetEnd = LocalDateTime.now().plusSeconds(generationPeriod)
             Random random = new Random()
             int projectIndex = random.nextInt(4)
-            queue.addRequest(projects.get(projectIndex), sha(i))
+            originalBuildRequests.add(queue.addRequest(projects.get(projectIndex), sha(i)))
             buildsRequested++
+
 
             while (LocalDateTime.now().isBefore(targetEnd)) {
                 int delay = random.nextInt(300) + 200
                 projectIndex = random.nextInt(4)
                 Thread.sleep(delay)
                 i++
-                queue.addRequest(projects.get(projectIndex), sha(i))
+                originalBuildRequests.add(queue.addRequest(projects.get(projectIndex), sha(i)))
                 buildsRequested++
             }
             LocalDateTime finished = LocalDateTime.now()
@@ -169,6 +171,7 @@ class Soak_ITest extends Specification {
         installationInfo.dataDirRoot = temp
         resultCollator = injector.getInstance(BuildRecordCollator)
         busMonitor = injector.getInstance(GlobalBusMonitor)
+        originalBuildRequests = new ArrayList<UUID>()
     }
 
     def cleanup() {
@@ -176,7 +179,7 @@ class Soak_ITest extends Specification {
 
     def "Single runner"() {
         given:
-        int requestGenerationPeriodInSeconds = 10
+        int requestGenerationPeriodInSeconds = 20
         Thread requestGeneratorThread = new Thread(new BuildRequestGenerator(requestGenerationPeriodInSeconds, queue, projects))
         requestGeneratorThread.run()
         Thread.sleep(200) // let queue fill up a bit so we don't finish before we start
@@ -199,6 +202,16 @@ class Soak_ITest extends Specification {
         println "Build requests completed: $buildsCompleted"
         println "Preparations failed: $preparationsFailed"
         println "Build results held by resultsCollator: " + resultCollator.records.size()
+        List<UUID> delegatedBuilds = new ArrayList<>()
+        for (UUID key in busMonitor.getMessages().keySet()) {
+            if (!originalBuildRequests.contains(key)) {
+                delegatedBuilds.add(key)
+            }
+        }
+        println "\n\nDelegated build tasks: \n"
+        for (UUID key in delegatedBuilds) {
+            println key
+        }
         validationErrors.isEmpty()
         buildsRequested == buildsCompleted
         buildsSuccessFul + buildsFailed + preparationsFailed == buildsCompleted
@@ -209,6 +222,10 @@ class Soak_ITest extends Specification {
 
     private boolean allBuildsComplete() {
         validationErrors = new ArrayList<>()
+        buildsSuccessFul = 0
+        buildsFailed = 0
+        preparationsFailed = 0
+        buildsCompleted = 0
 
         for (BuildRecord result : resultCollator.records.values()) {
             BuildRecordValidator resultValidator = new BuildRecordValidator(result)
@@ -227,6 +244,7 @@ class Soak_ITest extends Specification {
             println validationErrors
         }
         return buildsCompleted == buildsRequested
+
     }
 
 

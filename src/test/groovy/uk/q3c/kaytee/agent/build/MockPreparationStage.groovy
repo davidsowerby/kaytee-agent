@@ -43,7 +43,7 @@ class MockPreparationStage implements PreparationStage {
     @Override
     void execute(@NotNull Build build) {
         log.info("Started preparation for build: {}", build.buildRunner.identity())
-        globalBusProvider.get().publish(new PreparationStartedMessage(build.buildRunner.uid))
+        globalBusProvider.get().publish(new PreparationStartedMessage(build.buildRunner.uid, build.buildRunner.delegated))
         File outputDir = installationInfo.gradleOutputDir(build)
         if (!outputDir.exists()) {
             FileUtils.forceMkdir(outputDir)

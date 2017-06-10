@@ -9,29 +9,36 @@ import java.time.OffsetDateTime
 import java.util.*
 
 
-interface BuildMessage : BusMessage {
+interface BuildMessage : TimedMessage {
     val buildRequestId: UUID
 }
 
-interface TimedMessage {
+interface TimedMessage : BusMessage {
     val time: OffsetDateTime
 }
 
 /**
  * Message timestamped 'now' at creation
  */
-abstract class AbstractBuildMessage : BuildMessage, TimedMessage {
+abstract class AbstractBuildMessage : BuildMessage {
     override val time: OffsetDateTime = OffsetDateTime.now()
 }
 
+abstract class AbstractTaskMessage : TaskMessage {
+    override val time: OffsetDateTime = OffsetDateTime.now()
+}
 
-interface TaskMessage {
+interface TaskMessage : BuildMessage {
     val taskKey: TaskKey
+}
+
+interface InitialBuildMessage : BuildMessage {
+    val delegateBuild: Boolean
 }
 
 data class BuildRequestMessage(val project: Project, val commitId: String) : BusMessage
 
-data class BuildQueuedMessage(override val buildRequestId: UUID) : AbstractBuildMessage() {
+data class BuildQueuedMessage(override val buildRequestId: UUID, override val delegateBuild: Boolean) : AbstractBuildMessage(), InitialBuildMessage {
     fun path(): String {
         val buildRecord = BuildRecord(buildRequestId, time)
         return buildRecord.path
@@ -42,15 +49,15 @@ data class BuildStartedMessage(override val buildRequestId: UUID, val buildNumbe
 data class BuildSuccessfulMessage(override val buildRequestId: UUID) : AbstractBuildMessage()
 data class BuildFailedMessage(override val buildRequestId: UUID, val e: Exception) : AbstractBuildMessage()
 
-data class PreparationStartedMessage(override val buildRequestId: UUID) : AbstractBuildMessage()
+data class PreparationStartedMessage(override val buildRequestId: UUID, override val delegateBuild: Boolean) : AbstractBuildMessage(), InitialBuildMessage
 data class PreparationSuccessfulMessage(override val buildRequestId: UUID) : AbstractBuildMessage()
 
 data class PreparationFailedMessage(override val buildRequestId: UUID, val e: Exception) : AbstractBuildMessage()
 
-data class TaskRequestedMessage(override val buildRequestId: UUID, override val taskKey: TaskKey) : AbstractBuildMessage(), TaskMessage
-data class TaskStartedMessage(override val buildRequestId: UUID, override val taskKey: TaskKey) : AbstractBuildMessage(), TaskMessage
-data class TaskSuccessfulMessage(override val buildRequestId: UUID, override val taskKey: TaskKey, val stdOut: String) : AbstractBuildMessage(), TaskMessage
-data class TaskFailedMessage(override val buildRequestId: UUID, override val taskKey: TaskKey, val result: TaskResultStateKey, val stdErr: String, val stdOut: String) : AbstractBuildMessage(), TaskMessage
+data class TaskRequestedMessage(override val buildRequestId: UUID, override val taskKey: TaskKey) : AbstractTaskMessage(), TaskMessage
+data class TaskStartedMessage(override val buildRequestId: UUID, override val taskKey: TaskKey) : AbstractTaskMessage(), TaskMessage
+data class TaskSuccessfulMessage(override val buildRequestId: UUID, override val taskKey: TaskKey, val stdOut: String) : AbstractTaskMessage(), TaskMessage
+data class TaskFailedMessage(override val buildRequestId: UUID, override val taskKey: TaskKey, val result: TaskResultStateKey, val stdErr: String, val stdOut: String) : AbstractTaskMessage(), TaskMessage
 
 
 
