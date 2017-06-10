@@ -114,33 +114,46 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
 
     @Handler
     fun busMessage(busMessage: TaskRequestedMessage) {
-        log.debug("TaskRequestedMessage received, build id: {}, task: {}", busMessage.buildRequestId, busMessage.taskKey)
-        val record = getRecord(busMessage)
-        record.addTask(busMessage.taskKey, busMessage.time)
-        hooks.publish(record)
+        updateTask(busMessage, TaskResultStateKey.Task_Requested)
     }
 
     @Handler
     fun busMessage(busMessage: TaskStartedMessage) {
-        log.debug("TaskStartedMessage received, build id: {}, task: {}", busMessage.buildRequestId, busMessage.taskKey)
-        val record = getRecord(busMessage)
-        record.updateTaskStart(busMessage.taskKey, busMessage.time)
-        hooks.publish(record)
+        updateTask(busMessage, TaskResultStateKey.Task_Started)
     }
 
     @Handler
     fun busMessage(busMessage: TaskSuccessfulMessage) {
-        log.debug("TaskSuccessfulMessage received, build id: {}, task: {}", busMessage.buildRequestId, busMessage.taskKey)
-        val record = getRecord(busMessage)
-        record.updateTaskOutcome(busMessage.taskKey, busMessage.time, TaskResultStateKey.Task_Successful, busMessage.stdOut)
-        hooks.publish(record)
+        updateTask(busMessage, TaskResultStateKey.Task_Successful)
     }
 
     @Handler
     fun busMessage(busMessage: TaskFailedMessage) {
-        log.debug("TaskFailedMessage received, build id: {}, task: {}", busMessage.buildRequestId, busMessage.taskKey)
-        val record = getRecord(busMessage)
-        record.updateTaskOutcome(busMessage.taskKey, busMessage.time, busMessage.result, busMessage.stdOut, busMessage.stdErr)
+        updateTask(busMessage, busMessage.result)
+    }
+
+    fun updateTask(buildMessage: TaskMessage, outcome: TaskResultStateKey) {
+        val messageType = buildMessage.javaClass.simpleName
+        val buildRequestId = buildMessage.buildRequestId
+        val taskKey = buildMessage.taskKey
+        var stdOut = ""
+        var stdErr = ""
+
+        if (buildMessage is TaskCompletedMessage) {
+            stdOut = buildMessage.stdOut
+            stdErr = buildMessage.stdErr
+        }
+
+        log.debug("{$messageType} received, build id: {}, task: {}", buildRequestId, taskKey)
+        val record = getRecord(buildMessage)
+
+        when (buildMessage) {
+            is TaskRequestedMessage -> record.updateTaskRequested(taskKey, buildMessage.time)
+            is TaskStartedMessage -> record.updateTaskStart(taskKey, buildMessage.time)
+            is TaskCompletedMessage -> record.updateTaskOutcome(taskKey, buildMessage.time, outcome, stdOut, stdErr)
+        }
+
+        log.debug("after task update, build id: {} state is: ${record.summary()}", buildRequestId)
         hooks.publish(record)
     }
 
@@ -156,7 +169,9 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
      */
 
     override fun getRecord(buildMessage: BuildMessage): BuildRecord {
+
         synchronized(lock) {
+            log.debug("retrieving record for {}", buildMessage.buildRequestId)
             var record = records[buildMessage.buildRequestId]
             if (record == null) {
                 record = delegateBuildRecords[buildMessage.buildRequestId]
@@ -178,6 +193,7 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
             return record
         }
     }
+
 
 }
 

@@ -43,15 +43,7 @@ class BuildRecord(uid: UUID, var requestedAt: OffsetDateTime) : HalResourceWithI
     init {
         for (taskKey in TaskKey.values()) {
             // empty results show tasks as 'not run' - better than null
-            taskResults.put(taskKey, TaskResult(taskKey, zeroDate))
-        }
-    }
-
-
-    fun addTask(task: TaskKey, time: OffsetDateTime) {
-        synchronized(taskLock) {
-            val taskResult = TaskResult(task, time)
-            taskResults.put(task, taskResult)
+            taskResults.put(taskKey, TaskResult(taskKey))
         }
     }
 
@@ -63,7 +55,7 @@ class BuildRecord(uid: UUID, var requestedAt: OffsetDateTime) : HalResourceWithI
         synchronized(taskLock) {
             val taskResult = taskResults[task]
             if (taskResult == null) {
-                throw InvalidTaskException(task)
+                throw InvalidTaskException(task) // theoretically impossible as all task results created in init block
             } else {
                 return taskResult
             }
@@ -84,6 +76,14 @@ class BuildRecord(uid: UUID, var requestedAt: OffsetDateTime) : HalResourceWithI
     fun updateTaskStart(taskKey: TaskKey, time: OffsetDateTime) {
         synchronized(taskLock) {
             taskResult(taskKey).startedAt = time
+            taskResult(taskKey).outcome = Task_Started
+        }
+    }
+
+    fun updateTaskRequested(taskKey: TaskKey, time: OffsetDateTime) {
+        synchronized(taskLock) {
+            taskResult(taskKey).requestedAt = time
+            taskResult(taskKey).outcome = Task_Requested
         }
     }
 
@@ -127,7 +127,8 @@ class BuildRecord(uid: UUID, var requestedAt: OffsetDateTime) : HalResourceWithI
 class InvalidTaskException(task: TaskKey) : RuntimeException(task.name)
 
 
-data class TaskResult(val task: TaskKey, val requestedAt: OffsetDateTime) {
+data class TaskResult(val task: TaskKey) {
+    var requestedAt: OffsetDateTime = zeroDate
     var completedAt: OffsetDateTime = zeroDate
     var outcome: TaskResultStateKey = Task_Not_Run
     var startedAt: OffsetDateTime = zeroDate
@@ -153,7 +154,7 @@ data class TaskResult(val task: TaskKey, val requestedAt: OffsetDateTime) {
     }
 
     fun passed(): Boolean {
-        return !failed()
+        return outcome == Task_Successful
     }
 }
 

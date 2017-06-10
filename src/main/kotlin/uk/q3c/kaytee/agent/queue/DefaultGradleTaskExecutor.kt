@@ -27,7 +27,7 @@ class DefaultGradleTaskExecutor @Inject constructor() : GradleTaskExecutor {
         var taskName = ""
         if (taskKey.isTestKey) {
             if (includeQualityGate) {
-                taskKey.qualityGateGradleTask()
+                taskName = taskKey.qualityGateGradleTask()
             } else {
                 taskName = taskKey.gradleTask()
             }

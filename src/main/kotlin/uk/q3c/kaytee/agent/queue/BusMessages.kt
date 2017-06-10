@@ -32,6 +32,12 @@ interface TaskMessage : BuildMessage {
     val taskKey: TaskKey
 }
 
+interface TaskCompletedMessage : TaskMessage {
+    val result: TaskResultStateKey
+    val stdErr: String
+    val stdOut: String
+}
+
 interface InitialBuildMessage : BuildMessage {
     val delegateBuild: Boolean
 }
@@ -56,8 +62,8 @@ data class PreparationFailedMessage(override val buildRequestId: UUID, val e: Ex
 
 data class TaskRequestedMessage(override val buildRequestId: UUID, override val taskKey: TaskKey) : AbstractTaskMessage(), TaskMessage
 data class TaskStartedMessage(override val buildRequestId: UUID, override val taskKey: TaskKey) : AbstractTaskMessage(), TaskMessage
-data class TaskSuccessfulMessage(override val buildRequestId: UUID, override val taskKey: TaskKey, val stdOut: String) : AbstractTaskMessage(), TaskMessage
-data class TaskFailedMessage(override val buildRequestId: UUID, override val taskKey: TaskKey, val result: TaskResultStateKey, val stdErr: String, val stdOut: String) : AbstractTaskMessage(), TaskMessage
+data class TaskSuccessfulMessage(override val buildRequestId: UUID, override val taskKey: TaskKey, override val stdOut: String, override val result: TaskResultStateKey = TaskResultStateKey.Task_Successful, override val stdErr: String = "") : AbstractTaskMessage(), TaskCompletedMessage
+data class TaskFailedMessage(override val buildRequestId: UUID, override val taskKey: TaskKey, override val result: TaskResultStateKey, override val stdOut: String, override val stdErr: String) : AbstractTaskMessage(), TaskCompletedMessage
 
 
 
