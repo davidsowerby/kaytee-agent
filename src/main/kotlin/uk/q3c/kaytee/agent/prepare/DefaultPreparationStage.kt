@@ -36,7 +36,7 @@ class DefaultPreparationStage @Inject constructor(
             step.execute(build)
         }
         // build has now been configured and at least one task placed in the queue
-        globalBusProvider.get().publish(PreparationSuccessfulMessage(build.buildRunner.uid))
+        globalBusProvider.get().publish(PreparationSuccessfulMessage(build.buildRunner.uid, build.buildRunner.delegated))
         log.info("Completed preparation for build:  {}", build.buildRunner.identity())
     }
 }

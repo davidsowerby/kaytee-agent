@@ -15,6 +15,7 @@ import uk.q3c.kaytee.agent.app.ConstantsKt
 import uk.q3c.kaytee.agent.app.SubscriptionRequest
 import uk.q3c.kaytee.agent.build.BuildRecord
 import uk.q3c.kaytee.agent.build.TaskResult
+import uk.q3c.kaytee.agent.i18n.TaskStateKey
 import uk.q3c.rest.hal.HalMapper
 
 import java.time.LocalDateTime
@@ -23,7 +24,6 @@ import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Not_Applicable
 import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Task_Failure
 import static uk.q3c.kaytee.agent.i18n.BuildStateKey.Failed
 import static uk.q3c.kaytee.agent.i18n.BuildStateKey.Successful
-import static uk.q3c.kaytee.agent.i18n.TaskResultStateKey.*
 import static uk.q3c.kaytee.plugin.TaskKey.*
 
 /**
@@ -139,19 +139,19 @@ class FunctionalTest1 extends FunctionalTestBase {
         TaskResult productionTestResult = finalRecord.taskResult(Production_Test)
 
 
-        finalRecord.failureDescription == failDesc
+        finalRecord.failureDescription.contains(failDesc)
 
         finalRecord.state == finalBuildState
         finalRecord.causeOfFailure == causeOfFailure
 
-        unitTestResult.outcome == unitTestExpected
-        unitTestResult.completedAt.isBefore(finalRecord.buildCompletedAt) || unitTestResult.completedAt.isEqual(finalRecord.buildCompletedAt)
+        unitTestResult.state == unitTestExpected
+        unitTestResult.completedAt.isBefore(finalRecord.completedAt) || unitTestResult.completedAt.isEqual(finalRecord.completedAt)
         unitTestResult.stdOut.contains(unitStdOut)
         unitTestResult.stdErr.contains(unitStdErr)
 
 
-        integrationTestResult.outcome == integrationTestExpected
-        integrationTestResult.completedAt.isBefore(finalRecord.buildCompletedAt) || integrationTestResult.completedAt.isEqual(finalRecord.buildCompletedAt)
+        integrationTestResult.state == integrationTestExpected
+        integrationTestResult.completedAt.isBefore(finalRecord.completedAt) || integrationTestResult.completedAt.isEqual(finalRecord.completedAt)
         integrationTestResult.stdOut.contains(iTestStdOut)
         integrationTestResult.stdErr.contains(iTestStdErr)
 
@@ -167,43 +167,9 @@ class FunctionalTest1 extends FunctionalTestBase {
 
 
         where:
-        commitId                                   | testDesc                                         | finalBuildState | causeOfFailure | unitTestExpected | integrationTestExpected | unitStdOut         | unitStdErr    | iTestStdOut        | iTestStdErr | expBuildInfo | expChangeLog | expPublishLocal | expFunc | expAccept | expProd | expBintray | expMerge | failDesc
-        "e9eca1cb86d64b355027952c107fe25e2e2e59f0" | "full cycle, except bintray and merge, all pass" | Successful      | Not_Applicable | Task_Successful  | Task_Successful         | "BUILD SUCCESSFUL" | ""            | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | ""
-        "e85023ca7c5e411af90b91cf46dbf60e37f89a07" | "unit test failure"                              | Failed          | Task_Failure   | Task_Failed      | Task_Not_Run            | "FAILURE"          | "test FAILED" | ""                 | ""          | false        | false        | false           | false   | false     | false   | true       | true     | "Task_Failed"
-        "e85023ca7c5e411af90b91cf46dbf60e37f89a07" | "unit test failure"                              | Failed          | Task_Failure   | Task_Failed      | Task_Not_Run            | "FAILURE"          | "test FAILED" | ""                 | ""          | false        | false        | false           | false   | false     | false   | true       | true     | "Task_Failed"
-        "e85023ca7c5e411af90b91cf46dbf60e37f89a07" | "unit test failure"                              | Failed          | Task_Failure   | Task_Failed      | Task_Not_Run            | "FAILURE"          | "test FAILED" | ""                 | ""          | false        | false        | false           | false   | false     | false   | true       | true     | "Task_Failed"
-        "e9eca1cb86d64b355027952c107fe25e2e2e59f0" | "full cycle, except bintray and merge, all pass" | Successful      | Not_Applicable | Task_Successful  | Task_Successful         | "BUILD SUCCESSFUL" | ""            | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | ""
-        "e9eca1cb86d64b355027952c107fe25e2e2e59f0" | "full cycle, except bintray and merge, all pass" | Successful      | Not_Applicable | Task_Successful  | Task_Successful         | "BUILD SUCCESSFUL" | ""            | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | ""
-        "e9eca1cb86d64b355027952c107fe25e2e2e59f0" | "full cycle, except bintray and merge, all pass" | Successful      | Not_Applicable | Task_Successful  | Task_Successful         | "BUILD SUCCESSFUL" | ""            | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | ""
-        "e9eca1cb86d64b355027952c107fe25e2e2e59f0" | "full cycle, except bintray and merge, all pass" | Successful      | Not_Applicable | Task_Successful  | Task_Successful         | "BUILD SUCCESSFUL" | ""            | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | ""
-        "e9eca1cb86d64b355027952c107fe25e2e2e59f0" | "full cycle, except bintray and merge, all pass" | Successful      | Not_Applicable | Task_Successful  | Task_Successful         | "BUILD SUCCESSFUL" | ""            | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | ""
-        "e9eca1cb86d64b355027952c107fe25e2e2e59f0" | "full cycle, except bintray and merge, all pass" | Successful      | Not_Applicable | Task_Successful  | Task_Successful         | "BUILD SUCCESSFUL" | ""            | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | ""
-        "e9eca1cb86d64b355027952c107fe25e2e2e59f0" | "full cycle, except bintray and merge, all pass" | Successful      | Not_Applicable | Task_Successful  | Task_Successful         | "BUILD SUCCESSFUL" | ""            | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | ""
-        "e9eca1cb86d64b355027952c107fe25e2e2e59f0" | "full cycle, except bintray and merge, all pass" | Successful      | Not_Applicable | Task_Successful  | Task_Successful         | "BUILD SUCCESSFUL" | ""            | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | ""
-        "e9eca1cb86d64b355027952c107fe25e2e2e59f0" | "full cycle, except bintray and merge, all pass" | Successful      | Not_Applicable | Task_Successful  | Task_Successful         | "BUILD SUCCESSFUL" | ""            | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | ""
-        "e9eca1cb86d64b355027952c107fe25e2e2e59f0" | "full cycle, except bintray and merge, all pass" | Successful      | Not_Applicable | Task_Successful  | Task_Successful         | "BUILD SUCCESSFUL" | ""            | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | ""
-        "e85023ca7c5e411af90b91cf46dbf60e37f89a07" | "unit test failure"                              | Failed          | Task_Failure   | Task_Failed      | Task_Not_Run            | "FAILURE"          | "test FAILED" | ""                 | ""          | false        | false        | false           | false   | false     | false   | true       | true     | "Task_Failed"
-        "e85023ca7c5e411af90b91cf46dbf60e37f89a07" | "unit test failure"                              | Failed          | Task_Failure   | Task_Failed      | Task_Not_Run            | "FAILURE"          | "test FAILED" | ""                 | ""          | false        | false        | false           | false   | false     | false   | true       | true     | "Task_Failed"
-        "e85023ca7c5e411af90b91cf46dbf60e37f89a07" | "unit test failure"                              | Failed          | Task_Failure   | Task_Failed      | Task_Not_Run            | "FAILURE"          | "test FAILED" | ""                 | ""          | false        | false        | false           | false   | false     | false   | true       | true     | "Task_Failed"
-        "e9eca1cb86d64b355027952c107fe25e2e2e59f0" | "full cycle, except bintray and merge, all pass" | Successful      | Not_Applicable | Task_Successful  | Task_Successful         | "BUILD SUCCESSFUL" | ""            | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | ""
-        "e85023ca7c5e411af90b91cf46dbf60e37f89a07" | "unit test failure"                              | Failed          | Task_Failure   | Task_Failed      | Task_Not_Run            | "FAILURE"          | "test FAILED" | ""                 | ""          | false        | false        | false           | false   | false     | false   | true       | true     | "Task_Failed"
-        "e9eca1cb86d64b355027952c107fe25e2e2e59f0" | "full cycle, except bintray and merge, all pass" | Successful      | Not_Applicable | Task_Successful  | Task_Successful         | "BUILD SUCCESSFUL" | ""            | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | ""
-        "e9eca1cb86d64b355027952c107fe25e2e2e59f0" | "full cycle, except bintray and merge, all pass" | Successful      | Not_Applicable | Task_Successful  | Task_Successful         | "BUILD SUCCESSFUL" | ""            | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | ""
-        "e85023ca7c5e411af90b91cf46dbf60e37f89a07" | "unit test failure"                              | Failed          | Task_Failure   | Task_Failed      | Task_Not_Run            | "FAILURE"          | "test FAILED" | ""                 | ""          | false        | false        | false           | false   | false     | false   | true       | true     | "Task_Failed"
-        "e9eca1cb86d64b355027952c107fe25e2e2e59f0" | "full cycle, except bintray and merge, all pass" | Successful      | Not_Applicable | Task_Successful  | Task_Successful         | "BUILD SUCCESSFUL" | ""            | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | ""
-        "e9eca1cb86d64b355027952c107fe25e2e2e59f0" | "full cycle, except bintray and merge, all pass" | Successful      | Not_Applicable | Task_Successful  | Task_Successful         | "BUILD SUCCESSFUL" | ""            | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | ""
-        "e85023ca7c5e411af90b91cf46dbf60e37f89a07" | "unit test failure"                              | Failed          | Task_Failure   | Task_Failed      | Task_Not_Run            | "FAILURE"          | "test FAILED" | ""                 | ""          | false        | false        | false           | false   | false     | false   | true       | true     | "Task_Failed"
-        "e85023ca7c5e411af90b91cf46dbf60e37f89a07" | "unit test failure"                              | Failed          | Task_Failure   | Task_Failed      | Task_Not_Run            | "FAILURE"          | "test FAILED" | ""                 | ""          | false        | false        | false           | false   | false     | false   | true       | true     | "Task_Failed"
-        "e9eca1cb86d64b355027952c107fe25e2e2e59f0" | "full cycle, except bintray and merge, all pass" | Successful      | Not_Applicable | Task_Successful  | Task_Successful         | "BUILD SUCCESSFUL" | ""            | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | ""
-        "e9eca1cb86d64b355027952c107fe25e2e2e59f0" | "full cycle, except bintray and merge, all pass" | Successful      | Not_Applicable | Task_Successful  | Task_Successful         | "BUILD SUCCESSFUL" | ""            | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | ""
-        "e85023ca7c5e411af90b91cf46dbf60e37f89a07" | "unit test failure"                              | Failed          | Task_Failure   | Task_Failed      | Task_Not_Run            | "FAILURE"          | "test FAILED" | ""                 | ""          | false        | false        | false           | false   | false     | false   | true       | true     | "Task_Failed"
-        "e85023ca7c5e411af90b91cf46dbf60e37f89a07" | "unit test failure"                              | Failed          | Task_Failure   | Task_Failed      | Task_Not_Run            | "FAILURE"          | "test FAILED" | ""                 | ""          | false        | false        | false           | false   | false     | false   | true       | true     | "Task_Failed"
-
-//        "ddedcf08ee724fb059da8365143eeb23c3b58b44" | "unit test pass, QG fail"        | 20      | 8                | Failed          | Task_Failure   | Quality_Gate_Failed | Task_Not_Run            | "Code Coverage Failed" | "Code coverage failed" | ""                 | ""
-//        "7dce1f433e9d8bf42fbb5bba2f88ea540c239628" | "integration test passes"        | 20      | 11               | Successful      | Not_Applicable | Task_Successful     | Task_Successful         | "BUILD SUCCESSFUL"     | ""                     | "BUILD SUCCESSFUL" | ""
-//        "03f90f0cfb4476c62bfc67b9798f4612e74703c7" | "integration test fails"         | 20      | 11               | Failed          | Task_Failure   | Task_Successful     | Task_Failed             | "BUILD SUCCESSFUL"     | ""                     | "BUILD FAILED"     | "failing tests"
-//        "4a60a14dae0265ab53370c12972798902aba42bc" | "integration test pass, QG fail" | 20      | 11               | Failed          | Task_Failure   | Task_Successful     | Quality_Gate_Failed     | "BUILD SUCCESSFUL"     | ""                     | "BUILD FAILED"     | "Code coverage failed"
-//        "4a60a14dae0265ab53370c12972798902aba42bc" | "integration test pass, QG pass" | 20      | 11               | Successful      | Not_Applicable | Task_Successful     | Task_Successful         | "BUILD SUCCESSFUL"     | ""                     | "BUILD SUCCESSFUL" | ""
+        commitId                                   | testDesc                                         | finalBuildState | causeOfFailure | unitTestExpected        | integrationTestExpected | unitStdOut         | unitStdErr    | iTestStdOut        | iTestStdErr | expBuildInfo | expChangeLog | expPublishLocal | expFunc | expAccept | expProd | expBintray | expMerge | failDesc
+        "e9eca1cb86d64b355027952c107fe25e2e2e59f0" | "full cycle, except bintray and merge, all pass" | Successful      | Not_Applicable | TaskStateKey.Successful | TaskStateKey.Successful | "BUILD SUCCESSFUL" | ""            | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | ""
+        "e85023ca7c5e411af90b91cf46dbf60e37f89a07" | "unit test failure"                              | Failed          | Task_Failure   | TaskStateKey.Failed     | TaskStateKey.Not_Run    | "FAILURE"          | "test FAILED" | ""                 | ""          | false        | false        | false           | false   | false     | false   | true       | true     | "There were failing tests"
     }
 
 

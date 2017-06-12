@@ -55,13 +55,13 @@ class DefaultRequestQueue @Inject constructor(
         val buildRunner = buildRunnerFactory.create(project, commitId, uid, delegated, delegatedTask)
         executor.submit(buildRunner)
         globalBusProvider.get().publish(BuildQueuedMessage(buildRunner.uid, delegated))
-        log.info("Build request for build ${uid} (Project '{}').  Current (transient) queue size is: {}", buildRunner.project.fullProjectName, this.size())
+        log.info("Sent request to queue build ${uid} (Project '{}').  Current (transient) queue size is: {}", buildRunner.project.fullProjectName, this.size())
         return uid
     }
 
 
     override fun addRequest(taskRunner: TaskRunner) {
-        globalBusProvider.get().publish(TaskRequestedMessage(taskRunner.build.buildRunner.uid, taskRunner.taskKey))
+        globalBusProvider.get().publish(TaskRequestedMessage(taskRunner.build.buildRunner.uid, taskRunner.taskKey, taskRunner.build.buildRunner.delegated))
         executor.submit(taskRunner)
     }
 

@@ -12,7 +12,7 @@ import uk.q3c.kaytee.agent.eventbus.BusMessage
 import uk.q3c.kaytee.agent.eventbus.GlobalBus
 import uk.q3c.kaytee.agent.eventbus.GlobalBusProvider
 import uk.q3c.kaytee.agent.eventbus.SubscribeTo
-import uk.q3c.kaytee.agent.i18n.TaskResultStateKey
+import uk.q3c.kaytee.agent.i18n.TaskStateKey
 import uk.q3c.kaytee.agent.project.Projects
 import uk.q3c.kaytee.plugin.GroupConfig
 import uk.q3c.kaytee.plugin.TaskKey
@@ -53,7 +53,7 @@ class DefaultDelegatedProjectTaskRunner @Inject constructor(
         log.info("Starting delegated task {} for build {}", taskKey.name, build.buildRunner.uid)
         val globalBus = globalBusProvider.get()
         try {
-            globalBus.publish(TaskStartedMessage(this.build.buildRunner.uid, taskKey))
+            globalBus.publish(TaskStartedMessage(this.build.buildRunner.uid, taskKey, build.buildRunner.delegated))
             val project = projects.getProject(groupConfig.delegate.repoUserName, groupConfig.delegate.repoName)
             delegateBuildId = requestQueue.addRequest(project = project, commitId = GitSHA(groupConfig.delegate.commitId), delegated = true, delegatedTask = groupConfig.delegate.taskToRun)
         } catch(e: Exception) {
@@ -61,7 +61,7 @@ class DefaultDelegatedProjectTaskRunner @Inject constructor(
             if (e.message != null) {
                 msg = e.message as String
             }
-            val outcome = TaskFailedMessage(build.buildRunner.uid, taskKey, TaskResultStateKey.Task_Failed, msg, "Task for execution by delegate project")
+            val outcome = TaskFailedMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, TaskStateKey.Failed, msg, "Task for execution by delegate project")
             globalBus.publish(outcome)
         }
     }
@@ -70,7 +70,7 @@ class DefaultDelegatedProjectTaskRunner @Inject constructor(
     fun delegateResult(buildMessage: BuildSuccessfulMessage) {
         log.debug("Delegate successful message received by {}", this)
         if (buildMessage.buildRequestId == delegateBuildId) {
-            val taskMessage = TaskSuccessfulMessage(build.buildRunner.uid, taskKey, "Delegate build ${buildMessage.buildRequestId} completed successfully")
+            val taskMessage = TaskSuccessfulMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, "Delegate build ${buildMessage.buildRequestId} completed successfully")
             publishAndUnsubscribe(taskMessage)
         }
     }
@@ -85,7 +85,7 @@ class DefaultDelegatedProjectTaskRunner @Inject constructor(
     fun delegateResult(buildMessage: BuildFailedMessage) {
         log.debug("Delegate failed message received by {}", this)
         if (buildMessage.buildRequestId == delegateBuildId) {
-            val taskMessage = TaskFailedMessage(build.buildRunner.uid, taskKey, TaskResultStateKey.Task_Failed, "${buildMessage.e.message}", "Delegate build ${buildMessage.buildRequestId} failed")
+            val taskMessage = TaskFailedMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, TaskStateKey.Failed, "${buildMessage.e.message}", "Delegate build ${buildMessage.buildRequestId} failed")
             publishAndUnsubscribe(taskMessage)
         }
     }

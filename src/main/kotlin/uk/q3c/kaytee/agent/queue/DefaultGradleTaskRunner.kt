@@ -5,7 +5,7 @@ import com.google.inject.assistedinject.Assisted
 import org.slf4j.LoggerFactory
 import uk.q3c.kaytee.agent.build.Build
 import uk.q3c.kaytee.agent.eventbus.GlobalBusProvider
-import uk.q3c.kaytee.agent.i18n.TaskResultStateKey
+import uk.q3c.kaytee.agent.i18n.TaskStateKey
 import uk.q3c.kaytee.agent.system.InstallationInfo
 import uk.q3c.kaytee.plugin.TaskKey
 
@@ -32,7 +32,7 @@ class DefaultGradleTaskRunner @Inject constructor(
     override fun run() {
         val globalBus = globalBusProvider.get()
         try {
-            globalBus.publish(TaskStartedMessage(this.build.buildRunner.uid, taskKey))
+            globalBus.publish(TaskStartedMessage(this.build.buildRunner.uid, taskKey, build.buildRunner.delegated))
             log.info("Executing task request {}", identity())
             if (build.buildRunner.delegated) {
                 gradleTaskExecutor.execute(build, build.buildRunner.delegateTask)
@@ -41,7 +41,7 @@ class DefaultGradleTaskRunner @Inject constructor(
             }
             log.info("Task successful for {}", identity())
             val stdOutFile = installationInfo.gradleStdOutFile(build)
-            val outcome = TaskSuccessfulMessage(build.buildRunner.uid, taskKey, stdOutFile.readText()) // any error would cause exception
+            val outcome = TaskSuccessfulMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, stdOutFile.readText()) // any error would cause exception
             globalBus.publish(outcome)
         } catch (e: Exception) {
             val stdErrFile = installationInfo.gradleStdErrFile(build)
@@ -49,11 +49,11 @@ class DefaultGradleTaskRunner @Inject constructor(
             val errText = stdErrFile.readText()
             log.info("Task failed for {}", identity())
             val resultKey = if (errText.contains("Code coverage failed")) {
-                TaskResultStateKey.Quality_Gate_Failed
+                TaskStateKey.Quality_Gate_Failed
             } else {
-                TaskResultStateKey.Task_Failed
+                TaskStateKey.Failed
             }
-            val outcome = TaskFailedMessage(build.buildRunner.uid, taskKey, resultKey, errText, stdOutFile.readText())
+            val outcome = TaskFailedMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, resultKey, errText, stdOutFile.readText())
             globalBus.publish(outcome)
         }
         // we cannot send the end message here - some tasks are executed asynchronously

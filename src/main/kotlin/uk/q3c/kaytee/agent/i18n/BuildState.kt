@@ -16,15 +16,14 @@ enum class BuildStateKey : I18NKey {
     Requested,
     Preparation_Started,
     Preparation_Successful,
-    Build_Started,
+    Started,
 
     Cancelled,
     Failed,
     Successful,
-    Preparation_Failed,
 }
 
-val finalStates: EnumSet<BuildStateKey> = EnumSet.of(Cancelled, Failed, Successful, Preparation_Failed)
+val finalStates: EnumSet<BuildStateKey> = EnumSet.of(Cancelled, Failed, Successful)
 
 enum class BuildFailCauseKey : I18NKey {
     Unsupported_Build_Argument,
@@ -46,13 +45,13 @@ enum class BuildFailCauseKey : I18NKey {
     Task_Failure
 }
 
-enum class TaskResultStateKey : I18NKey {
-    Task_Cancelled,
-    Task_Failed,
-    Task_Not_Run,
-    Task_Successful,
-    Task_Requested,
+enum class TaskStateKey : I18NKey {
+    Cancelled,
+    Failed,
+    Not_Run,
+    Successful,
+    Requested,
     Quality_Gate_Failed,
 
-    Task_Started
+    Started
 }

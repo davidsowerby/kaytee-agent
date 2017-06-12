@@ -69,7 +69,7 @@ class MockPreparationStage implements PreparationStage {
             stdOut.createNewFile()
         }
         build.stdoutOutputFile = stdOut
-        globalBusProvider.get().publish(new PreparationSuccessfulMessage(build.buildRunner.uid))
+        globalBusProvider.get().publish(new PreparationSuccessfulMessage(build.buildRunner.uid, build.buildRunner.delegated))
         log.info("Completed preparation for build:  {}", build.buildRunner.identity())
     }
 

@@ -5,16 +5,28 @@ import net.engio.mbassy.listener.Handler
 import net.engio.mbassy.listener.Listener
 import org.slf4j.LoggerFactory
 import uk.q3c.kaytee.agent.app.Hooks
-import uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Build_Configuration
-import uk.q3c.kaytee.agent.i18n.BuildStateKey.*
-import uk.q3c.kaytee.agent.i18n.TaskResultStateKey
+import uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Preparation_Failed
+import uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Task_Failure
+import uk.q3c.kaytee.agent.i18n.BuildStateKey
+import uk.q3c.kaytee.agent.i18n.BuildStateKey.Preparation_Started
+import uk.q3c.kaytee.agent.i18n.BuildStateKey.Preparation_Successful
+import uk.q3c.kaytee.agent.i18n.TaskStateKey
+import uk.q3c.kaytee.agent.i18n.TaskStateKey.Not_Run
+import uk.q3c.kaytee.agent.i18n.TaskStateKey.Quality_Gate_Failed
 import uk.q3c.kaytee.agent.queue.*
 import uk.q3c.krail.core.eventbus.GlobalBus
 import uk.q3c.krail.core.eventbus.SubscribeTo
+import java.time.OffsetDateTime
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 /**
+ * Becuasue all the messages handled here are despatched asynchronously, most likely from different threads, there is no
+ * guarantee that they will arrive in the order that might be expected.  This is especially true at the beginning of the cycle,
+ * where [BuildQueuedMessage], [PreparationStartedMessage] and [BuildStartedMessage] are all sent very soon after each other.
+ *
+ * For that reason, records are created (if not already existing) by [getRecord] when any message is passed as a parameter
+ *
  * Created by David Sowerby on 25 Mar 2017
  */
 @Listener @SubscribeTo(GlobalBus::class)
@@ -28,174 +40,172 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
 
     @Handler
     fun busMessage(busMessage: BuildQueuedMessage) {
-        log.debug("BuildRequestedMessage received, build id: {}", busMessage.buildRequestId)
-        val record = getRecord(busMessage)
-        record.requestedAt = busMessage.time
-
-        // We don't want to change state if PreparationStarted has already been received
-        if (record.state == Not_Started) {
-            record.state = Requested
-        }
-        hooks.publish(record)
+        updateBuildState(BuildStateKey.Requested, busMessage)
     }
-
 
     @Handler
     fun busMessage(busMessage: BuildStartedMessage) {
-        log.debug("BuildStartedMessage received, build id: {}", busMessage.buildRequestId)
-        val record = getRecord(busMessage)
-        record.buildStartedAt = busMessage.time
-        record.state = Build_Started
-        hooks.publish(record)
+        updateBuildState(BuildStateKey.Started, busMessage)
     }
 
     @Handler
     fun busMessage(busMessage: BuildSuccessfulMessage) {
-        log.debug("BuildSuccessfulMessage received, build id: {}", busMessage.buildRequestId)
-        val record = getRecord(busMessage)
-        record.buildCompletedAt = busMessage.time
-        record.state = Successful
-        hooks.publish(record)
+        updateBuildState(BuildStateKey.Successful, busMessage)
     }
 
 
     @Handler
     fun busMessage(busMessage: BuildFailedMessage) {
-        log.debug("BuildFailedMessage received, build id: {}", busMessage.buildRequestId)
-        val record = getRecord(busMessage)
-        record.state = Failed
+        val record = updateBuildState(BuildStateKey.Failed, busMessage)
         record.causeOfFailure = BuildExceptionLookup().lookupKeyFromException(busMessage.e)
-        if (record.causeOfFailure != Build_Configuration) {
-            record.buildCompletedAt = busMessage.time
-        }
         record.failureDescription =
                 if (busMessage.e.message != null) {
                     busMessage.e.message as String
                 } else {
                     busMessage.e.javaClass.simpleName
                 }
-        hooks.publish(record)
     }
 
 
     @Handler
     fun busMessage(busMessage: PreparationStartedMessage) {
-        log.debug("PreparationStartedMessage received, build id: {}", busMessage.buildRequestId)
-        val record = getRecord(busMessage)
-        record.preparationStartedAt = busMessage.time
-        record.state = Preparation_Started
-        hooks.publish(record)
+        updateBuildState(Preparation_Started, busMessage)
     }
 
     @Handler
     fun busMessage(busMessage: PreparationSuccessfulMessage) {
-        log.debug("PreparationSuccessfulMessage received, build id: {}", busMessage.buildRequestId)
-        val record = getRecord(busMessage)
-        record.preparationCompletedAt = busMessage.time
-        record.state = Preparation_Successful
-        hooks.publish(record)
+        updateBuildState(Preparation_Successful, busMessage)
     }
 
     @Handler
     fun busMessage(busMessage: PreparationFailedMessage) {
-        log.debug("PreparationFailedMessage received, build id: {}", busMessage.buildRequestId)
-        val record = getRecord(busMessage)
-        record.preparationCompletedAt = busMessage.time
-        record.state = Preparation_Failed
+        val record = updateBuildState(BuildStateKey.Failed, busMessage)
         record.failureDescription =
                 if (busMessage.e.message != null) {
                     busMessage.e.message as String
                 } else {
                     busMessage.e.javaClass.simpleName
                 }
-        hooks.publish(record)
+        record.causeOfFailure = Preparation_Failed
+        record.preparationCompletedAt = busMessage.time
     }
 
 
     @Handler
     fun busMessage(busMessage: TaskRequestedMessage) {
-        updateTask(busMessage, TaskResultStateKey.Task_Requested)
+        updateTaskState(TaskStateKey.Requested, busMessage)
     }
 
     @Handler
     fun busMessage(busMessage: TaskStartedMessage) {
-        updateTask(busMessage, TaskResultStateKey.Task_Started)
+        updateTaskState(TaskStateKey.Started, busMessage)
     }
 
     @Handler
     fun busMessage(busMessage: TaskSuccessfulMessage) {
-        updateTask(busMessage, TaskResultStateKey.Task_Successful)
+        val taskRecord = updateTaskState(TaskStateKey.Successful, busMessage)
+        taskRecord.stdOut = busMessage.stdOut
     }
 
     @Handler
     fun busMessage(busMessage: TaskFailedMessage) {
-        updateTask(busMessage, busMessage.result)
+        val taskRecord = updateTaskState(busMessage.result, busMessage)
+        taskRecord.stdOut = busMessage.stdOut
+        taskRecord.stdErr = busMessage.stdErr
+        val buildRecord = getRecord(busMessage.buildRequestId)
+        buildRecord.failureDescription = taskRecord.stdOut
+        buildRecord.causeOfFailure = Task_Failure
     }
-
-    fun updateTask(buildMessage: TaskMessage, outcome: TaskResultStateKey) {
-        val messageType = buildMessage.javaClass.simpleName
-        val buildRequestId = buildMessage.buildRequestId
-        val taskKey = buildMessage.taskKey
-        var stdOut = ""
-        var stdErr = ""
-
-        if (buildMessage is TaskCompletedMessage) {
-            stdOut = buildMessage.stdOut
-            stdErr = buildMessage.stdErr
-        }
-
-        log.debug("{$messageType} received, build id: {}, task: {}", buildRequestId, taskKey)
-        val record = getRecord(buildMessage)
-
-        when (buildMessage) {
-            is TaskRequestedMessage -> record.updateTaskRequested(taskKey, buildMessage.time)
-            is TaskStartedMessage -> record.updateTaskStart(taskKey, buildMessage.time)
-            is TaskCompletedMessage -> record.updateTaskOutcome(taskKey, buildMessage.time, outcome, stdOut, stdErr)
-        }
-
-        log.debug("after task update, build id: {} state is: ${record.summary()}", buildRequestId)
-        hooks.publish(record)
-    }
-
-    /**
-     * In theory, the [BuildQueuedMessage] should arrive before the [PreparationStartedMessage] for a given build, but in practice
-     * it seemed that the order they are received may be reversed by the time they have been transported by the event bus.
-     *
-     * For that reason, a record is constructed and added to [records] for either message, if one does not exist already
-     *
-     * (Note: This diagnosis is a little in doubt, as there were some questions about the way the block was synchronized
-     * - now resolved - but the fix code has been left in place as it does no harm)
-     *
-     */
 
     override fun getRecord(buildMessage: BuildMessage): BuildRecord {
-
         synchronized(lock) {
-            log.debug("retrieving record for {}", buildMessage.buildRequestId)
-            var record = records[buildMessage.buildRequestId]
-            if (record == null) {
-                record = delegateBuildRecords[buildMessage.buildRequestId]
+            log.debug("retrieving record for {}", buildMessage)
+            val existingRecord = findRecord(buildMessage.buildRequestId)
+            if (existingRecord == null) {
+                return createRecord(buildMessage.buildRequestId, buildMessage.delegated, buildMessage.time)
+            } else {
+                return existingRecord
             }
-            if (record == null) {
-                if (buildMessage is InitialBuildMessage) {
-                    log.debug("creating build record for {}", buildMessage.buildRequestId)
-                    record = BuildRecord(buildMessage.buildRequestId, buildMessage.time)
-
-                    if (buildMessage.delegateBuild) {
-                        delegateBuildRecords.put(buildMessage.buildRequestId, record)
-                    } else {
-                        records.put(buildMessage.buildRequestId, record)
-                    }
-                } else {
-                    throw InvalidBuildRequestIdException(buildMessage.buildRequestId)
-                }
-            }
-            return record
         }
     }
 
+    override fun getRecord(uid: UUID): BuildRecord {
+        synchronized(lock) {
+            log.debug("retrieving record for {}", uid)
+            val existingRecord = findRecord(uid) ?: throw InvalidBuildRequestIdException(uid)
+            return existingRecord
+        }
+    }
 
+    private fun findRecord(uid: UUID): BuildRecord? {
+        var record = records[uid]
+        if (record == null) {
+            record = delegateBuildRecords[uid]
+        }
+        return record
+    }
+
+    private fun createRecord(uid: UUID, delegated: Boolean, time: OffsetDateTime): BuildRecord {
+        log.debug("creating record for {}, delegate build is {}", uid, delegated)
+        val record = BuildRecord(uid, time)
+        if (delegated) {
+            delegateBuildRecords.put(uid, record)
+        } else {
+            records.put(uid, record)
+        }
+        return record
+    }
+
+    private fun updateTaskState(newState: TaskStateKey, taskMessage: TaskMessage): TaskResult {
+        log.debug("${taskMessage.javaClass.simpleName} received, build id: {}", taskMessage.buildRequestId)
+        val buildRecord = getRecord(taskMessage.buildRequestId)
+        val taskRecord = buildRecord.taskResult(taskMessage.taskKey)
+        taskRecord.state = newState
+        when (newState) {
+
+            TaskStateKey.Cancelled -> taskRecord.completedAt = taskMessage.time
+            TaskStateKey.Failed -> taskRecord.completedAt = taskMessage.time
+            Not_Run -> throw InvalidBuildStateException("Cannot update the task record to be TASK NOT RUN")
+            TaskStateKey.Successful -> taskRecord.completedAt = taskMessage.time
+            TaskStateKey.Requested -> taskRecord.requestedAt = taskMessage.time
+            Quality_Gate_Failed -> taskRecord.completedAt = taskMessage.time
+            TaskStateKey.Started -> taskRecord.startedAt = taskMessage.time
+        }
+
+        if (!buildRecord.delegated) {
+            hooks.publish(buildRecord)
+        }
+        return taskRecord
+    }
+
+    private fun updateBuildState(newState: BuildStateKey, buildMessage: BuildMessage): BuildRecord {
+        log.debug("${buildMessage.javaClass.simpleName} received, build id: {}", buildMessage.buildRequestId)
+        val buildRecord = getRecord(buildMessage)
+        buildRecord.state = newState
+        buildRecord.delegated = buildMessage.delegated
+
+        when (newState) {
+            BuildStateKey.Requested -> buildRecord.requestedAt = buildMessage.time
+            BuildStateKey.Started -> buildRecord.startedAt = buildMessage.time
+            BuildStateKey.Successful -> buildRecord.completedAt = buildMessage.time
+            BuildStateKey.Failed -> {
+                buildRecord.completedAt = buildMessage.time
+            }
+
+            BuildStateKey.Not_Started -> throw InvalidBuildStateException("Cannot update the build record to be NOT STARTED")
+            BuildStateKey.Preparation_Started -> buildRecord.preparationStartedAt = buildMessage.time
+            BuildStateKey.Preparation_Successful -> buildRecord.preparationCompletedAt = buildMessage.time
+            BuildStateKey.Cancelled -> buildRecord.preparationCompletedAt = buildMessage.time
+        }
+
+
+        if (!buildMessage.delegated) {
+            hooks.publish(buildRecord)
+        }
+        return buildRecord
+    }
 }
 
 
 class InvalidBuildRequestIdException(buildRequestId: UUID) : RuntimeException("Invalid build request id: $buildRequestId")
+class InvalidBuildStateException(msg: String) : RuntimeException(msg)

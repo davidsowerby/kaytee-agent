@@ -73,7 +73,7 @@ class DefaultPreparationStageTest extends Specification {
         loadBuildConfiguration.execute(build)
 
         then:
-        1 * globalBus.publish(new PreparationSuccessfulMessage(buildRunner.uid))
+        1 * globalBus.publish(new PreparationSuccessfulMessage(buildRunner.uid, false))
 
     }
 }

@@ -24,7 +24,7 @@ class DefaultGradleTaskExecutor @Inject constructor() : GradleTaskExecutor {
 //TODO Custom?
 
     override fun execute(build: Build, taskKey: TaskKey, includeQualityGate: Boolean) {
-        var taskName = ""
+        val taskName: String
         if (taskKey.isTestKey) {
             if (includeQualityGate) {
                 taskName = taskKey.qualityGateGradleTask()

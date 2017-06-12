@@ -11,7 +11,6 @@ import uk.q3c.kaytee.agent.eventbus.BusMessage
 import uk.q3c.kaytee.agent.eventbus.GlobalBus
 import uk.q3c.kaytee.agent.eventbus.GlobalBusProvider
 import uk.q3c.kaytee.agent.eventbus.SubscribeTo
-import uk.q3c.kaytee.agent.i18n.TaskResultStateKey
 import uk.q3c.kaytee.agent.prepare.PreparationStage
 import uk.q3c.kaytee.agent.queue.*
 import uk.q3c.kaytee.plugin.GroupConfig
@@ -200,11 +199,11 @@ class DefaultBuild @Inject constructor(
 
     private fun closeBuild(passed: Boolean, busMessage: BusMessage) {
         if (passed) {
-            globalBusProvider.get().publish(BuildSuccessfulMessage(buildRunner.uid))
+            globalBusProvider.get().publish(BuildSuccessfulMessage(buildRunner.uid, buildRunner.delegated))
         } else {
             if (busMessage is TaskFailedMessage) {
-                val exception = TaskException(busMessage.result)
-                globalBusProvider.get().publish(BuildFailedMessage(buildRunner.uid, exception))
+                val exception = TaskException(busMessage.stdOut)
+                globalBusProvider.get().publish(BuildFailedMessage(buildRunner.uid, buildRunner.delegated, exception))
             } else {
                 throw QueueException("Build ${buildRunner.uid}, only a TaskFailedMessage should get this far, but received a ${busMessage.javaClass.simpleName}")
             }
@@ -250,8 +249,8 @@ class DefaultBuild @Inject constructor(
         try {
             preparationStage.execute(this)
         } catch (e: Exception) {
-            log.debug("preparation failed", e)
-            globalBusProvider.get().publish(PreparationFailedMessage(buildRunner.uid, e))
+            log.debug("Build {}, preparation failed", this, e)
+            globalBusProvider.get().publish(PreparationFailedMessage(buildRunner.uid, buildRunner.delegated, e))
             return
         }
         generatedTaskRunners = taskRunners.size
@@ -260,16 +259,16 @@ class DefaultBuild @Inject constructor(
             // in effect this starts the build proper - the first task is placed into the queue, and as the task requests are
             // completed, another is pushed to the request queue until the build completes or fails
             pushTaskToRequestQueue()
-            globalBusProvider.get().publish(BuildStartedMessage(buildRunner.uid, buildNumber))
+            globalBusProvider.get().publish(BuildStartedMessage(buildRunner.uid, buildRunner.delegated, buildNumber))
         } else {
             // there is nothing to do
-            globalBusProvider.get().publish(BuildFailedMessage(buildRunner.uid, BuildConfigurationException()))
+            globalBusProvider.get().publish(BuildFailedMessage(buildRunner.uid, buildRunner.delegated, BuildConfigurationException()))
         }
     }
 
 
 }
 
-class TaskException(result: TaskResultStateKey) : RuntimeException(result.name)
+class TaskException(msg: String) : RuntimeException(msg)
 
 class BuildConfigurationException : RuntimeException("There were no tasks to carry out, check the kaytee configuration in build.gradle, they may all be disabled")

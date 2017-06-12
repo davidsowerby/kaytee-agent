@@ -54,8 +54,6 @@ class Soak_ITest extends Specification {
     int buildsCompleted = 0
     def buildsSuccessFul = 0
     def buildsFailed = 0
-    def preparationsFailed = 0
-    ArrayList validationErrors
     GlobalBusMonitor busMonitor
     static ArrayList<UUID> originalBuildRequests
 
@@ -200,7 +198,6 @@ class Soak_ITest extends Specification {
         println "Build requests failed: $buildsFailed"
         println "Build requests sucessful: $buildsSuccessFul"
         println "Build requests completed: $buildsCompleted"
-        println "Preparations failed: $preparationsFailed"
         println "Build results held by resultsCollator: " + resultCollator.records.size()
         List<UUID> delegatedBuilds = new ArrayList<>()
         for (UUID key in busMonitor.getMessages().keySet()) {
@@ -212,36 +209,26 @@ class Soak_ITest extends Specification {
         for (UUID key in delegatedBuilds) {
             println key
         }
-        validationErrors.isEmpty()
         buildsRequested == buildsCompleted
-        buildsSuccessFul + buildsFailed + preparationsFailed == buildsCompleted
+        buildsSuccessFul + buildsFailed == buildsCompleted
         resultCollator.records.size() == buildsRequested
 
 
     }
 
     private boolean allBuildsComplete() {
-        validationErrors = new ArrayList<>()
         buildsSuccessFul = 0
         buildsFailed = 0
-        preparationsFailed = 0
         buildsCompleted = 0
 
         for (BuildRecord result : resultCollator.records.values()) {
-            BuildRecordValidator resultValidator = new BuildRecordValidator(result)
             if (result.hasCompleted()) {
                 buildsCompleted++
             }
             switch (result.state) {
                 case BuildStateKey.Successful: buildsSuccessFul++; break
                 case BuildStateKey.Failed: buildsFailed++; break
-                case BuildStateKey.Preparation_Failed: preparationsFailed++; break
             }
-            resultValidator.validate()
-            validationErrors.addAll(resultValidator.errors)
-        }
-        if (!validationErrors.isEmpty()) {
-            println validationErrors
         }
         return buildsCompleted == buildsRequested
 
