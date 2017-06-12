@@ -7,8 +7,7 @@ import uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Not_Applicable
 import uk.q3c.kaytee.agent.i18n.BuildStateKey
 import uk.q3c.kaytee.agent.i18n.BuildStateKey.Not_Started
 import uk.q3c.kaytee.agent.i18n.TaskStateKey
-import uk.q3c.kaytee.agent.i18n.TaskStateKey.Not_Run
-import uk.q3c.kaytee.agent.i18n.TaskStateKey.Quality_Gate_Failed
+import uk.q3c.kaytee.agent.i18n.TaskStateKey.*
 import uk.q3c.kaytee.agent.i18n.finalStates
 import uk.q3c.kaytee.plugin.TaskKey
 import java.time.OffsetDateTime
@@ -110,7 +109,7 @@ class BuildRecord(uid: UUID, var requestedAt: OffsetDateTime) : HalResourceWithI
 
 }
 
-class InvalidTaskException(task: TaskKey) : RuntimeException(task.name)
+class InvalidTaskException(task: TaskKey, msg: String = "") : RuntimeException("${task.name}: $msg")
 
 
 data class TaskResult(val task: TaskKey) {
@@ -123,6 +122,10 @@ data class TaskResult(val task: TaskKey) {
 
     fun notRun(): Boolean {
         return state == Not_Run
+    }
+
+    fun notRequired(): Boolean {
+        return state == Not_Required
     }
 
     fun failed(): Boolean {

@@ -326,6 +326,46 @@ class DefaultBuildRecordCollatorTest extends Specification {
         true      | 0
     }
 
+    def "Task not required"() {
+        given:
+        BuildQueuedMessage queuedMessage = new BuildQueuedMessage(uid, delegated)
+        BuildStartedMessage startedMessage = new BuildStartedMessage(uid, delegated, "0.0")
+        TaskNotRequiredMessage taskNotRequiredMessage = new TaskNotRequiredMessage(uid, Merge_to_Master, delegated)
+        TaskStartedMessage taskStartedMessage = new TaskStartedMessage(uid, Merge_to_Master, delegated)
+        TaskFailedMessage taskFailedMessage = new TaskFailedMessage(uid, Merge_to_Master, delegated, TaskStateKey.Quality_Gate_Failed, stdOut, stdErr)
+
+        when:
+        collator.busMessage(queuedMessage)
+        collator.busMessage(startedMessage)
+        collator.busMessage(taskNotRequiredMessage)
+        BuildRecord buildRecord = collator.getRecord(uid)
+        TaskResult taskRecord = buildRecord.taskResult(Merge_to_Master)
+
+        then:
+        taskRecord.state == TaskStateKey.Not_Required
+        taskRecord.stdOut == ""
+        taskRecord.stdErr == ""
+
+        isNotSet(taskRecord.requestedAt)
+        isNotSet(taskRecord.startedAt)
+        isNotSet(taskRecord.completedAt)
+
+        buildRecord.failureDescription == ""
+
+        when:
+        collator.busMessage(taskStartedMessage)
+
+        then:
+        thrown InvalidBuildStateException
+
+
+
+        where:
+        delegated | calls
+        false     | 1
+        true      | 0
+    }
+
     def "getRecord with invalid id throws exception"() {
         when:
         collator.getRecord(UUID.randomUUID())

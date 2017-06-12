@@ -53,5 +53,7 @@ enum class TaskStateKey : I18NKey {
     Requested,
     Quality_Gate_Failed,
 
-    Started
+    Started,
+
+    Not_Required
 }

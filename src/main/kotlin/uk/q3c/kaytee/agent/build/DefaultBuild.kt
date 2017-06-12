@@ -93,6 +93,8 @@ class DefaultBuild @Inject constructor(
      *
      * Each enabled step produces one or more tasks (usually there is only one task per step, but if
      * both *auto* and *manual* properties are set, two tasks are created, with the auto task to run first
+     *
+     * Disabled tasks have results set to NOT_REQUIRED to make it clear that the task was disabled as opposed just not being run
      */
     override fun configure(configuration: KayTeeExtension) {
         synchronized(taskRunners) {
@@ -131,22 +133,28 @@ class DefaultBuild @Inject constructor(
     }
 
     private fun generateTask(configuration: KayTeeExtension, taskKey: TaskKey) {
+        val uid = buildRunner.uid
+        val delegated = buildRunner.delegated
         when (taskKey) {
             Unit_Test, Integration_Test, Functional_Test, Acceptance_Test, Production_Test -> generateTestGroupTask(configuration, taskKey)
             Local_Publish -> createLocalGradleTask(taskKey, false)
-            Generate_Build_Info -> optionalTask(taskKey, configuration.generateBuildInfo)
+            Generate_Build_Info -> optionalTask(uid, taskKey, configuration.generateBuildInfo, delegated)
 
             Extract_Gradle_Configuration -> createLocalGradleTask(taskKey, false) // not normally expected here but does no harm
-            Generate_Change_Log -> optionalTask(taskKey, configuration.generateChangeLog)
-            Merge_to_Master -> optionalTask(taskKey, configuration.release.mergeToMaster)
-            Bintray_Upload -> optionalTask(taskKey, configuration.release.toBintray)
+            Generate_Change_Log -> optionalTask(uid, taskKey, configuration.generateChangeLog, delegated)
+            Merge_to_Master -> optionalTask(uid, taskKey, configuration.release.mergeToMaster, delegated)
+            Bintray_Upload -> optionalTask(uid, taskKey, configuration.release.toBintray, delegated)
+            TaskKey.Custom -> throw InvalidTaskException(taskKey, "Custom task should call generateCustomTask()")
         }
     }
 
 
-    private fun optionalTask(taskKey: TaskKey, optionValue: Boolean) {
-        if (optionValue) {
+    private fun optionalTask(uid: UUID, taskKey: TaskKey, enabled: Boolean, delegated: Boolean) {
+        if (enabled) {
             createLocalGradleTask(taskKey, false)
+        } else {
+            val msg = TaskNotRequiredMessage(uid, taskKey, delegated)
+            globalBusProvider.get().publish(msg)
         }
     }
 

@@ -11,8 +11,7 @@ import uk.q3c.kaytee.agent.i18n.BuildStateKey
 import uk.q3c.kaytee.agent.i18n.BuildStateKey.Preparation_Started
 import uk.q3c.kaytee.agent.i18n.BuildStateKey.Preparation_Successful
 import uk.q3c.kaytee.agent.i18n.TaskStateKey
-import uk.q3c.kaytee.agent.i18n.TaskStateKey.Not_Run
-import uk.q3c.kaytee.agent.i18n.TaskStateKey.Quality_Gate_Failed
+import uk.q3c.kaytee.agent.i18n.TaskStateKey.*
 import uk.q3c.kaytee.agent.queue.*
 import uk.q3c.krail.core.eventbus.GlobalBus
 import uk.q3c.krail.core.eventbus.SubscribeTo
@@ -90,6 +89,10 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
         record.preparationCompletedAt = busMessage.time
     }
 
+    @Handler
+    fun busMessage(busMessage: TaskNotRequiredMessage) {
+        updateTaskState(TaskStateKey.Not_Required, busMessage)
+    }
 
     @Handler
     fun busMessage(busMessage: TaskRequestedMessage) {
@@ -160,6 +163,9 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
         log.debug("${taskMessage.javaClass.simpleName} received, build id: {}", taskMessage.buildRequestId)
         val buildRecord = getRecord(taskMessage.buildRequestId)
         val taskRecord = buildRecord.taskResult(taskMessage.taskKey)
+        if (taskRecord.state == Not_Required) {
+            throw InvalidBuildStateException("No further messages should be recevied when task in not required")
+        }
         taskRecord.state = newState
         when (newState) {
 

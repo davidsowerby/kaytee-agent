@@ -161,8 +161,8 @@ class FunctionalTest1 extends FunctionalTestBase {
         functionalTestResult.passed() == expFunc
         acceptanceTestResult.passed() == expAccept
         productionTestResult.passed() == expProd
-        bintrayUploadResult.notRun() == expBintray
-        mergeToMasterResult.notRun() == expMerge
+        bintrayUploadResult.notRequired() == expBintray
+        mergeToMasterResult.notRequired() == expMerge
 
 
 
