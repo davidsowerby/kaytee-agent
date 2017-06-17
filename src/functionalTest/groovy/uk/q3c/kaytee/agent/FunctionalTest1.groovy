@@ -15,15 +15,14 @@ import uk.q3c.kaytee.agent.app.ConstantsKt
 import uk.q3c.kaytee.agent.app.SubscriptionRequest
 import uk.q3c.kaytee.agent.build.BuildRecord
 import uk.q3c.kaytee.agent.build.TaskResult
-import uk.q3c.kaytee.agent.i18n.TaskStateKey
+import uk.q3c.kaytee.agent.i18n.BuildStateKey
 import uk.q3c.rest.hal.HalMapper
 
+import java.time.Duration
 import java.time.LocalDateTime
 
-import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Not_Applicable
-import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Task_Failure
-import static uk.q3c.kaytee.agent.i18n.BuildStateKey.Failed
-import static uk.q3c.kaytee.agent.i18n.BuildStateKey.Successful
+import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.*
+import static uk.q3c.kaytee.agent.i18n.TaskStateKey.*
 import static uk.q3c.kaytee.plugin.TaskKey.*
 
 /**
@@ -32,12 +31,14 @@ import static uk.q3c.kaytee.plugin.TaskKey.*
 @SuppressWarnings("GroovyAssignabilityCheck")
 class FunctionalTest1 extends FunctionalTestBase {
 
-    final static timeout = 20 // seconds per task
+    static timeoutPeriod = 20 // seconds per task
     static List<BuildRecord> subscriberMessages
     static UUID buildId
     static boolean buildComplete = false
     static LocalDateTime timeoutAt
     static BuildRecord finalRecord
+
+    File tempDataArea
 
     EmbeddedApp subscriber = GroovyEmbeddedApp.ratpack {
         bindings {
@@ -57,7 +58,7 @@ class FunctionalTest1 extends FunctionalTestBase {
                         }
                     }
                     subscriberMessages.add(buildRecord)
-                    timeoutAt = LocalDateTime.now().plusSeconds(timeout)
+                    timeoutAt = LocalDateTime.now().plusSeconds(timeoutPeriod)
                 }
 //TODO response    WARN  r.s.internal.NettyHandlerAdapter - No response sent for PUT request to / (last handler: closure at line 40 of FunctionalTest1.groovy)
             }
@@ -65,14 +66,20 @@ class FunctionalTest1 extends FunctionalTestBase {
     }
 
     String subscriberUri
+    boolean timedOut
 //    HttpClient httpClient
 
     def setup() {
+        tempDataArea = new File(temp, "kaytee-data")
         subscriberMessages = new ArrayList<>()
         buildId = null
         buildComplete = false
         finalRecord = null
+        timedOut = false
         subscriberUri = subscriber.address.toString()
+        System.setProperty(ConstantsKt.baseDir_propertyName, tempDataArea.absolutePath)
+
+
     }
 
     def cleanup() {
@@ -98,6 +105,7 @@ class FunctionalTest1 extends FunctionalTestBase {
 
     private boolean buildStopped() {
         if (LocalDateTime.now().isAfter(timeoutAt)) {
+            timedOut = true
             return true
         }
         return buildComplete
@@ -106,10 +114,13 @@ class FunctionalTest1 extends FunctionalTestBase {
     @Unroll
     def "run build #testDesc"() {
         given:
+        System.setProperty(ConstantsKt.baseDir_propertyName, tempDataArea.absolutePath)
+        timeoutPeriod = 20
         defaultSubscribe()
         final String fullProjectName = "davidsowerby/kaytee-test"
         BuildRequest buildRequest = new BuildRequest(fullProjectName, commitId)
-        timeoutAt = LocalDateTime.now().plusSeconds(timeout)
+        timeoutAt = LocalDateTime.now().plusSeconds(timeoutPeriod)
+
 
 
         when:
@@ -130,7 +141,7 @@ class FunctionalTest1 extends FunctionalTestBase {
         TaskResult unitTestResult = finalRecord.taskResult(Unit_Test)
         TaskResult changeLogResult = finalRecord.taskResult(Generate_Change_Log)
         TaskResult buildInfoResult = finalRecord.taskResult(Generate_Build_Info)
-        TaskResult publishToLocalResult = finalRecord.taskResult(Local_Publish)
+        TaskResult publishToLocalResult = finalRecord.taskResult(Publish_to_Local)
         TaskResult integrationTestResult = finalRecord.taskResult(Integration_Test)
         TaskResult functionalTestResult = finalRecord.taskResult(Functional_Test)
         TaskResult acceptanceTestResult = finalRecord.taskResult(Acceptance_Test)
@@ -167,11 +178,42 @@ class FunctionalTest1 extends FunctionalTestBase {
 
 
         where:
-        commitId                                   | testDesc                                         | finalBuildState | causeOfFailure | unitTestExpected        | integrationTestExpected | unitStdOut         | unitStdErr    | iTestStdOut        | iTestStdErr | expBuildInfo | expChangeLog | expPublishLocal | expFunc | expAccept | expProd | expBintray | expMerge | failDesc
-        "e9eca1cb86d64b355027952c107fe25e2e2e59f0" | "full cycle, except bintray and merge, all pass" | Successful      | Not_Applicable | TaskStateKey.Successful | TaskStateKey.Successful | "BUILD SUCCESSFUL" | ""            | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | ""
-        "e85023ca7c5e411af90b91cf46dbf60e37f89a07" | "unit test failure"                              | Failed          | Task_Failure   | TaskStateKey.Failed     | TaskStateKey.Not_Run    | "FAILURE"          | "test FAILED" | ""                 | ""          | false        | false        | false           | false   | false     | false   | true       | true     | "There were failing tests"
+        commitId                                   | testDesc                                         | finalBuildState          | causeOfFailure     | unitTestExpected | integrationTestExpected | unitStdOut         | unitStdErr    | iTestStdOut        | iTestStdErr | expBuildInfo | expChangeLog | expPublishLocal | expFunc | expAccept | expProd | expBintray | expMerge | failDesc
+//        "b6c9ad6546333724a474ad9d124da9aacb306cf6" | "unit test failure"                              | BuildStateKey.Failed     | Task_Failure       | Failed           | Not_Run                 | ""          | "" | ""                 | ""          | false        | false        | false           | false   | false     | false   | true       | true     | "There were failing tests"
+        "bd3babdbff16a9ab3b68d000b4375a4a98392375" | "full cycle, except bintray and merge, all pass" | BuildStateKey.Successful | Not_Applicable     | Successful       | Successful              | "BUILD SUCCESSFUL" | ""            | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | ""
+//        "5771e944c6e3d32072962a1edfab37bd4192fad6" | "version check failure"                          | BuildStateKey.Failed     | Preparation_Failed | Not_Run          | Not_Run                 | ""                 | ""            | ""                 | ""          | false        | false        | false           | false   | false     | false   | false      | false    | "Preparation failure"
+
     }
 
+    //cbe99aaaf6fa74c249d0fdb74a38b5dab8fc4ca2
+
+
+    def "gitPlus"() {
+        given:
+        timeoutPeriod = 18000 // 5 mins
+        defaultSubscribe()
+        final String fullProjectName = "davidsowerby/gitPlus"
+        BuildRequest buildRequest = new BuildRequest(fullProjectName, "f5f8f0ecde59abb69d8b534a9735e625995df333")
+        timeoutAt = LocalDateTime.now().plusSeconds(timeoutPeriod)
+
+
+        when:
+        requestSpec { RequestSpec requestSpec ->
+            requestSpec.body.type("application/hal+json")
+            requestSpec.body.text(JsonOutput.toJson(buildRequest))
+        }
+        ReceivedResponse response = post(ConstantsKt.buildRequests)
+        String t = response.getBody()
+        println t
+        while (!buildStopped()) {
+            int togo = Duration.between(LocalDateTime.now(), timeoutAt).seconds
+            println "Waiting for build to complete, timeout in $togo seconds "
+            Thread.sleep(1000)
+        }
+        then:
+        !timedOut
+        finalRecord.state == BuildStateKey.Successful
+    }
 
     private void defaultSubscribe() {
         subscribe("http://localhost:9001/buildRecords", subscriberUri)

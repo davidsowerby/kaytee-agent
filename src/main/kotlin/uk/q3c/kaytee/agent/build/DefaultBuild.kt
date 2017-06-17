@@ -47,7 +47,7 @@ class DefaultBuild @Inject constructor(
     lateinit override var parentBuild: Build
     lateinit override var gradleLauncher: BuildLauncher
 
-    private val standardLifecycle: List<TaskKey> = of(Unit_Test, Integration_Test, Generate_Build_Info, Generate_Change_Log, Local_Publish, Functional_Test, Acceptance_Test, Merge_to_Master, Bintray_Upload, Production_Test)
+    private val standardLifecycle: List<TaskKey> = of(Unit_Test, Integration_Test, Generate_Build_Info, Generate_Change_Log, Publish_to_Local, Functional_Test, Acceptance_Test, Merge_to_Master, Bintray_Upload, Production_Test)
     private val delegatedLifecycle: List<TaskKey> = of()
 
     private val results: MutableList<TaskKey> = mutableListOf()
@@ -137,7 +137,7 @@ class DefaultBuild @Inject constructor(
         val delegated = buildRunner.delegated
         when (taskKey) {
             Unit_Test, Integration_Test, Functional_Test, Acceptance_Test, Production_Test -> generateTestGroupTask(configuration, taskKey)
-            Local_Publish -> createLocalGradleTask(taskKey, false)
+            Publish_to_Local -> createLocalGradleTask(taskKey, false)
             Generate_Build_Info -> optionalTask(uid, taskKey, configuration.generateBuildInfo, delegated)
 
             Extract_Gradle_Configuration -> createLocalGradleTask(taskKey, false) // not normally expected here but does no harm

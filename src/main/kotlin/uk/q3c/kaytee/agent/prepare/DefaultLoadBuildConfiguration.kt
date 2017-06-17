@@ -34,6 +34,8 @@ class DefaultLoadBuildConfiguration @Inject constructor(
         val f = installationInfo.projectInstanceDir(build)
         val inputFile = File(f, fileLocation)
         try {
+            // call Gradle task to check that the version has not been used
+            gradleTaskExecutor.execute(build, TaskKey.Version_Check, false)
             // call Gradle task to extract the config
             gradleTaskExecutor.execute(build, TaskKey.Extract_Gradle_Configuration, false)
             // import from the file generated above
