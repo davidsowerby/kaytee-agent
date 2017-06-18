@@ -111,7 +111,7 @@ class RealOnes extends FunctionalTestBase {
         timeoutPeriod = 18000 // 5 mins
         defaultSubscribe()
         final String fullProjectName = "davidsowerby/gitPlus"
-        BuildRequest buildRequest = new BuildRequest(fullProjectName, "b9f4a9a417b9fb2a3aec00356c94f6db945f63d6")
+        BuildRequest buildRequest = new BuildRequest(fullProjectName, "4875be916bb38264901ee70f4463497e8d29b6ae")
         timeoutAt = LocalDateTime.now().plusSeconds(timeoutPeriod)
 
 
@@ -125,7 +125,7 @@ class RealOnes extends FunctionalTestBase {
         println t
         while (!buildStopped()) {
             int togo = Duration.between(LocalDateTime.now(), timeoutAt).seconds
-            print "Waiting for build to complete, timeout in $togo seconds    "
+            println "Waiting for build to complete, timeout in $togo seconds    "
             Thread.sleep(1000)
         }
         then:
