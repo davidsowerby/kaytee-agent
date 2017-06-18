@@ -21,7 +21,8 @@ import uk.q3c.rest.hal.HalMapper
 import java.time.Duration
 import java.time.LocalDateTime
 
-import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.*
+import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Not_Applicable
+import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Task_Failure
 import static uk.q3c.kaytee.agent.i18n.TaskStateKey.*
 import static uk.q3c.kaytee.plugin.TaskKey.*
 
@@ -178,9 +179,9 @@ class FunctionalTest1 extends FunctionalTestBase {
 
 
         where:
-        commitId                                   | testDesc                                         | finalBuildState          | causeOfFailure     | unitTestExpected | integrationTestExpected | unitStdOut         | unitStdErr    | iTestStdOut        | iTestStdErr | expBuildInfo | expChangeLog | expPublishLocal | expFunc | expAccept | expProd | expBintray | expMerge | failDesc
-//        "b6c9ad6546333724a474ad9d124da9aacb306cf6" | "unit test failure"                              | BuildStateKey.Failed     | Task_Failure       | Failed           | Not_Run                 | ""          | "" | ""                 | ""          | false        | false        | false           | false   | false     | false   | true       | true     | "There were failing tests"
-        "bd3babdbff16a9ab3b68d000b4375a4a98392375" | "full cycle, except bintray and merge, all pass" | BuildStateKey.Successful | Not_Applicable     | Successful       | Successful              | "BUILD SUCCESSFUL" | ""            | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | ""
+        commitId                                   | testDesc                                         | finalBuildState          | causeOfFailure | unitTestExpected | integrationTestExpected | unitStdOut         | unitStdErr | iTestStdOut        | iTestStdErr | expBuildInfo | expChangeLog | expPublishLocal | expFunc | expAccept | expProd | expBintray | expMerge | failDesc
+        "bd3babdbff16a9ab3b68d000b4375a4a98392375" | "full cycle, except bintray and merge, all pass" | BuildStateKey.Successful | Not_Applicable | Successful       | Successful              | "BUILD SUCCESSFUL" | ""         | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | ""
+        "dcc4b5ebbd9ec8ecfe1103a0f672a5ae30d6b62b" | "unit test failure"                              | BuildStateKey.Failed     | Task_Failure   | Failed           | Not_Run                 | ""                 | ""         | ""                 | ""          | false        | false        | false           | false   | false     | false   | true       | true     | "There were failing tests"
 //        "5771e944c6e3d32072962a1edfab37bd4192fad6" | "version check failure"                          | BuildStateKey.Failed     | Preparation_Failed | Not_Run          | Not_Run                 | ""                 | ""            | ""                 | ""          | false        | false        | false           | false   | false     | false   | false      | false    | "Preparation failure"
 
     }
