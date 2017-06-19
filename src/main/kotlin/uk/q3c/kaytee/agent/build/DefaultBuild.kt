@@ -87,6 +87,8 @@ class DefaultBuild @Inject constructor(
     }
 
 
+    private var raiseIssueOnFail: Boolean = false
+
     /**
      * Sets the configuration for this Build.  Configuration is extracted from the build.gradle file in the
      * preparation stage by the [LoadBuildConfiguration] step.
@@ -99,6 +101,7 @@ class DefaultBuild @Inject constructor(
     override fun configure(configuration: KayTeeExtension) {
         synchronized(taskRunners) {
             generateTasks(configuration)
+//            raiseIssueOnFail=configuration.raiseIssueOnFail
         }
     }
 
