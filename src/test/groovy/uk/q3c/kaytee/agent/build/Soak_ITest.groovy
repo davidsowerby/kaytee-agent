@@ -57,12 +57,13 @@ class Soak_ITest extends Specification {
     GlobalBusMonitor busMonitor
     static ArrayList<UUID> originalBuildRequests
 
-
     static class TestBuildModule extends AbstractModule {
+
 
         @Override
         protected void configure() {
             bind(BuildNumberReader.class).to(TestBuildNumberReader.class)
+            bind(IssueCreator.class).toInstance(new MockIssueCreator())
         }
     }
 

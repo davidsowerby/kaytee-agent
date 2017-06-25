@@ -38,6 +38,7 @@ class DefaultInstallationInfoTest extends Specification {
     def "directories and files, development mode false"() {
         given:
         System.setProperty(ConstantsKt.developmentMode_propertyName, "false")
+        System.setProperty(ConstantsKt.baseDir_propertyName, "/home/david/kaytee-data")
         project.shortProjectName >> 'wiggly'
         buildRequest = new DefaultBuildRunner(buildFactory, globalBusProvider, false, "", new GitSHA(sha), project, UUID.randomUUID())
         buildFactory.create(buildRequest, false) >> build

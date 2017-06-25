@@ -1,15 +1,13 @@
 package uk.q3c.kaytee.agent.prepare
 
+import com.google.inject.Provider
 import net.engio.mbassy.bus.common.PubSubSupport
 import org.apache.commons.codec.digest.DigestUtils
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import uk.q3c.build.gitplus.GitSHA
-import uk.q3c.kaytee.agent.build.Build
-import uk.q3c.kaytee.agent.build.BuildFactory
-import uk.q3c.kaytee.agent.build.BuildNumberReader
-import uk.q3c.kaytee.agent.build.DefaultBuild
+import uk.q3c.kaytee.agent.build.*
 import uk.q3c.kaytee.agent.eventbus.BusMessage
 import uk.q3c.kaytee.agent.eventbus.GlobalBusProvider
 import uk.q3c.kaytee.agent.i18n.Named
@@ -48,13 +46,16 @@ abstract class PreparationStepSpecification extends Specification {
     ManualTaskRunnerFactory manualTaskRunnerFactory = Mock(ManualTaskRunnerFactory)
     PubSubSupport<BusMessage> globalBus = Mock(PubSubSupport)
     DelegatedProjectTaskRunnerFactory delegatedProjectTaskRunnerFactory = Mock(DelegatedProjectTaskRunnerFactory)
+    Provider<IssueCreator> issueCreatorProvider = Mock(Provider)
+    IssueCreator issueCreator = Mock(IssueCreator)
 
     def setup() {
+        issueCreatorProvider.get() >> issueCreator
         gitHash = new GitSHA(DigestUtils.sha1Hex('any'))
         project.shortProjectName >> projectName
         project.remoteUserName >> repoUserName
         BuildRunner buildRunner = new DefaultBuildRunner(buildFactory, busProvider, false, "", gitHash, project, UUID.randomUUID())
-        build = new DefaultBuild(preparationStage, buildNumberReader, requestQueue, busProvider, gradleTaskRunnerFactory, manualTaskRunnerFactory, delegatedProjectTaskRunnerFactory, buildRunner)
+        build = new DefaultBuild(preparationStage, buildNumberReader, requestQueue, busProvider, gradleTaskRunnerFactory, manualTaskRunnerFactory, delegatedProjectTaskRunnerFactory, issueCreatorProvider, buildRunner)
         translate.from(_) >> translatedKey
         temp = temporaryFolder.getRoot()
         codeDir = new File(temp, projectName)

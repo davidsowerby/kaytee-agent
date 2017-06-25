@@ -3,6 +3,7 @@ package uk.q3c.kaytee.agent.build
 import com.google.inject.Inject
 import net.engio.mbassy.listener.Handler
 import net.engio.mbassy.listener.Listener
+import org.apache.commons.lang3.exception.ExceptionUtils
 import org.slf4j.LoggerFactory
 import uk.q3c.kaytee.agent.app.Hooks
 import uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Preparation_Failed
@@ -79,12 +80,9 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
     @Handler
     fun busMessage(busMessage: PreparationFailedMessage) {
         val record = updateBuildState(BuildStateKey.Failed, busMessage)
+        val stacktrace = ExceptionUtils.getRootCauseStackTrace(busMessage.e)
         record.failureDescription =
-                if (busMessage.e.message != null) {
-                    busMessage.e.message as String
-                } else {
-                    busMessage.e.javaClass.simpleName
-                }
+                stacktrace.joinToString(separator = "\n")
         record.causeOfFailure = Preparation_Failed
         record.preparationCompletedAt = busMessage.time
     }
@@ -118,6 +116,7 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
         val buildRecord = getRecord(busMessage.buildRequestId)
         buildRecord.failureDescription = taskRecord.stdOut
         buildRecord.causeOfFailure = Task_Failure
+        buildRecord.failedTask = busMessage.taskKey
     }
 
     override fun getRecord(buildMessage: BuildMessage): BuildRecord {

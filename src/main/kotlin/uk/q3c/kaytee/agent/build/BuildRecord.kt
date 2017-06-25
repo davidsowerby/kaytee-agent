@@ -46,6 +46,7 @@ class BuildRecord(uid: UUID, var requestedAt: OffsetDateTime) : HalResourceWithI
     var causeOfFailure = Not_Applicable
     var failureDescription = ""
     var delegated: Boolean = false
+    var failedTask: TaskKey = TaskKey.Custom // valid only if a task has failed
     private val stateLock = Any()
     private val taskLock = Any()
     // once parallel tasking enabled, there is a contention risk here.

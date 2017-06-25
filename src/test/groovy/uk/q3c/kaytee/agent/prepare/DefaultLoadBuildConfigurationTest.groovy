@@ -66,7 +66,7 @@ class DefaultLoadBuildConfigurationTest extends PreparationStepSpecification {
         1 * gradleTaskRunnerFactory.create(build, Functional_Test, true) >> this.gradleTaskRequest
         1 * gradleTaskRunnerFactory.create(build, Generate_Build_Info, false) >> this.gradleTaskRequest
         0 * gradleTaskRunnerFactory.create(build, Generate_Change_Log, true) >> this.gradleTaskRequest
-        1 * gradleTaskRunnerFactory.create(build, Local_Publish, false) >> this.gradleTaskRequest
+        1 * gradleTaskRunnerFactory.create(build, Publish_to_Local, false) >> this.gradleTaskRequest
         0 * gradleTaskRunnerFactory.create(build, Merge_to_Master, false) >> this.gradleTaskRequest
         0 * gradleTaskRunnerFactory.create(build, Bintray_Upload, false) >> this.gradleTaskRequest
     }

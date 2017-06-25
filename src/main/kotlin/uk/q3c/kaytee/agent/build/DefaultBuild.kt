@@ -2,6 +2,7 @@ package uk.q3c.kaytee.agent.build
 
 import com.google.common.collect.ImmutableList.of
 import com.google.inject.Inject
+import com.google.inject.Provider
 import com.google.inject.assistedinject.Assisted
 import net.engio.mbassy.listener.Handler
 import net.engio.mbassy.listener.Listener
@@ -34,6 +35,7 @@ class DefaultBuild @Inject constructor(
         val gradleTaskRunnerFactory: GradleTaskRunnerFactory,
         val manualTaskRunnerFactory: ManualTaskRunnerFactory,
         val delegatedProjectTaskRunnerFactory: DelegatedProjectTaskRunnerFactory,
+        val issueCreatorProvider: Provider<IssueCreator>,
         @Assisted override val buildRunner: BuildRunner) :
 
         Build,
@@ -41,13 +43,13 @@ class DefaultBuild @Inject constructor(
 
 
     private val log = LoggerFactory.getLogger(this.javaClass.name)
-
+    private var raiseIssueOnFail: Boolean = false
     lateinit override var stderrOutputFile: File
     lateinit override var stdoutOutputFile: File
     lateinit override var parentBuild: Build
     lateinit override var gradleLauncher: BuildLauncher
 
-    private val standardLifecycle: List<TaskKey> = of(Unit_Test, Integration_Test, Generate_Build_Info, Generate_Change_Log, Publish_to_Local, Functional_Test, Acceptance_Test, Merge_to_Master, Bintray_Upload, Production_Test)
+    private val standardLifecycle: List<TaskKey> = of(Unit_Test, Integration_Test, Generate_Build_Info, Generate_Change_Log, Publish_to_Local, Functional_Test, Acceptance_Test, Merge_to_Master, Tag, Bintray_Upload, Production_Test)
     private val delegatedLifecycle: List<TaskKey> = of()
 
     private val results: MutableList<TaskKey> = mutableListOf()
@@ -87,8 +89,6 @@ class DefaultBuild @Inject constructor(
     }
 
 
-    private var raiseIssueOnFail: Boolean = false
-
     /**
      * Sets the configuration for this Build.  Configuration is extracted from the build.gradle file in the
      * preparation stage by the [LoadBuildConfiguration] step.
@@ -101,7 +101,7 @@ class DefaultBuild @Inject constructor(
     override fun configure(configuration: KayTeeExtension) {
         synchronized(taskRunners) {
             generateTasks(configuration)
-//            raiseIssueOnFail=configuration.raiseIssueOnFail
+            raiseIssueOnFail = configuration.raiseIssueOnFail
         }
     }
 
@@ -131,7 +131,7 @@ class DefaultBuild @Inject constructor(
 
     private fun generateCustomTask(delegateTask: String) {
         log.debug("Generating TaskRunner for task '$delegateTask' in build ${buildRunner.uid}")
-        val taskRunner = gradleTaskRunnerFactory.create(this, TaskKey.Custom, false)
+        val taskRunner = gradleTaskRunnerFactory.create(this, Custom, false)
         taskRunners.add(taskRunner)
     }
 
@@ -147,7 +147,9 @@ class DefaultBuild @Inject constructor(
             Generate_Change_Log -> optionalTask(uid, taskKey, configuration.generateChangeLog, delegated)
             Merge_to_Master -> optionalTask(uid, taskKey, configuration.release.mergeToMaster, delegated)
             Bintray_Upload -> optionalTask(uid, taskKey, configuration.release.toBintray, delegated)
-            TaskKey.Custom -> throw InvalidTaskException(taskKey, "Custom task should call generateCustomTask()")
+            Custom -> throw InvalidTaskException(taskKey, "Custom task should call generateCustomTask()")
+            Version_Check -> throw InvalidTaskException(taskKey, "VersionCheck is called from within LoadBuildConfiguration and should not be executed directly")
+            Tag -> optionalTask(uid, taskKey, configuration.versionTag, delegated)
         }
     }
 
@@ -217,6 +219,9 @@ class DefaultBuild @Inject constructor(
                 globalBusProvider.get().publish(BuildFailedMessage(buildRunner.uid, buildRunner.delegated, exception))
             } else {
                 throw QueueException("Build ${buildRunner.uid}, only a TaskFailedMessage should get this far, but received a ${busMessage.javaClass.simpleName}")
+            }
+            if (raiseIssueOnFail) {
+                issueCreatorProvider.get().raiseIssue(this)
             }
         }
         log.info("Closing build for {}, build {}", project.shortProjectName, buildRunner.uid)

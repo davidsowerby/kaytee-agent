@@ -61,7 +61,7 @@ class DefaultBuildRecordCollatorTest extends Specification {
         record.delegated == delegated
         record.causeOfFailure == Not_Applicable
         record.failureDescription == ""
-        record.taskResults.size() == 12  // constructed at start
+        record.taskResults.size() == 14  // constructed at start
 
         numpty * hooks.publish(_)
 

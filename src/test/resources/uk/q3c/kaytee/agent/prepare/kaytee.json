@@ -1,8 +1,10 @@
 {
   "remoteRepoUserName": "davidsowerby",
-  "baseVersion": "0.0.4.15",
+  "baseVersion": "0.0.0.0",
   "generateBuildInfo": true,
   "generateChangeLog": true,
+  "versionTag": true,
+  "raiseIssueOnFail": true,
   "unitTest": {
     "enabled": true,
     "qualityGate": true,
@@ -10,12 +12,12 @@
     "manual": false,
     "delegated": false,
     "thresholds": {
-      "instruction": 81.0,
+      "instruction": 70.0,
       "branch": 70.0,
-      "line": 90.0,
-      "complexity": 90.0,
-      "method": 20.0,
-      "clazz": 90.0
+      "line": 70.0,
+      "complexity": 70.0,
+      "method": 70.0,
+      "clazz": 70.0
     },
     "delegate": {
       "baseUrl": "https://github.com",
@@ -33,12 +35,12 @@
     "manual": false,
     "delegated": false,
     "thresholds": {
-      "instruction": 81.0,
+      "instruction": 70.0,
       "branch": 70.0,
-      "line": 90.0,
-      "complexity": 90.0,
-      "method": 90.0,
-      "clazz": 90.0
+      "line": 70.0,
+      "complexity": 70.0,
+      "method": 70.0,
+      "clazz": 70.0
     },
     "delegate": {
       "baseUrl": "https://github.com",
@@ -56,12 +58,12 @@
     "manual": false,
     "delegated": false,
     "thresholds": {
-      "instruction": 81.0,
+      "instruction": 70.0,
       "branch": 70.0,
-      "line": 90.0,
-      "complexity": 90.0,
-      "method": 90.0,
-      "clazz": 90.0
+      "line": 70.0,
+      "complexity": 70.0,
+      "method": 70.0,
+      "clazz": 70.0
     },
     "delegate": {
       "baseUrl": "https://github.com",
@@ -79,12 +81,12 @@
     "manual": false,
     "delegated": false,
     "thresholds": {
-      "instruction": 81.0,
+      "instruction": 70.0,
       "branch": 70.0,
-      "line": 90.0,
-      "complexity": 90.0,
-      "method": 90.0,
-      "clazz": 90.0
+      "line": 70.0,
+      "complexity": 70.0,
+      "method": 70.0,
+      "clazz": 70.0
     },
     "delegate": {
       "baseUrl": "https://github.com",
@@ -97,17 +99,17 @@
   },
   "productionTest": {
     "enabled": false,
-    "qualityGate": true,
+    "qualityGate": false,
     "auto": true,
     "manual": false,
     "delegated": false,
     "thresholds": {
-      "instruction": 81.0,
+      "instruction": 70.0,
       "branch": 70.0,
-      "line": 90.0,
-      "complexity": 90.0,
-      "method": 90.0,
-      "clazz": 90.0
+      "line": 70.0,
+      "complexity": 70.0,
+      "method": 70.0,
+      "clazz": 70.0
     },
     "delegate": {
       "baseUrl": "https://github.com",
@@ -167,7 +169,7 @@
     "outputFilename": "changelog.md",
     "pullRequestTitle": "Pull Requests",
     "outputTarget": "WIKI_ROOT",
-    "outputFileSpec": "/home/david/git/kaytee-agent/./changelog.md",
+    "outputFileSpec": "/home/david/git/kaytee-plugin/./changelog.md",
     "fromCommitId": "not specified",
     "toCommitId": "not specified",
     "fromVersionId": "not specified",
@@ -180,29 +182,29 @@
     "maxVersions": 50,
     "processingAsVersions": true,
     "showDetail": true,
-    "projectDirParent": "/home/david/git/kaytee-agent/.",
+    "projectDirParent": "/home/david/git/kaytee-plugin/.",
     "currentBuildTagName": "current build",
-    "projectName": "kaytee-test"
+    "projectName": "not specified"
   },
   "gitLocalConfiguration": {
     "active": true,
     "cloneExistsResponse": "EXCEPTION",
-    "projectDirParent": "/home/david/git/kaytee-agent/.",
+    "projectDirParent": "/home/david/git/kaytee-plugin/.",
     "taggerName": "not specified",
     "taggerEmail": "not specified",
     "create": false,
     "cloneFromRemote": false,
-    "projectName": "kaytee-test"
+    "projectName": "not specified"
   },
   "wikiLocalConfiguration": {
     "active": true,
     "cloneExistsResponse": "EXCEPTION",
-    "projectDirParent": "/home/david/git/kaytee-agent/.",
+    "projectDirParent": "/home/david/git/kaytee-plugin/.",
     "taggerName": "not specified",
     "taggerEmail": "not specified",
     "create": false,
     "cloneFromRemote": false,
-    "projectName": "kaytee-test"
+    "projectName": "not specified"
   },
   "gitRemoteConfiguration": {
     "active": true,
@@ -226,7 +228,7 @@
     },
     "mergeIssueLabels": false,
     "providerBaseUrl": "github.com",
-    "repoUser": "davidsowerby",
-    "repoName": "kaytee-test"
+    "repoUser": "not specified",
+    "repoName": "not specified"
   }
 }

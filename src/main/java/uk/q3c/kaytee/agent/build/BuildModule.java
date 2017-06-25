@@ -15,6 +15,7 @@ public class BuildModule extends AbstractModule {
         bind(BuildRecordCollator.class).to(DefaultBuildRecordCollator.class).asEagerSingleton();
         bind(BuildRecordService.class).to(DefaultBuildRecordService.class);
         bind(BuildNumberReader.class).to(DefaultBuildNumberReader.class);
+        bind(IssueCreator.class).to(DefaultIssueCreator.class);
         install(new FactoryModuleBuilder()
                 .implement(BuildRunner.class, DefaultBuildRunner.class)
                 .build(BuildRunnerFactory.class));

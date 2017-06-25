@@ -1,5 +1,6 @@
 package uk.q3c.kaytee.agent.prepare
 
+import com.google.common.collect.ImmutableList
 import uk.q3c.build.gitplus.gitplus.GitPlus
 import uk.q3c.build.gitplus.local.CloneExistsResponse
 import uk.q3c.build.gitplus.local.GitLocal
@@ -25,8 +26,13 @@ class DefaultGitCloneTest extends PreparationStepSpecification {
     }
 
     def "invoke successfully"() {
+        given:
+        gitLocal.branches() >> ImmutableList.of("master")
+
+
         when:
         gitClone.execute(build)
+
 
         then:
         1 * gitLocal.projectDirParent(codeDir) >> gitLocal
@@ -38,6 +44,12 @@ class DefaultGitCloneTest extends PreparationStepSpecification {
         then:
         1 * gitPlus.execute()
         1 * gitLocal.checkoutCommit(gitHash, 'kaytee')
+
+        then:
+        1 * gitPlus.local.createBranch("develop")
+        1 * gitPlus.local.pull("develop")
+        0 * gitPlus.local.createBranch("master")
+        0 * gitPlus.local.pull("master")
     }
 
     def "clone fails"() {

@@ -10,15 +10,20 @@ import ratpack.http.client.RequestSpec
 import ratpack.jackson.Jackson
 import ratpack.test.embed.EmbeddedApp
 import spock.lang.Unroll
+import uk.q3c.build.gitplus.GitPlusFactory
+import uk.q3c.build.gitplus.GitSHA
+import uk.q3c.build.gitplus.gitplus.GitPlus
+import uk.q3c.build.gitplus.local.GitBranch
+import uk.q3c.build.gitplus.local.Tag
 import uk.q3c.kaytee.agent.api.BuildRequest
 import uk.q3c.kaytee.agent.app.ConstantsKt
 import uk.q3c.kaytee.agent.app.SubscriptionRequest
 import uk.q3c.kaytee.agent.build.BuildRecord
 import uk.q3c.kaytee.agent.build.TaskResult
 import uk.q3c.kaytee.agent.i18n.BuildStateKey
+import uk.q3c.kaytee.plugin.TaskKey
 import uk.q3c.rest.hal.HalMapper
 
-import java.time.Duration
 import java.time.LocalDateTime
 
 import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Not_Applicable
@@ -68,6 +73,7 @@ class FunctionalTest1 extends FunctionalTestBase {
 
     String subscriberUri
     boolean timedOut
+    GitPlus gitPlus
 //    HttpClient httpClient
 
     def setup() {
@@ -79,8 +85,7 @@ class FunctionalTest1 extends FunctionalTestBase {
         timedOut = false
         subscriberUri = subscriber.address.toString()
         System.setProperty(ConstantsKt.baseDir_propertyName, tempDataArea.absolutePath)
-
-
+        gitPlus = GitPlusFactory.instance
     }
 
     def cleanup() {
@@ -138,7 +143,7 @@ class FunctionalTest1 extends FunctionalTestBase {
         }
 
         then:
-
+        configureGitPlus(commitId)
         TaskResult unitTestResult = finalRecord.taskResult(Unit_Test)
         TaskResult changeLogResult = finalRecord.taskResult(Generate_Change_Log)
         TaskResult buildInfoResult = finalRecord.taskResult(Generate_Build_Info)
@@ -146,9 +151,11 @@ class FunctionalTest1 extends FunctionalTestBase {
         TaskResult integrationTestResult = finalRecord.taskResult(Integration_Test)
         TaskResult functionalTestResult = finalRecord.taskResult(Functional_Test)
         TaskResult acceptanceTestResult = finalRecord.taskResult(Acceptance_Test)
+        TaskResult productionTestResult = finalRecord.taskResult(Production_Test)
+        TaskResult tagResult = finalRecord.taskResult(TaskKey.Tag)  // full Tag reference needed to avoid Groovy getting confused
         TaskResult bintrayUploadResult = finalRecord.taskResult(Bintray_Upload)
         TaskResult mergeToMasterResult = finalRecord.taskResult(Merge_to_Master)
-        TaskResult productionTestResult = finalRecord.taskResult(Production_Test)
+
 
 
         finalRecord.failureDescription.contains(failDesc)
@@ -173,51 +180,61 @@ class FunctionalTest1 extends FunctionalTestBase {
         functionalTestResult.passed() == expFunc
         acceptanceTestResult.passed() == expAccept
         productionTestResult.passed() == expProd
-        bintrayUploadResult.notRequired() == expBintray
-        mergeToMasterResult.notRequired() == expMerge
-
+        bintrayUploadResult.passed() == expBintray
+        mergeToMasterResult.passed() == expMerge
+        tagResult.passed() == expTagged
+        hasTag(commitId, baseVersion)
+        masterMerged(commitId)
 
 
         where:
-        commitId                                   | testDesc                                         | finalBuildState          | causeOfFailure | unitTestExpected | integrationTestExpected | unitStdOut         | unitStdErr | iTestStdOut        | iTestStdErr | expBuildInfo | expChangeLog | expPublishLocal | expFunc | expAccept | expProd | expBintray | expMerge | failDesc
-        "bd3babdbff16a9ab3b68d000b4375a4a98392375" | "full cycle, except bintray and merge, all pass" | BuildStateKey.Successful | Not_Applicable | Successful       | Successful              | "BUILD SUCCESSFUL" | ""         | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | ""
-        "dcc4b5ebbd9ec8ecfe1103a0f672a5ae30d6b62b" | "unit test failure"                              | BuildStateKey.Failed     | Task_Failure   | Failed           | Not_Run                 | ""                 | ""         | ""                 | ""          | false        | false        | false           | false   | false     | false   | true       | true     | "There were failing tests"
+        commitId                                   | baseVersion | testDesc                    | finalBuildState          | causeOfFailure | unitTestExpected | integrationTestExpected | unitStdOut         | unitStdErr | iTestStdOut        | iTestStdErr | expBuildInfo | expChangeLog | expPublishLocal | expFunc | expAccept | expProd | expBintray | expMerge | expTagged | failDesc
+        "097ae697e753ea70c9f79f5c157062f3a6e1abf1" | "0.5.2.0"   | "full cycle all steps pass" | BuildStateKey.Successful | Not_Applicable | Successful       | Successful              | "BUILD SUCCESSFUL" | ""         | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | true      | ""
+        "230ca897053f8f934565057538bc5dd2ab66afe9" | "0.5.3.0"   | "unit test failure"         | BuildStateKey.Failed     | Task_Failure   | Failed           | Not_Run                 | ""                 | ""         | ""                 | ""          | false        | false        | false           | false   | false     | false   | false      | false    | false     | "There were failing tests"
 //        "5771e944c6e3d32072962a1edfab37bd4192fad6" | "version check failure"                          | BuildStateKey.Failed     | Preparation_Failed | Not_Run          | Not_Run                 | ""                 | ""            | ""                 | ""          | false        | false        | false           | false   | false     | false   | false      | false    | "Preparation failure"
 
     }
 
+    boolean masterMerged(String commitId) {
+        GitSHA expectedSha = new GitSHA(commitId)
+        GitBranch masterBranch = new GitBranch('master')
+        GitBranch developBranch = new GitBranch('develop')
+        if (gitPlus.local.headCommitSHA(masterBranch) == expectedSha) {
+            if (gitPlus.local.headCommitSHA(developBranch) == expectedSha) {
+                return true
+            }
+        }
+        return false
+    }
+
+    boolean hasTag(String commitId, String baseVersion) {
+        GitSHA gitSha = new GitSHA(commitId)
+        String version = "$baseVersion.${gitSha.short()}"
+        List<Tag> tags = gitPlus.local.tags()
+        for (tag in tags) {
+            if (tag.tagName == version) {
+                if (tag.commit.hash == commitId) {
+                    return true
+                }
+            }
+        }
+        return false
+    }
     //cbe99aaaf6fa74c249d0fdb74a38b5dab8fc4ca2
 
 
-    def "gitPlus"() {
-        given:
-        timeoutPeriod = 18000 // 5 mins
-        defaultSubscribe()
-        final String fullProjectName = "davidsowerby/gitPlus"
-        BuildRequest buildRequest = new BuildRequest(fullProjectName, "f5f8f0ecde59abb69d8b534a9735e625995df333")
-        timeoutAt = LocalDateTime.now().plusSeconds(timeoutPeriod)
-
-
-        when:
-        requestSpec { RequestSpec requestSpec ->
-            requestSpec.body.type("application/hal+json")
-            requestSpec.body.text(JsonOutput.toJson(buildRequest))
-        }
-        ReceivedResponse response = post(ConstantsKt.buildRequests)
-        String t = response.getBody()
-        println t
-        while (!buildStopped()) {
-            int togo = Duration.between(LocalDateTime.now(), timeoutAt).seconds
-            println "Waiting for build to complete, timeout in $togo seconds "
-            Thread.sleep(1000)
-        }
-        then:
-        !timedOut
-        finalRecord.state == BuildStateKey.Successful
-    }
-
     private void defaultSubscribe() {
         subscribe("http://localhost:9001/buildRecords", subscriberUri)
+    }
+
+    private void configureGitPlus(String commitId) {
+        gitPlus.remote.active = false
+        gitPlus.local.projectName = "kaytee-test"
+        String commitIdShort = new GitSHA(commitId).short()
+        // project dir
+        File projectDirParent = new File(tempDataArea, "kaytee-test/$commitIdShort")
+        gitPlus.local.projectDirParent = projectDirParent
+        gitPlus.execute()
     }
 
     private ReceivedResponse subscribe(String toTopic, String subscriberCallback) {

@@ -110,7 +110,7 @@ class RealOnes extends FunctionalTestBase {
         given:
         timeoutPeriod = 18000 // 5 mins
         defaultSubscribe()
-        final String fullProjectName = "davidsowerby/gitPlus"
+        final String fullProjectName = "davidsowerby/gitplus"
         BuildRequest buildRequest = new BuildRequest(fullProjectName, "4875be916bb38264901ee70f4463497e8d29b6ae")
         timeoutAt = LocalDateTime.now().plusSeconds(timeoutPeriod)
 
