@@ -141,6 +141,7 @@ class FunctionalTest1 extends FunctionalTestBase {
             println "Waiting for build to complete"
             Thread.sleep(1000)
         }
+        Thread.sleep(1000)
 
         then:
         configureGitPlus(commitId)
@@ -183,8 +184,16 @@ class FunctionalTest1 extends FunctionalTestBase {
         bintrayUploadResult.passed() == expBintray
         mergeToMasterResult.passed() == expMerge
         tagResult.passed() == expTagged
-        hasTag(commitId, baseVersion)
-        masterMerged(commitId)
+        if (expTagged) {
+            hasTag(commitId, baseVersion)
+        } else {
+            !hasTag(commitId, baseVersion)
+        }
+        if (expMerge) {
+            masterMerged(commitId)
+        } else {
+            !masterMerged(commitId)
+        }
 
 
         where:

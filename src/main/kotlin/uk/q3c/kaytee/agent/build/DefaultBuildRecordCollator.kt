@@ -40,83 +40,108 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
 
     @Handler
     fun busMessage(busMessage: BuildQueuedMessage) {
-        updateBuildState(BuildStateKey.Requested, busMessage)
+        synchronized(lock) {
+            updateBuildState(BuildStateKey.Requested, busMessage)
+        }
     }
 
     @Handler
     fun busMessage(busMessage: BuildStartedMessage) {
-        updateBuildState(BuildStateKey.Started, busMessage)
+        synchronized(lock) {
+            updateBuildState(BuildStateKey.Started, busMessage)
+        }
     }
 
     @Handler
     fun busMessage(busMessage: BuildSuccessfulMessage) {
-        updateBuildState(BuildStateKey.Successful, busMessage)
+        synchronized(lock) {
+            updateBuildState(BuildStateKey.Successful, busMessage)
+        }
     }
 
 
     @Handler
     fun busMessage(busMessage: BuildFailedMessage) {
-        val record = updateBuildState(BuildStateKey.Failed, busMessage)
-        record.causeOfFailure = BuildExceptionLookup().lookupKeyFromException(busMessage.e)
-        record.failureDescription =
-                if (busMessage.e.message != null) {
-                    busMessage.e.message as String
-                } else {
-                    busMessage.e.javaClass.simpleName
-                }
+        synchronized(lock) {
+            val record = updateBuildState(BuildStateKey.Failed, busMessage)
+            record.causeOfFailure = BuildExceptionLookup().lookupKeyFromException(busMessage.e)
+            record.failureDescription =
+                    if (busMessage.e.message != null) {
+                        busMessage.e.message as String
+                    } else {
+                        busMessage.e.javaClass.simpleName
+                    }
+        }
     }
 
 
     @Handler
     fun busMessage(busMessage: PreparationStartedMessage) {
-        updateBuildState(Preparation_Started, busMessage)
+        synchronized(lock) {
+            updateBuildState(Preparation_Started, busMessage)
+        }
     }
 
     @Handler
     fun busMessage(busMessage: PreparationSuccessfulMessage) {
-        updateBuildState(Preparation_Successful, busMessage)
+        synchronized(lock) {
+            updateBuildState(Preparation_Successful, busMessage)
+        }
     }
 
     @Handler
     fun busMessage(busMessage: PreparationFailedMessage) {
-        val record = updateBuildState(BuildStateKey.Failed, busMessage)
-        val stacktrace = ExceptionUtils.getRootCauseStackTrace(busMessage.e)
-        record.failureDescription =
-                stacktrace.joinToString(separator = "\n")
-        record.causeOfFailure = Preparation_Failed
-        record.preparationCompletedAt = busMessage.time
+        synchronized(lock) {
+            val record = updateBuildState(BuildStateKey.Failed, busMessage)
+            val stacktrace = ExceptionUtils.getRootCauseStackTrace(busMessage.e)
+            record.failureDescription =
+                    stacktrace.joinToString(separator = "\n")
+            record.causeOfFailure = Preparation_Failed
+            record.preparationCompletedAt = busMessage.time
+        }
     }
 
     @Handler
     fun busMessage(busMessage: TaskNotRequiredMessage) {
-        updateTaskState(TaskStateKey.Not_Required, busMessage)
+        synchronized(lock) {
+            updateTaskState(TaskStateKey.Not_Required, busMessage)
+        }
     }
 
     @Handler
     fun busMessage(busMessage: TaskRequestedMessage) {
-        updateTaskState(TaskStateKey.Requested, busMessage)
+        synchronized(lock) {
+            updateTaskState(TaskStateKey.Requested, busMessage)
+        }
     }
 
     @Handler
     fun busMessage(busMessage: TaskStartedMessage) {
-        updateTaskState(TaskStateKey.Started, busMessage)
+        synchronized(lock) {
+            updateTaskState(TaskStateKey.Started, busMessage)
+        }
     }
 
     @Handler
     fun busMessage(busMessage: TaskSuccessfulMessage) {
-        val taskRecord = updateTaskState(TaskStateKey.Successful, busMessage)
-        taskRecord.stdOut = busMessage.stdOut
+        synchronized(lock) {
+            val taskRecord = updateTaskState(TaskStateKey.Successful, busMessage)
+            taskRecord.stdOut = busMessage.stdOut
+        }
     }
 
     @Handler
     fun busMessage(busMessage: TaskFailedMessage) {
-        val taskRecord = updateTaskState(busMessage.result, busMessage)
-        taskRecord.stdOut = busMessage.stdOut
-        taskRecord.stdErr = busMessage.stdErr
-        val buildRecord = getRecord(busMessage.buildRequestId)
-        buildRecord.failureDescription = taskRecord.stdOut
-        buildRecord.causeOfFailure = Task_Failure
-        buildRecord.failedTask = busMessage.taskKey
+        synchronized(lock) {
+            val taskRecord = updateTaskState(busMessage.result, busMessage)
+            taskRecord.stdOut = busMessage.stdOut
+            taskRecord.stdErr = busMessage.stdErr
+            val buildRecord = getRecord(busMessage.buildRequestId)
+            buildRecord.failureDescription = taskRecord.stdOut
+            log.debug("Build record failure description set to: ${buildRecord.failureDescription}")
+            buildRecord.causeOfFailure = Task_Failure
+            buildRecord.failedTask = busMessage.taskKey
+        }
     }
 
     override fun getRecord(buildMessage: BuildMessage): BuildRecord {
