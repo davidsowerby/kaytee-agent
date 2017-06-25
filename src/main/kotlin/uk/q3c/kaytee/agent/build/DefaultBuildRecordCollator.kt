@@ -132,7 +132,9 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
 
     @Handler
     fun busMessage(busMessage: TaskFailedMessage) {
+        log.debug("**Received {} for {}", busMessage.javaClass.simpleName, busMessage.taskKey.name)
         synchronized(lock) {
+            log.debug("Received {} for {}", busMessage.javaClass.simpleName, busMessage.taskKey.name)
             val taskRecord = updateTaskState(busMessage.result, busMessage)
             taskRecord.stdOut = busMessage.stdOut
             taskRecord.stdErr = busMessage.stdErr
@@ -174,7 +176,7 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
 
     private fun createRecord(uid: UUID, delegated: Boolean, time: OffsetDateTime): BuildRecord {
         log.debug("creating record for {}, delegate build is {}", uid, delegated)
-        val record = BuildRecord(uid, time)
+        val record = BuildRecord(uid, time, delegated)
         if (delegated) {
             delegateBuildRecords.put(uid, record)
         } else {
@@ -212,7 +214,6 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
         log.debug("${buildMessage.javaClass.simpleName} received, build id: {}", buildMessage.buildRequestId)
         val buildRecord = getRecord(buildMessage)
         buildRecord.state = newState
-        buildRecord.delegated = buildMessage.delegated
 
         when (newState) {
             BuildStateKey.Requested -> buildRecord.requestedAt = buildMessage.time

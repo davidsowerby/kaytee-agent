@@ -45,7 +45,7 @@ data class BuildRequestMessage(val project: Project, val commitId: String) : Bus
 
 data class BuildQueuedMessage(override val buildRequestId: UUID, override val delegated: Boolean) : AbstractBuildMessage(), InitialBuildMessage {
     fun path(): String {
-        val buildRecord = BuildRecord(buildRequestId, time)
+        val buildRecord = BuildRecord(buildRequestId, time, delegated)
         return buildRecord.path
     }
 }
@@ -65,6 +65,9 @@ data class TaskStartedMessage(override val buildRequestId: UUID, override val ta
 data class TaskSuccessfulMessage(override val buildRequestId: UUID, override val taskKey: TaskKey, override val delegated: Boolean, val stdOut: String) : AbstractTaskMessage()
 data class TaskFailedMessage(override val buildRequestId: UUID, override val taskKey: TaskKey, override val delegated: Boolean, val result: TaskStateKey, val stdOut: String, val stdErr: String) : AbstractTaskMessage()
 
-
+/**
+ * Used to indicate a problem with messages getting out of sync and not being handled
+ */
+class MessagingException(msg: String) : RuntimeException(msg)
 
 

@@ -17,10 +17,8 @@ import com.google.inject.*;
 import com.google.inject.matcher.AbstractMatcher;
 import com.google.inject.spi.TypeEncounter;
 import com.google.inject.spi.TypeListener;
-import net.engio.mbassy.bus.AbstractPubSubSupport;
 import net.engio.mbassy.bus.MBassador;
 import net.engio.mbassy.bus.SyncMessageBus;
-import net.engio.mbassy.bus.common.Properties;
 import net.engio.mbassy.bus.common.PubSubSupport;
 import net.engio.mbassy.bus.config.BusConfiguration;
 import net.engio.mbassy.bus.config.ConfigurationErrorHandler;
@@ -112,13 +110,10 @@ public class GlobalBusModule extends AbstractModule {
 
     private PubSubSupport<BusMessage> createBus(IBusConfiguration config, IPublicationErrorHandler publicationErrorHandler, ConfigurationErrorHandler
             configurationErrorHandler, String name, boolean useAsync) {
-        config.setProperty(Properties.Handler.PublicationError, publicationErrorHandler);
-        config.addConfigurationErrorHandler(configurationErrorHandler);
+        config.addPublicationErrorHandler(publicationErrorHandler);
         PubSubSupport<BusMessage> eventBus;
         eventBus = (useAsync) ? new MBassador<>(config) : new SyncMessageBus<>(config);
-        ((AbstractPubSubSupport) eventBus).addErrorHandler(publicationErrorHandler);
-        log.debug("instantiated a {} Bus with id {}", name, eventBus.getRuntime()
-                .get(Properties.Common.Id));
+        log.debug("instantiated a {} Bus with id {}", name, eventBus.getRuntime().get(IBusConfiguration.Properties.BusId));
         return eventBus;
     }
 

@@ -4,6 +4,7 @@ import org.gradle.tooling.BuildLauncher
 import uk.q3c.kaytee.agent.queue.BuildRunner
 import uk.q3c.kaytee.agent.queue.ProjectInstance
 import uk.q3c.kaytee.plugin.KayTeeExtension
+import uk.q3c.kaytee.plugin.TaskKey
 import java.io.File
 
 /**
@@ -33,6 +34,10 @@ interface Build : ProjectInstance {
     val buildRunner: BuildRunner
     var parentBuild: Build
 
+    /**
+     * The lifecycle used by this build, can only be standard or delegated currently
+     */
+    var lifecycle: List<TaskKey>
 
     fun buildNumber(): String
 

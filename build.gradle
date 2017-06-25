@@ -77,7 +77,10 @@ dependencies {
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.7.5"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.7.5"
     //krail for I18N only.  Reduce when I18N moved out of Krail
-    compile "uk.q3c.krail:krail:0.9.9"
+    compile ("uk.q3c.krail:krail:0.9.9"){
+        exclude group: 'net.engio'
+    }
+    compile "net.engio:mbassador:1.3.0"
     compile "uk.q3c.kaytee:kaytee-plugin:$kaytee_plugin_version"
     compile "org.gradle:gradle-tooling-api:" + toolingApiVersion
 

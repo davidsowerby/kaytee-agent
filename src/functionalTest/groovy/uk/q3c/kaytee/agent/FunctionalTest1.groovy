@@ -26,9 +26,9 @@ import uk.q3c.rest.hal.HalMapper
 
 import java.time.LocalDateTime
 
-import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Not_Applicable
 import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Task_Failure
-import static uk.q3c.kaytee.agent.i18n.TaskStateKey.*
+import static uk.q3c.kaytee.agent.i18n.TaskStateKey.Failed
+import static uk.q3c.kaytee.agent.i18n.TaskStateKey.Not_Run
 import static uk.q3c.kaytee.plugin.TaskKey.*
 
 /**
@@ -58,10 +58,7 @@ class FunctionalTest1 extends FunctionalTestBase {
                         buildId = buildRecord.uid
                     }
                     if (buildRecord.uid == buildId) {
-                        if (buildRecord.hasCompleted()) {
-                            buildComplete = true
-                            finalRecord = buildRecord
-                        }
+                        finalRecord = buildRecord
                     }
                     subscriberMessages.add(buildRecord)
                     timeoutAt = LocalDateTime.now().plusSeconds(timeoutPeriod)
@@ -114,7 +111,10 @@ class FunctionalTest1 extends FunctionalTestBase {
             timedOut = true
             return true
         }
-        return buildComplete
+        if (finalRecord == null) {
+            return false
+        }
+        return finalRecord.hasCompleted()
     }
 
     @Unroll
@@ -138,10 +138,9 @@ class FunctionalTest1 extends FunctionalTestBase {
         String t = response.getBody()
         println t
         while (!buildStopped()) {
-            println "Waiting for build to complete"
             Thread.sleep(1000)
         }
-        Thread.sleep(1000)
+        Thread.sleep(5000)
 
         then:
         configureGitPlus(commitId)
@@ -197,9 +196,9 @@ class FunctionalTest1 extends FunctionalTestBase {
 
 
         where:
-        commitId                                   | baseVersion | testDesc                    | finalBuildState          | causeOfFailure | unitTestExpected | integrationTestExpected | unitStdOut         | unitStdErr | iTestStdOut        | iTestStdErr | expBuildInfo | expChangeLog | expPublishLocal | expFunc | expAccept | expProd | expBintray | expMerge | expTagged | failDesc
-        "097ae697e753ea70c9f79f5c157062f3a6e1abf1" | "0.5.2.0"   | "full cycle all steps pass" | BuildStateKey.Successful | Not_Applicable | Successful       | Successful              | "BUILD SUCCESSFUL" | ""         | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | true      | ""
-        "230ca897053f8f934565057538bc5dd2ab66afe9" | "0.5.3.0"   | "unit test failure"         | BuildStateKey.Failed     | Task_Failure   | Failed           | Not_Run                 | ""                 | ""         | ""                 | ""          | false        | false        | false           | false   | false     | false   | false      | false    | false     | "There were failing tests"
+        commitId                                   | baseVersion | testDesc            | finalBuildState      | causeOfFailure | unitTestExpected | integrationTestExpected | unitStdOut | unitStdErr | iTestStdOut | iTestStdErr | expBuildInfo | expChangeLog | expPublishLocal | expFunc | expAccept | expProd | expBintray | expMerge | expTagged | failDesc
+//        "097ae697e753ea70c9f79f5c157062f3a6e1abf1" | "0.5.2.0"   | "full cycle all steps pass" | BuildStateKey.Successful | Not_Applicable | Successful       | Successful              | "BUILD SUCCESSFUL" | ""         | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | true      | ""
+        "230ca897053f8f934565057538bc5dd2ab66afe9" | "0.5.3.0"   | "unit test failure" | BuildStateKey.Failed | Task_Failure   | Failed           | Not_Run                 | ""         | ""         | ""          | ""          | false        | false        | false           | false   | false     | false   | false      | false    | false     | "There were failing tests"
 //        "5771e944c6e3d32072962a1edfab37bd4192fad6" | "version check failure"                          | BuildStateKey.Failed     | Preparation_Failed | Not_Run          | Not_Run                 | ""                 | ""            | ""                 | ""          | false        | false        | false           | false   | false     | false   | false      | false    | "Preparation failure"
 
     }

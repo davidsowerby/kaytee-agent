@@ -1,7 +1,10 @@
 package uk.q3c.kaytee.agent.build
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import org.slf4j.LoggerFactory
 import uk.q3c.kaytee.agent.app.buildRecords
+import uk.q3c.kaytee.agent.app.delegatedLifecycle
+import uk.q3c.kaytee.agent.app.standardLifecycle
 import uk.q3c.kaytee.agent.app.zeroDate
 import uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Not_Applicable
 import uk.q3c.kaytee.agent.i18n.BuildStateKey
@@ -9,7 +12,9 @@ import uk.q3c.kaytee.agent.i18n.BuildStateKey.Not_Started
 import uk.q3c.kaytee.agent.i18n.TaskStateKey
 import uk.q3c.kaytee.agent.i18n.TaskStateKey.*
 import uk.q3c.kaytee.agent.i18n.finalStates
+import uk.q3c.kaytee.agent.queue.MessagingException
 import uk.q3c.kaytee.plugin.TaskKey
+import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -23,7 +28,8 @@ import java.util.*
  * Created by David Sowerby on 13 Jan 2017
  */
 @JsonIgnoreProperties("stateLock", "taskLock")
-class BuildRecord(uid: UUID, var requestedAt: OffsetDateTime) : HalResourceWithId(uid, buildRecords) {
+class BuildRecord(uid: UUID, var requestedAt: OffsetDateTime, val delegated: Boolean) : HalResourceWithId(uid, buildRecords) {
+    private val log = LoggerFactory.getLogger(this.javaClass.name)
     /**
      * The time the preparation started, regardless of whether it passed or failed
      */
@@ -45,7 +51,6 @@ class BuildRecord(uid: UUID, var requestedAt: OffsetDateTime) : HalResourceWithI
     var state: BuildStateKey = Not_Started
     var causeOfFailure = Not_Applicable
     var failureDescription = ""
-    var delegated: Boolean = false
     var failedTask: TaskKey = TaskKey.Custom // valid only if a task has failed
     private val stateLock = Any()
     private val taskLock = Any()
@@ -54,8 +59,12 @@ class BuildRecord(uid: UUID, var requestedAt: OffsetDateTime) : HalResourceWithI
 
     // initialise with empty results, so data set is always complete
     init {
-        for (taskKey in TaskKey.values()) {
-            // empty results show tasks as 'not run' - better than null
+        val lifecycle = if (delegated) {
+            delegatedLifecycle
+        } else {
+            standardLifecycle
+        }
+        for (taskKey in lifecycle) {
             taskResults.put(taskKey, TaskResult(taskKey))
         }
     }
@@ -85,10 +94,53 @@ class BuildRecord(uid: UUID, var requestedAt: OffsetDateTime) : HalResourceWithI
 
     /**
      * Returns true if the request has been completed - this only means that all processing that can be done has been, the build itself could have failed.
-     * To be sure a build was successful, use [passed]
+     * To be sure a build was successful, use [passed].  Checks that all task results are completed, as asynchronous messaging sometimes means a task result has not been conmpleted
+     * even though a build record has.
      */
     fun hasCompleted(): Boolean {
-        return finalStates.contains(state)
+        val lifecycle = if (delegated) {
+            delegatedLifecycle
+        } else {
+            standardLifecycle
+        }
+        for (taskKey in lifecycle) {
+            val taskResult = taskResults[taskKey]
+            // should never be null as taskResults constructed from the same lifecycle
+            if (taskResult != null) {
+                if (taskResult.failed() || taskResult.cancelled()) {
+                    log.debug("checking for build completion, Task ${taskResult.task.name} did not pass (state is: ${taskResult.state.name}), do not check remaining steps")
+                    waitForBuildState()
+                    return true
+
+                }
+                if (!taskResult.hasCompleted()) {
+                    log.debug("checking for build completion, TaskResult for ${taskResult.task.name} is not complete, state is: ${taskResult.state.name}")
+                    return false
+                }
+
+            }
+        }
+        // we get here if all the tasks have passed, so we may need to wait for build again
+        waitForBuildState()
+        return true
+    }
+
+    /**
+     * Returns if the build state catches up with task results or times out with exception
+     */
+    private fun waitForBuildState() {
+        // loop until BuildRecord state catches up (it is possible that Build and Task Messages arrive at
+        // different times)
+        val timeout = LocalDateTime.now().plusSeconds(1)
+        val timedOut = false
+        while (LocalDateTime.now().isBefore(timeout)) {
+            if (finalStates.contains(state)) {
+                return
+            }
+        }
+        if (timedOut) {
+            throw MessagingException("Timed out waiting for build state to match Task results")
+        }
     }
 
     override fun toString(): String {
@@ -145,6 +197,10 @@ data class TaskResult(val task: TaskKey) {
 
     fun passed(): Boolean {
         return state == TaskStateKey.Successful
+    }
+
+    fun hasCompleted(): Boolean {
+        return state != Not_Run && state != Started && state != Requested
     }
 }
 

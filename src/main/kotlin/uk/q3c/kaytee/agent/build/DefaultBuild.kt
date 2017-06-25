@@ -1,6 +1,5 @@
 package uk.q3c.kaytee.agent.build
 
-import com.google.common.collect.ImmutableList.of
 import com.google.inject.Inject
 import com.google.inject.Provider
 import com.google.inject.assistedinject.Assisted
@@ -8,6 +7,8 @@ import net.engio.mbassy.listener.Handler
 import net.engio.mbassy.listener.Listener
 import org.gradle.tooling.BuildLauncher
 import org.slf4j.LoggerFactory
+import uk.q3c.kaytee.agent.app.delegatedLifecycle
+import uk.q3c.kaytee.agent.app.standardLifecycle
 import uk.q3c.kaytee.agent.eventbus.BusMessage
 import uk.q3c.kaytee.agent.eventbus.GlobalBus
 import uk.q3c.kaytee.agent.eventbus.GlobalBusProvider
@@ -48,9 +49,9 @@ class DefaultBuild @Inject constructor(
     lateinit override var stdoutOutputFile: File
     lateinit override var parentBuild: Build
     lateinit override var gradleLauncher: BuildLauncher
+    lateinit override var lifecycle: List<TaskKey>
 
-    private val standardLifecycle: List<TaskKey> = of(Unit_Test, Integration_Test, Generate_Build_Info, Generate_Change_Log, Publish_to_Local, Functional_Test, Acceptance_Test, Merge_to_Master, Tag, Bintray_Upload, Production_Test)
-    private val delegatedLifecycle: List<TaskKey> = of()
+
 
     private val results: MutableList<TaskKey> = mutableListOf()
     private val taskRunners = ArrayDeque<TaskRunner>()
@@ -121,9 +122,11 @@ class DefaultBuild @Inject constructor(
     private fun generateTasks(configuration: KayTeeExtension) {
         log.debug("generating task for ${buildRunner}")
         if (buildRunner.delegated) {
+            lifecycle = delegatedLifecycle
             generateCustomTask(buildRunner.delegateTask)
         } else {
-            for (task in standardLifecycle) {
+            lifecycle = standardLifecycle
+            for (task in lifecycle) {
                 generateTask(configuration, task)
             }
         }

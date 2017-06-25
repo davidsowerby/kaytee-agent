@@ -61,6 +61,7 @@ class DefaultRequestQueue @Inject constructor(
 
 
     override fun addRequest(taskRunner: TaskRunner) {
+        log.debug("publishing TaskRequestedMessage for {}", taskRunner.taskKey.name)
         globalBusProvider.get().publish(TaskRequestedMessage(taskRunner.build.buildRunner.uid, taskRunner.taskKey, taskRunner.build.buildRunner.delegated))
         executor.submit(taskRunner)
     }

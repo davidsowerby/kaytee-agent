@@ -37,9 +37,9 @@ class DefaultHooksTest extends Specification {
 
 
     void setup() {
-        msg1 = new BuildRecord(uid1, OffsetDateTime.now())
-        msg2 = new BuildRecord(uid2, OffsetDateTime.now())
-        msg3 = new BuildRecord(uid3, OffsetDateTime.now())
+        msg1 = new BuildRecord(uid1, OffsetDateTime.now(), false)
+        msg2 = new BuildRecord(uid2, OffsetDateTime.now(), false)
+        msg3 = new BuildRecord(uid3, OffsetDateTime.now(), false)
         topic0 = new URL(publicAddress.get("build").toString())
         topic1 = new URL(publicAddress.get(msg1.self().href).toString())
         topic2 = new URL(publicAddress.get(msg2.self().href).toString())

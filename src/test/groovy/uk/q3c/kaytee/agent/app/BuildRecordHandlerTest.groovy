@@ -70,7 +70,7 @@ class BuildRecordHandlerTest extends HandlerTest {
     def "request valid build record, returns correct info"() {
         given:
         UUID validId = UUID.randomUUID()
-        BuildRecord buildRecord = new BuildRecord(validId, OffsetDateTime.now())
+        BuildRecord buildRecord = new BuildRecord(validId, OffsetDateTime.now(), false)
 
         when:
         ResponseCheck<BuildRecord> responseCheck = doGet(SC_OK, BuildRecord, "${ConstantsKt.idProperty}=$validId")

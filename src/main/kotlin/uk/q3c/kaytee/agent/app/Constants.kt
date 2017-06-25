@@ -1,5 +1,8 @@
 package uk.q3c.kaytee.agent.app
 
+import com.google.common.collect.ImmutableList
+import uk.q3c.kaytee.plugin.TaskKey
+import uk.q3c.kaytee.plugin.TaskKey.*
 import java.time.OffsetDateTime
 
 /**
@@ -28,5 +31,8 @@ val defaultDevelopmentBaseDir = "/tmp/$baseDirFolderName"
 val notSpecified: String = "not specified"
 
 //fun href(resourcePath: String) = "$baseUrl/$resourcePath"
+
+val standardLifecycle: List<TaskKey> = ImmutableList.of(Unit_Test, Integration_Test, Generate_Build_Info, Generate_Change_Log, Publish_to_Local, Functional_Test, Acceptance_Test, Merge_to_Master, Tag, Bintray_Upload, Production_Test)
+val delegatedLifecycle: List<TaskKey> = ImmutableList.of(Custom)
 
 
