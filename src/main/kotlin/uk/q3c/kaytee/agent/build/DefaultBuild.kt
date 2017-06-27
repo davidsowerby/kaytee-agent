@@ -171,6 +171,8 @@ class DefaultBuild @Inject constructor(
         // not enabled at all, nothing to do
         if (!config.enabled) {
             log.debug("Test group is disabled: ", taskKey)
+            val msg = TaskNotRequiredMessage(buildRunner.uid, taskKey, false)
+            globalBusProvider.get().publish(msg)
             return
         }
 
@@ -203,7 +205,7 @@ class DefaultBuild @Inject constructor(
         }
     }
 
-    @Handler
+    @Handler()
     fun taskCompleted(message: TaskFailedMessage) {
         // filter for messages which apply to this build - probably could make better use of MBassador filtering
         if (message.buildRequestId == this.buildRunner.uid) {
