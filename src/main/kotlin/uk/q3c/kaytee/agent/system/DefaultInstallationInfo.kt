@@ -23,11 +23,11 @@ class DefaultInstallationInfo @Inject constructor() : InstallationInfo {
 
 
     override fun gradleStdErrFile(build: Build): File {
-        return File(gradleOutputDir(build), "stderr.txt")
+        return File(buildOutputDir(build), "stderr.txt")
     }
 
     override fun gradleStdOutFile(build: Build): File {
-        return File(gradleOutputDir(build), "stdout.txt")
+        return File(buildOutputDir(build), "stdout.txt")
     }
 
     override fun projectDir(build: Build): File {
@@ -46,7 +46,7 @@ class DefaultInstallationInfo @Inject constructor() : InstallationInfo {
         return File(projectDir(build), build.buildNumber().toString())
     }
 
-    override fun gradleOutputDir(build: Build): File {
+    override fun buildOutputDir(build: Build): File {
         return File(projectBuildNumberDir(build), "build-output")
     }
 

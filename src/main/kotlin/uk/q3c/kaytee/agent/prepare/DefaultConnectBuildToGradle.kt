@@ -32,7 +32,7 @@ class DefaultConnectBuildToGradle @Inject constructor(val requestQueue: RequestQ
         log.info("Gradle connected to build at {}", projectDir)
 
 
-        val gradleOutputDir = installationInfo.gradleOutputDir(build)
+        val gradleOutputDir = installationInfo.buildOutputDir(build)
         if (!gradleOutputDir.exists()) {
             FileUtils.forceMkdir(gradleOutputDir)
         }

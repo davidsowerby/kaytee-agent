@@ -59,7 +59,7 @@ interface InstallationInfo {
      * Directory to hold [gradleStdErrFile] and [gradleStdOutFile] files.  These are in a separate directory to
      * the [projectDir], to avoid being deleted by a 'clean' ope
      */
-    fun gradleOutputDir(build: Build): File
+    fun buildOutputDir(build: Build): File
 
     fun dataDir(): File
     fun installDir(): File

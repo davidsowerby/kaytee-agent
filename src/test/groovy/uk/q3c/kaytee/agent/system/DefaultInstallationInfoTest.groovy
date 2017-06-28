@@ -48,7 +48,7 @@ class DefaultInstallationInfoTest extends Specification {
 
         expect:
 
-        info.gradleOutputDir(build) == new File('/home/david/kaytee-data/wiggly/12/build-output')
+        info.buildOutputDir(build) == new File('/home/david/kaytee-data/wiggly/12/build-output')
         info.projectDir(build) == new File('/home/david/kaytee-data/wiggly')
         info.buildNumberDir(build) == new File('/home/david/kaytee-data/wiggly/12')
         info.projectInstanceDir(build) == new File('/home/david/kaytee-data/wiggly/12/wiggly')
@@ -70,7 +70,7 @@ class DefaultInstallationInfoTest extends Specification {
 
         expect:
 
-        info.gradleOutputDir(build) == new File(temp, 'wiggly/12/build-output')
+        info.buildOutputDir(build) == new File(temp, 'wiggly/12/build-output')
         info.projectDir(build) == new File(temp, 'wiggly')
         info.buildNumberDir(build) == new File(temp, 'wiggly/12')
         info.projectInstanceDir(build) == new File(temp, 'wiggly/12/wiggly')
