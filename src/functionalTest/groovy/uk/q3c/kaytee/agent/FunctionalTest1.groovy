@@ -26,9 +26,9 @@ import uk.q3c.rest.hal.HalMapper
 
 import java.time.LocalDateTime
 
+import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Not_Applicable
 import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Task_Failure
-import static uk.q3c.kaytee.agent.i18n.TaskStateKey.Failed
-import static uk.q3c.kaytee.agent.i18n.TaskStateKey.Not_Run
+import static uk.q3c.kaytee.agent.i18n.TaskStateKey.*
 import static uk.q3c.kaytee.plugin.TaskKey.*
 
 /**
@@ -196,9 +196,9 @@ class FunctionalTest1 extends FunctionalTestBase {
 
 
         where:
-        commitId                                   | baseVersion | testDesc            | finalBuildState      | causeOfFailure | unitTestExpected | integrationTestExpected | unitStdOut | unitStdErr | iTestStdOut | iTestStdErr | expBuildInfo | expChangeLog | expPublishLocal | expFunc | expAccept | expProd | expBintray | expMerge | expTagged | failDesc
-//        "e72cc0017c5dfed90ae5e521513161af3b37da0c" | "0.5.5.0"   | "full cycle all steps pass" | BuildStateKey.Successful | Not_Applicable | Successful       | Successful              | "BUILD SUCCESSFUL" | ""         | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | true      | ""
-        "5d2b3d842abe7b1e293166ebe9d2138d4fc02f87" | "0.5.4.0"   | "unit test failure" | BuildStateKey.Failed | Task_Failure   | Failed           | Not_Run                 | ""         | ""         | ""          | ""          | false        | false        | false           | false   | false     | false   | false      | false    | false     | "There were failing tests"
+        commitId                                   | baseVersion | testDesc                    | finalBuildState          | causeOfFailure | unitTestExpected | integrationTestExpected | unitStdOut         | unitStdErr | iTestStdOut        | iTestStdErr | expBuildInfo | expChangeLog | expPublishLocal | expFunc | expAccept | expProd | expBintray | expMerge | expTagged | failDesc
+        "e72cc0017c5dfed90ae5e521513161af3b37da0c" | "0.5.5.0"   | "full cycle all steps pass" | BuildStateKey.Successful | Not_Applicable | Successful       | Successful              | "BUILD SUCCESSFUL" | ""         | "BUILD SUCCESSFUL" | ""          | true         | true         | true            | true    | true      | false   | true       | true     | true      | ""
+        "5d2b3d842abe7b1e293166ebe9d2138d4fc02f87" | "0.5.4.0"   | "unit test failure"         | BuildStateKey.Failed     | Task_Failure   | Failed           | Not_Run                 | ""                 | ""         | ""                 | ""          | false        | false        | false           | false   | false     | false   | false      | false    | false     | "There were failing tests"
 //        "5771e944c6e3d32072962a1edfab37bd4192fad6" | "version check failure"                          | BuildStateKey.Failed     | Preparation_Failed | Not_Run          | Not_Run                 | ""                 | ""            | ""                 | ""          | false        | false        | false           | false   | false     | false   | false      | false    | "Preparation failure"
 
     }
