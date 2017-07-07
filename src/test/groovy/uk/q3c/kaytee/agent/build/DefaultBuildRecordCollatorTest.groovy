@@ -2,6 +2,7 @@ package uk.q3c.kaytee.agent.build
 
 import spock.lang.Specification
 import spock.lang.Unroll
+import uk.q3c.kaytee.agent.app.ConstantsKt
 import uk.q3c.kaytee.agent.app.Hooks
 import uk.q3c.kaytee.agent.i18n.TaskStateKey
 import uk.q3c.kaytee.agent.queue.*
@@ -11,7 +12,7 @@ import java.time.OffsetDateTime
 
 import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.*
 import static uk.q3c.kaytee.agent.i18n.BuildStateKey.*
-import static uk.q3c.kaytee.plugin.TaskKey.Merge_to_Master
+import static uk.q3c.kaytee.plugin.TaskKey.*
 
 /**
  * Created by David Sowerby on 11 Jun 2017
@@ -61,9 +62,9 @@ class DefaultBuildRecordCollatorTest extends Specification {
         record.delegated == delegated
         record.causeOfFailure == Not_Applicable
         record.failureDescription == ""
-        record.taskResults.size() == 14  // constructed at start
+        record.taskResults.size() == delegated ? 1 : ConstantsKt.standardLifecycle.size()  // constructed at start
 
-        numpty * hooks.publish(_)
+        msgsPublished * hooks.publish(_)
 
         when: "Started"
         collator.busMessage(startedMessage)
@@ -82,7 +83,7 @@ class DefaultBuildRecordCollatorTest extends Specification {
         record.causeOfFailure == Not_Applicable
         record.failureDescription == ""
 
-        numpty * hooks.publish(_)
+        msgsPublished * hooks.publish(_)
 
         when: "Started prep"
         collator.busMessage(preparationStartedMessage)
@@ -120,7 +121,7 @@ class DefaultBuildRecordCollatorTest extends Specification {
         record.causeOfFailure == Not_Applicable
         record.failureDescription == ""
 
-        numpty * hooks.publish(_)
+        msgsPublished * hooks.publish(_)
 
         when: "Build successful"
         collator.busMessage(buildSuccessfulMessage)
@@ -140,10 +141,10 @@ class DefaultBuildRecordCollatorTest extends Specification {
         record.causeOfFailure == Not_Applicable
         record.failureDescription == ""
 
-        numpty * hooks.publish(_)
+        msgsPublished * hooks.publish(_)
 
         where:
-        delegated | numpty
+        delegated | msgsPublished
         false     | 1
         true      | 0
 
@@ -183,12 +184,12 @@ class DefaultBuildRecordCollatorTest extends Specification {
             record.failureDescription == "wiggly"
         }
 
-        (numpty * 4) * hooks.publish(_)
+        (msgsPublished * 4) * hooks.publish(_)
 
         where:
-        delegated | numpty | exceptionMsg
-        false     | 1      | "wiggly"
-        true      | 0      | null
+        delegated | msgsPublished | exceptionMsg
+        false     | 1             | "wiggly"
+        true      | 0             | null
 
     }
 
@@ -225,28 +226,31 @@ class DefaultBuildRecordCollatorTest extends Specification {
         record.causeOfFailure == Build_Configuration
         record.failureDescription.contains("There were no tasks to carry out")
 
-        (numpty * 5) * hooks.publish(_)
+        (msgsPublished * 5) * hooks.publish(_)
 
         where:
-        delegated | numpty
+        delegated | msgsPublished
         false     | 1
         true      | 0
 
     }
 
-    def "Task is successful"() {
+    @Unroll
+    def "Task is successful, delegated is #delegated"() {
         given:
         BuildQueuedMessage queuedMessage = new BuildQueuedMessage(uid, delegated)
         BuildStartedMessage startedMessage = new BuildStartedMessage(uid, delegated, "0.0")
-        TaskRequestedMessage taskRequestedMessage = new TaskRequestedMessage(uid, Merge_to_Master, delegated)
-        TaskStartedMessage taskStartedMessage = new TaskStartedMessage(uid, Merge_to_Master, delegated)
-        TaskSuccessfulMessage taskSuccessfulMessage = new TaskSuccessfulMessage(uid, Merge_to_Master, delegated, stdOut)
-
-        when:
+        TaskRequestedMessage taskRequestedMessage = new TaskRequestedMessage(uid, taskKey, delegated)
+        TaskStartedMessage taskStartedMessage = new TaskStartedMessage(uid, taskKey, delegated)
+        TaskSuccessfulMessage taskSuccessfulMessage = new TaskSuccessfulMessage(uid, taskKey, delegated, stdOut)
         collator.busMessage(queuedMessage)
         collator.busMessage(startedMessage)
+        BuildRecord buildRecord = collator.getRecord(uid)
+        TaskResult taskRecord = buildRecord.taskResult(taskKey)
+
+        when:
         collator.busMessage(taskRequestedMessage)
-        TaskResult taskRecord = collator.getRecord(uid).taskResult(Merge_to_Master)
+
 
         then:
         taskRecord.state == TaskStateKey.Requested
@@ -256,6 +260,8 @@ class DefaultBuildRecordCollatorTest extends Specification {
         isSet(taskRecord.requestedAt)
         isNotSet(taskRecord.startedAt)
         isNotSet(taskRecord.completedAt)
+
+        msgsPublished * hooks.publish(buildRecord)
 
         when:
         collator.busMessage(taskStartedMessage)
@@ -269,6 +275,8 @@ class DefaultBuildRecordCollatorTest extends Specification {
         isSet(taskRecord.startedAt)
         isNotSet(taskRecord.completedAt)
 
+        msgsPublished * hooks.publish(collator.getRecord(uid))
+
         when:
         collator.busMessage(taskSuccessfulMessage)
 
@@ -281,22 +289,23 @@ class DefaultBuildRecordCollatorTest extends Specification {
         isSet(taskRecord.startedAt)
         isSet(taskRecord.completedAt)
 
-        numpty * hooks.publish(_)
+        msgsPublished * hooks.publish(collator.getRecord(uid))
 
 
         where:
-        delegated | numpty
-        false     | 1
-        true      | 0
+        delegated | taskKey         | msgsPublished
+        false     | Merge_to_Master | 1
+        true      | Custom          | 0
     }
 
-    def "Task fails, quality gate broken"() {
+    @Unroll
+    def "Task fails, quality gate broken delegated is #delegated"() {
         given:
         BuildQueuedMessage queuedMessage = new BuildQueuedMessage(uid, delegated)
         BuildStartedMessage startedMessage = new BuildStartedMessage(uid, delegated, "0.0")
-        TaskRequestedMessage taskRequestedMessage = new TaskRequestedMessage(uid, Merge_to_Master, delegated)
-        TaskStartedMessage taskStartedMessage = new TaskStartedMessage(uid, Merge_to_Master, delegated)
-        TaskFailedMessage taskFailedMessage = new TaskFailedMessage(uid, Merge_to_Master, delegated, TaskStateKey.Quality_Gate_Failed, stdOut, stdErr)
+        TaskRequestedMessage taskRequestedMessage = new TaskRequestedMessage(uid, taskKey, delegated)
+        TaskStartedMessage taskStartedMessage = new TaskStartedMessage(uid, taskKey, delegated)
+        TaskFailedMessage taskFailedMessage = new TaskFailedMessage(uid, taskKey, delegated, TaskStateKey.Quality_Gate_Failed, stdOut, stdErr)
 
         when:
         collator.busMessage(queuedMessage)
@@ -305,7 +314,7 @@ class DefaultBuildRecordCollatorTest extends Specification {
         collator.busMessage(taskStartedMessage)
         collator.busMessage(taskFailedMessage)
         BuildRecord buildRecord = collator.getRecord(uid)
-        TaskResult taskRecord = buildRecord.taskResult(Merge_to_Master)
+        TaskResult taskRecord = buildRecord.taskResult(taskKey)
 
         then:
         taskRecord.state == TaskStateKey.Quality_Gate_Failed
@@ -321,18 +330,17 @@ class DefaultBuildRecordCollatorTest extends Specification {
 
 
         where:
-        delegated | calls
-        false     | 1
-        true      | 0
+        delegated | calls | taskKey
+        false     | 1     | Unit_Test
+        true      | 0     | Custom
     }
 
-    def "Task not required"() {
+    def "Task not required in standard lifecycle"() {
         given:
         BuildQueuedMessage queuedMessage = new BuildQueuedMessage(uid, delegated)
         BuildStartedMessage startedMessage = new BuildStartedMessage(uid, delegated, "0.0")
         TaskNotRequiredMessage taskNotRequiredMessage = new TaskNotRequiredMessage(uid, Merge_to_Master, delegated)
         TaskStartedMessage taskStartedMessage = new TaskStartedMessage(uid, Merge_to_Master, delegated)
-        TaskFailedMessage taskFailedMessage = new TaskFailedMessage(uid, Merge_to_Master, delegated, TaskStateKey.Quality_Gate_Failed, stdOut, stdErr)
 
         when:
         collator.busMessage(queuedMessage)
@@ -341,7 +349,7 @@ class DefaultBuildRecordCollatorTest extends Specification {
         BuildRecord buildRecord = collator.getRecord(uid)
         TaskResult taskRecord = buildRecord.taskResult(Merge_to_Master)
 
-        then:
+        then: "has the correct state"
         taskRecord.state == TaskStateKey.Not_Required
         taskRecord.stdOut == ""
         taskRecord.stdErr == ""
@@ -352,18 +360,17 @@ class DefaultBuildRecordCollatorTest extends Specification {
 
         buildRecord.failureDescription == ""
 
-        when:
+        when: "we start a 'not required' task"
         collator.busMessage(taskStartedMessage)
 
-        then:
+        then: "throw exception as it should not be started"
         thrown InvalidBuildStateException
 
 
 
-        where:
+        where: "cannot make 'delegated' task 'Not_Required', so do not test for it"
         delegated | calls
         false     | 1
-        true      | 0
     }
 
     def "getRecord with invalid id throws exception"() {
