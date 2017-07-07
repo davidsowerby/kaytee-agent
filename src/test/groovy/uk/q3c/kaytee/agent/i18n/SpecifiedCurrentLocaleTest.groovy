@@ -1,5 +1,6 @@
 package uk.q3c.kaytee.agent.i18n
 
+import net.engio.mbassy.bus.IMessagePublication
 import net.engio.mbassy.bus.common.PubSubSupport
 import spock.lang.Specification
 import uk.q3c.kaytee.agent.eventbus.GlobalBusProvider
@@ -28,27 +29,38 @@ class SpecifiedCurrentLocaleTest extends Specification {
     }
 
     def "setLocale with true, sends bus message"() {
-        LocaleChangeBusMessage msg
+        given:
+        def msg
+        IMessagePublication imp = Mock(IMessagePublication)
 
         when:
         currentLocale.setLocale(Locale.CANADA_FRENCH, true)
 
         then:
+
         1 * globalBusProvider.get() >> globalBus
-        1 * globalBus.publish(_) >> { arguments -> msg = arguments[0] as LocaleChangeBusMessage }
+        1 * globalBus.publish(_) >> { arguments ->
+            msg = arguments[0]
+            imp
+        }
         msg.changeSource == currentLocale
         msg.newLocale == Locale.CANADA_FRENCH
     }
 
     def "setLocale defaults to fireListeners=true"() {
+        given:
         LocaleChangeBusMessage msg
+        IMessagePublication imp = Mock(IMessagePublication)
 
         when:
         currentLocale.setLocale(Locale.CANADA_FRENCH)
 
         then:
         1 * globalBusProvider.get() >> globalBus
-        1 * globalBus.publish(_) >> { arguments -> msg = arguments[0] as LocaleChangeBusMessage }
+        1 * globalBus.publish(_) >> { arguments ->
+            msg = arguments[0] as LocaleChangeBusMessage
+            imp
+        }
         msg.changeSource == currentLocale
         msg.newLocale == Locale.CANADA_FRENCH
     }
