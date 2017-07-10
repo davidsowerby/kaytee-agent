@@ -11,10 +11,7 @@ import uk.q3c.kaytee.agent.i18n.BuildStateKey
 import uk.q3c.kaytee.agent.i18n.BuildStateKey.Not_Started
 import uk.q3c.kaytee.agent.i18n.TaskStateKey
 import uk.q3c.kaytee.agent.i18n.TaskStateKey.*
-import uk.q3c.kaytee.agent.i18n.finalStates
-import uk.q3c.kaytee.agent.queue.MessagingException
 import uk.q3c.kaytee.plugin.TaskKey
-import java.time.LocalDateTime
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -52,6 +49,10 @@ class BuildRecord(uid: UUID, var requestedAt: OffsetDateTime, val delegated: Boo
     var causeOfFailure = Not_Applicable
     var failureDescription = ""
     var failedTask: TaskKey = TaskKey.Custom // valid only if a task has failed
+    /**
+     * All processing completed when true, including any post processing done after [BuildSuccessfulMessage] or [BuildFailedMessage] received
+     */
+    var processingCompleted: Boolean = false
     private val stateLock = Any()
     private val taskLock = Any()
     // once parallel tasking enabled, there is a contention risk here.
@@ -92,56 +93,6 @@ class BuildRecord(uid: UUID, var requestedAt: OffsetDateTime, val delegated: Boo
         return !passed()
     }
 
-    /**
-     * Returns true if the request has been completed - this only means that all processing that can be done has been, the build itself could have failed.
-     * To be sure a build was successful, use [passed].  Checks that all task results are completed, as asynchronous messaging sometimes means a task result has not been conmpleted
-     * even though a build record has.
-     */
-    fun hasCompleted(): Boolean {
-        val lifecycle = if (delegated) {
-            delegatedLifecycle
-        } else {
-            standardLifecycle
-        }
-        for (taskKey in lifecycle) {
-            val taskResult = taskResults[taskKey]
-            // should never be null as taskResults constructed from the same lifecycle
-            if (taskResult != null) {
-                if (taskResult.failed() || taskResult.cancelled()) {
-                    log.debug("checking for build completion, Task ${taskResult.task.name} did not pass (state is: ${taskResult.state.name}), do not check remaining steps")
-                    waitForBuildState()
-                    return true
-
-                }
-                if (!taskResult.hasCompleted()) {
-                    log.debug("checking for build completion, TaskResult for ${taskResult.task.name} is not complete, state is: ${taskResult.state.name}")
-                    return false
-                }
-
-            }
-        }
-        // we get here if all the tasks have passed, so we may need to wait for build again
-        waitForBuildState()
-        return true
-    }
-
-    /**
-     * Returns if the build state catches up with task results or times out with exception
-     */
-    private fun waitForBuildState() {
-        // loop until BuildRecord state catches up (it is possible that Build and Task Messages arrive at
-        // different times)
-        val timeout = LocalDateTime.now().plusSeconds(1)
-        val timedOut = false
-        while (LocalDateTime.now().isBefore(timeout)) {
-            if (finalStates.contains(state)) {
-                return
-            }
-        }
-        if (timedOut) {
-            throw MessagingException("Timed out waiting for build state to match Task results")
-        }
-    }
 
     override fun toString(): String {
         return summary()

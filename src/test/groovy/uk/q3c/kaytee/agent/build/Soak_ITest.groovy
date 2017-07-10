@@ -9,7 +9,6 @@ import com.google.inject.util.Modules
 import org.apache.commons.codec.digest.DigestUtils
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import spock.lang.Ignore
 import spock.lang.Specification
 import uk.q3c.build.gitplus.GitPlusModule
 import uk.q3c.build.gitplus.GitSHA
@@ -29,6 +28,7 @@ import uk.q3c.kaytee.agent.system.SystemModule
 
 import java.time.Duration
 import java.time.LocalDateTime
+
 /**
  * Integrates RequestQueue, BuildRunner and GradleExecutor
  *
@@ -52,9 +52,8 @@ class Soak_ITest extends Specification {
     List<Project> projects = new ArrayList<>()
 
     static int buildsRequested = 0
-    int buildsCompleted = 0
-    def buildsSuccessFul = 0
-    def buildsFailed = 0
+
+
     GlobalBusMonitor busMonitor
     static ArrayList<UUID> originalBuildRequests
 
@@ -141,6 +140,7 @@ class Soak_ITest extends Specification {
         }
     }
 
+    int buildsCompleted = 0
 
     def setup() {
         temp = temporaryFolder.getRoot()
@@ -176,30 +176,30 @@ class Soak_ITest extends Specification {
 
     def cleanup() {
     }
-@Ignore
+
     def "Single runner"() {
         given:
-        int requestGenerationPeriodInSeconds = 20
+        int requestGenerationPeriodInSeconds = 10
         Thread requestGeneratorThread = new Thread(new BuildRequestGenerator(requestGenerationPeriodInSeconds, queue, projects))
         requestGeneratorThread.run()
         Thread.sleep(200) // let queue fill up a bit so we don't finish before we start
 
         when:
 
-        LocalDateTime timeout = LocalDateTime.now().plusSeconds(requestGenerationPeriodInSeconds + 5)
+        LocalDateTime timeout = LocalDateTime.now().plusSeconds(requestGenerationPeriodInSeconds + 25)
 
         //wait for queue to drain
         while (!allBuildsComplete() && LocalDateTime.now().isBefore(timeout)) {
-            println ">>>>> Waiting builds to complete"
-
+            Thread.sleep(200)
         }
-
+        resultCollator.updateBuildStateCount()
 
         then:
         println "Build requests generated: $buildsRequested"
-        println "Build requests failed: $buildsFailed"
-        println "Build requests sucessful: $buildsSuccessFul"
-        println "Build requests completed: $buildsCompleted"
+        for (key in BuildStateKey) {
+            println "${key} : ${resultCollator.buildStateCount.get(key)}"
+        }
+
         println "Build results held by resultsCollator: " + resultCollator.records.size()
         List<UUID> delegatedBuilds = new ArrayList<>()
         for (UUID key in busMonitor.getMessages().keySet()) {
@@ -212,26 +212,23 @@ class Soak_ITest extends Specification {
             println key
         }
         buildsRequested == buildsCompleted
-        buildsSuccessFul + buildsFailed == buildsCompleted
+//        buildsSuccessFul + buildsFailed == buildsCompleted
         resultCollator.records.size() == buildsRequested
 
 
     }
 
     private boolean allBuildsComplete() {
-        buildsSuccessFul = 0
-        buildsFailed = 0
         buildsCompleted = 0
 
         for (BuildRecord result : resultCollator.records.values()) {
-            if (result.hasCompleted()) {
+            if (result.processingCompleted) {
                 buildsCompleted++
-            }
-            switch (result.state) {
-                case BuildStateKey.Successful: buildsSuccessFul++; break
-                case BuildStateKey.Failed: buildsFailed++; break
+            } else {
+                println "${result.uid}  not completed"
             }
         }
+
         return buildsCompleted == buildsRequested
 
     }

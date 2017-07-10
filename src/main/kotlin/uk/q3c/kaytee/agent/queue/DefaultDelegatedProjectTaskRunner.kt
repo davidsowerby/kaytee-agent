@@ -23,7 +23,7 @@ import java.util.*
  * A TaskRunner implementation for the situation where a task within a project is delegated to another project - for example, where
  * a functional test is developed as a separate project
  *
- * **Note:**  References for the Global Bus are strong, as this object may disappear before the closing call to [delegateResult] is made.
+ * **Note:**  References for the Global Bus are set to strong, as this object may disappear before the closing call to [delegateResult] is made.
  * This is because the RequestQueue does not hold any references to the runner once they have been taken from the queue and executed
  *
  * Created by David Sowerby on 04 Jun 2017

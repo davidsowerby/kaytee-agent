@@ -30,7 +30,10 @@ import java.io.File
  * Created by David Sowerby on 07 Jan 2017
  */
 interface Build : ProjectInstance {
-
+    /**
+     * Raise an issue if a build fails.  Generally set by the[KayTeeExtension] passed to [configure]
+     */
+    var raiseIssueOnFail: Boolean
     val buildRunner: BuildRunner
     var parentBuild: Build
 
@@ -60,4 +63,10 @@ interface Build : ProjectInstance {
 
     var stderrOutputFile: File
     var stdoutOutputFile: File
+
+    /**
+     * Returns a list of task keys still to run.  This will exclude any tasks which have been passed to the main queue,
+     * even though they may not yet been executed
+     */
+    fun tasksWaiting(): List<TaskKey>
 }

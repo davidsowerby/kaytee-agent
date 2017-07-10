@@ -21,7 +21,7 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- * Becuasue all the messages handled here are despatched asynchronously, most likely from different threads, there is no
+ * Because all the messages handled here are despatched asynchronously, most likely from different threads, there is no
  * guarantee that they will arrive in the order that might be expected.  This is especially true at the beginning of the cycle,
  * where [BuildQueuedMessage], [PreparationStartedMessage] and [BuildStartedMessage] are all sent very soon after each other.
  *
@@ -37,6 +37,21 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
     val delegateBuildRecords: MutableMap<UUID, BuildRecord> = ConcurrentHashMap()
     private val lock = Any()
     private val log = LoggerFactory.getLogger(this.javaClass.name)
+    override val buildStateCount: MutableMap<BuildStateKey, Int> = HashMap()
+
+
+    override fun updateBuildStateCount() {
+        synchronized(lock) {
+            buildStateCount.clear()
+            for (key in BuildStateKey.values()) {
+                buildStateCount.put(key, 0)
+            }
+            for (record in records.values) {
+                val newValue = buildStateCount[record.state]!!.inc()
+                buildStateCount.put(record.state, newValue)
+            }
+        }
+    }
 
     @Handler
     fun busMessage(busMessage: BuildQueuedMessage) {
@@ -127,6 +142,14 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
         synchronized(lock) {
             val taskRecord = updateTaskState(TaskStateKey.Successful, busMessage)
             taskRecord.stdOut = busMessage.stdOut
+        }
+    }
+
+    @Handler
+    fun busMessage(busMessage: BuildProcessCompletedMessage) {
+        synchronized(lock) {
+            val buildRecord = getRecord(busMessage.buildRequestId)
+            buildRecord.processingCompleted = true
         }
     }
 

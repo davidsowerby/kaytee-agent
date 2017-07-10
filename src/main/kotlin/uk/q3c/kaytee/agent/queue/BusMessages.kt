@@ -53,6 +53,11 @@ data class BuildQueuedMessage(override val buildRequestId: UUID, override val de
 data class BuildStartedMessage(override val buildRequestId: UUID, override val delegated: Boolean, val buildNumber: String) : AbstractBuildMessage()
 data class BuildSuccessfulMessage(override val buildRequestId: UUID, override val delegated: Boolean) : AbstractBuildMessage()
 data class BuildFailedMessage(override val buildRequestId: UUID, override val delegated: Boolean, val e: Exception) : AbstractBuildMessage()
+/**
+ * The build itself is completed when either a [BuildSuccessfulMessage] or a [BuildFailedMessage] is sent, but there may be some post processing to do.
+ * This message is sent to indicate that all of that post-processing is also complete
+ */
+data class BuildProcessCompletedMessage(override val buildRequestId: UUID, override val delegated: Boolean) : AbstractBuildMessage()
 
 data class PreparationStartedMessage(override val buildRequestId: UUID, override val delegated: Boolean) : AbstractBuildMessage(), InitialBuildMessage
 data class PreparationSuccessfulMessage(override val buildRequestId: UUID, override val delegated: Boolean) : AbstractBuildMessage()

@@ -13,6 +13,7 @@ import uk.q3c.kaytee.agent.eventbus.BusMessage
 import uk.q3c.kaytee.agent.eventbus.GlobalBus
 import uk.q3c.kaytee.agent.eventbus.GlobalBusProvider
 import uk.q3c.kaytee.agent.eventbus.SubscribeTo
+import uk.q3c.kaytee.agent.prepare.LoadBuildConfiguration
 import uk.q3c.kaytee.agent.prepare.PreparationStage
 import uk.q3c.kaytee.agent.queue.*
 import uk.q3c.kaytee.plugin.GroupConfig
@@ -44,7 +45,7 @@ class DefaultBuild @Inject constructor(
 
 
     private val log = LoggerFactory.getLogger(this.javaClass.name)
-    private var raiseIssueOnFail: Boolean = false
+    override var raiseIssueOnFail: Boolean = false
     lateinit override var stderrOutputFile: File
     lateinit override var stdoutOutputFile: File
     lateinit override var parentBuild: Build
@@ -52,8 +53,7 @@ class DefaultBuild @Inject constructor(
     lateinit override var lifecycle: List<TaskKey>
 
 
-
-    private val results: MutableList<TaskKey> = mutableListOf()
+    private val completedTasks: MutableList<TaskKey> = mutableListOf()
     private val taskRunners = ArrayDeque<TaskRunner>()
     private val completedTasksLock = Any()
     private var generatedTaskRunners: Int = 0
@@ -70,15 +70,15 @@ class DefaultBuild @Inject constructor(
     private fun closeTask(taskKey: TaskKey, passed: Boolean, busMessage: BusMessage) {
         log.debug("Build {} is closing task {}", buildRunner.uid, taskKey)
         synchronized(completedTasksLock) {
-            results.add(taskKey)
+            completedTasks.add(taskKey)
             if (passed) {
-                if (results.size < generatedTaskRunners) {
+                if (completedTasks.size < generatedTaskRunners) {
                     pushTaskToRequestQueue()
                 } else {
-                    closeBuild(true, busMessage)
+                    passBuild()
                 }
             } else {
-                closeBuild(false, busMessage)
+                failBuild(busMessage as TaskFailedMessage)
             }
         }
 
@@ -170,7 +170,7 @@ class DefaultBuild @Inject constructor(
         val config: GroupConfig = configuration.testConfig(taskKey)
         // not enabled at all, nothing to do
         if (!config.enabled) {
-            log.debug("Test group is disabled: ", taskKey)
+            log.debug("Test group is disabled: {}", taskKey)
             val msg = TaskNotRequiredMessage(buildRunner.uid, taskKey, false)
             globalBusProvider.get().publish(msg)
             return
@@ -180,7 +180,7 @@ class DefaultBuild @Inject constructor(
         // but that is managed within the GradleTaskRunner
         val actualTaskKey = taskKey
 
-        // if an auto step, we then need to know whether it is local Gradle,or a sub build
+        // if an auto step, we then need to know whether it is local Gradle,or a delegated task
         if (config.auto) {
             if (config.delegated) {
                 createDelegatedProjectTask(actualTaskKey, config)
@@ -215,27 +215,32 @@ class DefaultBuild @Inject constructor(
     }
 
 
-    private fun closeBuild(passed: Boolean, busMessage: BusMessage) {
-        if (passed) {
-            globalBusProvider.get().publish(BuildSuccessfulMessage(buildRunner.uid, buildRunner.delegated))
-        } else {
-            if (busMessage is TaskFailedMessage) {
-                val exception = TaskException(busMessage.stdOut)
-                globalBusProvider.get().publish(BuildFailedMessage(buildRunner.uid, buildRunner.delegated, exception))
-            } else {
-                throw QueueException("Build ${buildRunner.uid}, only a TaskFailedMessage should get this far, but received a ${busMessage.javaClass.simpleName}")
-            }
-            if (raiseIssueOnFail) {
-                issueCreatorProvider.get().raiseIssue(this)
-            }
-        }
-        log.info("Closing build for {}, build {}", project.shortProjectName, buildRunner.uid)
+    private fun failBuild(busMessage: TaskFailedMessage) {
+        val exception = TaskException(busMessage.stdOut)
+        failBuild(exception)
+    }
 
+    private fun failBuild(exception: Exception) {
+        globalBusProvider.get().publish(BuildFailedMessage(buildRunner.uid, buildRunner.delegated, exception))
+        if (raiseIssueOnFail) {
+            issueCreatorProvider.get().raiseIssue(this)
+        }
+        closeBuild()
+    }
+
+    private fun passBuild() {
+        globalBusProvider.get().publish(BuildSuccessfulMessage(buildRunner.uid, buildRunner.delegated))
+        closeBuild()
+    }
+
+    private fun closeBuild() {
+        log.info("Closed build for {}, build {}", project.shortProjectName, buildRunner.uid)
+        globalBusProvider.get().publish(BuildProcessCompletedMessage(buildRunner.uid, buildRunner.delegated))
     }
 
 
     /**
-     * Creates a [SubBuildTask] and adds it to [taskRunners]
+     * Creates a [DelegatedProjectTaskRunner] and adds it to [taskRunners]
      */
     private fun createDelegatedProjectTask(taskKey: TaskKey, config: GroupConfig) {
         log.debug("Creating a task runner for {}, type 'DelegatedProject'", taskKey)
@@ -261,6 +266,16 @@ class DefaultBuild @Inject constructor(
         taskRunners.add(taskRunner)
     }
 
+    override fun tasksWaiting(): List<TaskKey> {
+        synchronized(completedTasksLock) {
+            val taskKeys: MutableList<TaskKey> = mutableListOf()
+            for (taskRunner in taskRunners) {
+                taskKeys.add(taskRunner.taskKey)
+            }
+            return taskKeys
+        }
+    }
+
     override fun toString(): String {
         return "Build ${buildRunner.uid} for project ${project.fullProjectName}"
     }
@@ -271,7 +286,9 @@ class DefaultBuild @Inject constructor(
             preparationStage.execute(this)
         } catch (e: Exception) {
             log.debug("Build {}, preparation failed", this, e)
-            globalBusProvider.get().publish(PreparationFailedMessage(buildRunner.uid, buildRunner.delegated, e))
+            val msg = PreparationFailedMessage(buildRunner.uid, buildRunner.delegated, e)
+            globalBusProvider.get().publish(msg)
+            failBuild(msg.e)
             return
         }
         generatedTaskRunners = taskRunners.size

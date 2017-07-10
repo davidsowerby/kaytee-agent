@@ -45,6 +45,8 @@ class DefaultBuildRecordCollatorTest extends Specification {
         PreparationStartedMessage preparationStartedMessage = new PreparationStartedMessage(uid, delegated)
         PreparationSuccessfulMessage preparationSuccessfulMessage = new PreparationSuccessfulMessage(uid, delegated)
         BuildSuccessfulMessage buildSuccessfulMessage = new BuildSuccessfulMessage(uid, delegated)
+        BuildProcessCompletedMessage buildCompletedMessage = new BuildProcessCompletedMessage(uid, delegated)
+        OffsetDateTime completedAt
 
         when: "Queued"
         collator.busMessage(queuedMessage)
@@ -126,6 +128,7 @@ class DefaultBuildRecordCollatorTest extends Specification {
         when: "Build successful"
         collator.busMessage(buildSuccessfulMessage)
         record = collator.getRecord(uid)
+        completedAt = record.completedAt
 
 
         then:
@@ -137,11 +140,23 @@ class DefaultBuildRecordCollatorTest extends Specification {
         isSet(record.preparationCompletedAt)
         isSet(record.completedAt)
 
+
+
         record.delegated == delegated
         record.causeOfFailure == Not_Applicable
         record.failureDescription == ""
 
         msgsPublished * hooks.publish(_)
+        !record.processingCompleted
+
+
+        when: "Build processing completed"
+        collator.busMessage(buildCompletedMessage)
+        record = collator.getRecord(uid)
+
+        then:
+        record.processingCompleted
+        record.completedAt == completedAt // completion time should remain unchanged
 
         where:
         delegated | msgsPublished
