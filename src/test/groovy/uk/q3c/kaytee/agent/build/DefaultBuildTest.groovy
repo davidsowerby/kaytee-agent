@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList
 import com.google.inject.Provider
 import net.engio.mbassy.bus.IMessagePublication
 import net.engio.mbassy.bus.common.PubSubSupport
+import org.apache.commons.codec.digest.DigestUtils
 import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -287,6 +288,9 @@ class DefaultBuildTest extends Specification {
         kayTeeExtension.functionalTest.auto = false
         kayTeeExtension.acceptanceTest.delegated = true
         kayTeeExtension.acceptanceTest.enabled = true
+        kayTeeExtension.acceptanceTest.delegate.commitId = sha(2)
+        kayTeeExtension.acceptanceTest.delegate.repoUserName = 'davidsowerby'
+        kayTeeExtension.acceptanceTest.delegate.repoName = 'wiggly'
 
         buildRunner.delegated >> false
 
@@ -298,5 +302,10 @@ class DefaultBuildTest extends Specification {
         build.tasksWaiting().containsAll(ImmutableList.of(Unit_Test, Generate_Build_Info, Generate_Change_Log, Publish_to_Local, Functional_Test, Acceptance_Test, Merge_to_Master, Tag, Bintray_Upload))
         delegatedProjectTaskRunnerFactory.runners.containsKey(Acceptance_Test)
         manualTaskRunnerFactory.runners.containsKey(Functional_Test)
+    }
+
+
+    private String sha(int i) {
+        return DigestUtils.sha1Hex('x').toString()
     }
 }

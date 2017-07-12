@@ -11,6 +11,8 @@ import uk.q3c.kaytee.agent.i18n.BuildStateKey
 import uk.q3c.kaytee.agent.i18n.BuildStateKey.Not_Started
 import uk.q3c.kaytee.agent.i18n.TaskStateKey
 import uk.q3c.kaytee.agent.i18n.TaskStateKey.*
+import uk.q3c.kaytee.agent.queue.BuildFailedMessage
+import uk.q3c.kaytee.agent.queue.BuildSuccessfulMessage
 import uk.q3c.kaytee.plugin.TaskKey
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit

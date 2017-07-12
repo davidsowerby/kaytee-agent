@@ -50,13 +50,15 @@ class DefaultDelegatedProjectTaskRunner @Inject constructor(
      * Adds a delegate build to the [RequestQueue].  Once executed from the queue, the delegate will send a [TaskSuccessfulMessage] or a [TaskFailedMessage] depending on the outcome
      */
     override fun run() {
-        log.info("Starting delegated task {} for build {}", taskKey.name, build.buildRunner.uid)
+        log.info("Starting delegated task {} for parent build {}", taskKey.name, build.buildRunner.uid)
         val globalBus = globalBusProvider.get()
         try {
-            log.debug("publishing TaskStartedMessage for {}", this)
+            log.debug("publishing TaskStartedMessage for delegate task {}", taskKey)
             globalBus.publish(TaskStartedMessage(this.build.buildRunner.uid, taskKey, build.buildRunner.delegated))
             val project = projects.getProject(groupConfig.delegate.repoUserName, groupConfig.delegate.repoName)
-            delegateBuildId = requestQueue.addRequest(project = project, commitId = GitSHA(groupConfig.delegate.commitId), delegated = true, delegatedTask = groupConfig.delegate.taskToRun)
+            val commitSha = GitSHA(groupConfig.delegate.commitId)
+            delegateBuildId = requestQueue.addRequest(project = project, commitId = commitSha, delegated = true, delegatedTask = groupConfig.delegate.taskToRun)
+            log.debug("build id for delegate is: {}", delegateBuildId)
         } catch(e: Exception) {
             var msg = ""
             if (e.message != null) {
@@ -70,12 +72,25 @@ class DefaultDelegatedProjectTaskRunner @Inject constructor(
 
     @Handler
     fun delegateResult(buildMessage: BuildSuccessfulMessage) {
-        log.debug("Delegate successful message received by {}", this)
+        log.debug("Build {} : BuildSuccessfulMessage received from {}", build.buildRunner.uid, buildMessage.buildRequestId)
         if (buildMessage.buildRequestId == delegateBuildId) {
+            log.debug("Build {} : processing BuildSuccessfulMessage received from {}", build.buildRunner.uid, buildMessage.buildRequestId)
             val taskMessage = TaskSuccessfulMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, "Delegate build ${buildMessage.buildRequestId} completed successfully")
             publishAndUnsubscribe(taskMessage)
         } else {
-            log.debug("{} message ignored, not relevant to this build {}", buildMessage.javaClass.simpleName, this)
+            log.debug("Build {} : ignored BuildSuccessfulMessage received from {}, not relevant to this runner", build.buildRunner.uid, buildMessage.buildRequestId)
+        }
+    }
+
+    @Handler
+    fun delegateResult(buildMessage: BuildFailedMessage) {
+        log.debug("Build {} : BuildFailedMessage received from {}", build.buildRunner.uid, buildMessage.buildRequestId)
+        if (buildMessage.buildRequestId == delegateBuildId) {
+            log.debug("Build {} : processing BuildFailedMessage received from {}", build.buildRunner.uid, buildMessage.buildRequestId)
+            val taskMessage = TaskFailedMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, TaskStateKey.Failed, "${buildMessage.e.message}", "Delegate build ${buildMessage.buildRequestId} failed")
+            publishAndUnsubscribe(taskMessage)
+        } else {
+            log.debug("Build {} : ignored BuildFailedMessage received from {}, not relevant to this runner", build.buildRunner.uid, buildMessage.buildRequestId)
         }
     }
 
@@ -85,19 +100,7 @@ class DefaultDelegatedProjectTaskRunner @Inject constructor(
         globalBus.publish(taskMessage)
         globalBus.unsubscribe(this)
     }
-
-    @Handler
-    fun delegateResult(buildMessage: BuildFailedMessage) {
-        if (buildMessage.buildRequestId == delegateBuildId) {
-            log.debug("Delegate failed message received by {}", this)
-            val taskMessage = TaskFailedMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, TaskStateKey.Failed, "${buildMessage.e.message}", "Delegate build ${buildMessage.buildRequestId} failed")
-            publishAndUnsubscribe(taskMessage)
-        } else {
-            log.debug("{} message ignored, not relevant to this build {}", buildMessage.javaClass.simpleName, this)
-        }
-    }
-
     override fun toString(): String {
-        return "Delegate Runner for ${build}, ${taskKey}"
+        return "Delegate Runner for $taskKey delegate build: $delegateBuildId, parent build: ${build.buildRunner.uid}"
     }
 }

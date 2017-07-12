@@ -9,6 +9,7 @@ import com.google.inject.util.Modules
 import org.apache.commons.codec.digest.DigestUtils
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
+import spock.lang.Ignore
 import spock.lang.Specification
 import uk.q3c.build.gitplus.GitPlusModule
 import uk.q3c.build.gitplus.GitSHA
@@ -31,6 +32,15 @@ import java.time.LocalDateTime
 
 /**
  * Integrates RequestQueue, BuildRunner and GradleExecutor
+ *
+ * The BuildRequestGenerator populates the RequestQueue with build requests
+ *
+ * <b>GradleTasks:<br></b>
+ * The {@link MockPreparationStage} is used via {@link Soak_ITest.TestLifecycleModule} to create a {@link MockGradleLauncher}, which in turn randomises Gradle task duration and success / failure
+ *
+ * <b>Delegated Tasks:<br></b>
+ * There is no need to change anything further - a delegate build creates a custom Gradle task under the same conditions as above, so when the {@link MockGradleLauncher} proides a randomised result,
+ * that should get back to the {@link DelegatedProjectTaskRunner} as normal
  *
  * Created by David Sowerby on 08 Jan 2017
  */
@@ -177,9 +187,10 @@ class Soak_ITest extends Specification {
     def cleanup() {
     }
 
+    @Ignore
     def "Single runner"() {
         given:
-        int requestGenerationPeriodInSeconds = 10
+        int requestGenerationPeriodInSeconds = 60
         Thread requestGeneratorThread = new Thread(new BuildRequestGenerator(requestGenerationPeriodInSeconds, queue, projects))
         requestGeneratorThread.run()
         Thread.sleep(200) // let queue fill up a bit so we don't finish before we start

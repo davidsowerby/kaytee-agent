@@ -27,7 +27,7 @@ data class DefaultBuildRunner @Inject constructor(val buildFactory: BuildFactory
         try {
             log.debug("creating build instance")
             val build = buildFactory.create(this, delegated)
-            log.debug("executing build instance, project '{}' build number: {}", build.buildRunner.project.shortProjectName, build.buildNumber())
+            log.debug("executing build instance, build Id: {}", build.buildRunner.uid)
             build.execute()
         } catch (e: Exception) {
             globalBusProvider.get().publish(BuildFailedMessage(uid, delegated, e))
@@ -36,7 +36,7 @@ data class DefaultBuildRunner @Inject constructor(val buildFactory: BuildFactory
     }
 
     override fun identity(): String {
-        return "${project.shortProjectName}:${gitHash.sha}"
+        return "project: '${project.fullProjectName}' git sha:${gitHash.sha}"
     }
 
     override fun toString(): String {

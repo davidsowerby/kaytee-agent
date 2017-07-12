@@ -4,6 +4,7 @@ import com.google.inject.Inject
 import com.google.inject.Provider
 import com.google.inject.assistedinject.Assisted
 import net.engio.mbassy.listener.Handler
+import net.engio.mbassy.listener.Invoke
 import net.engio.mbassy.listener.Listener
 import org.gradle.tooling.BuildLauncher
 import org.slf4j.LoggerFactory
@@ -101,6 +102,7 @@ class DefaultBuild @Inject constructor(
      */
     override fun configure(configuration: KayTeeExtension) {
         synchronized(taskRunners) {
+            configuration.validate()
             generateTasks(configuration)
             raiseIssueOnFail = configuration.raiseIssueOnFail
         }
@@ -120,7 +122,7 @@ class DefaultBuild @Inject constructor(
     }
 
     private fun generateTasks(configuration: KayTeeExtension) {
-        log.debug("generating task for ${buildRunner}")
+        log.debug("generating task for $buildRunner")
         if (buildRunner.delegated) {
             lifecycle = delegatedLifecycle
             generateCustomTask(buildRunner.delegateTask)
@@ -196,7 +198,7 @@ class DefaultBuild @Inject constructor(
 
     }
 
-    @Handler
+    @Handler(delivery = Invoke.Asynchronously)
     fun taskCompleted(message: TaskSuccessfulMessage) {
         // filter for messages which apply to this build - probably could make better use of MBassador filtering
         if (message.buildRequestId == this.buildRunner.uid) {
@@ -205,7 +207,7 @@ class DefaultBuild @Inject constructor(
         }
     }
 
-    @Handler()
+    @Handler(delivery = Invoke.Asynchronously)
     fun taskCompleted(message: TaskFailedMessage) {
         // filter for messages which apply to this build - probably could make better use of MBassador filtering
         if (message.buildRequestId == this.buildRunner.uid) {
@@ -234,7 +236,7 @@ class DefaultBuild @Inject constructor(
     }
 
     private fun closeBuild() {
-        log.info("Closed build for {}, build {}", project.shortProjectName, buildRunner.uid)
+        log.info("Build {} closed, sending BuildProcessCompletedMessage", buildRunner.uid)
         globalBusProvider.get().publish(BuildProcessCompletedMessage(buildRunner.uid, buildRunner.delegated))
     }
 

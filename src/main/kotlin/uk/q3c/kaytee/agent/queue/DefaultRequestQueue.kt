@@ -40,6 +40,7 @@ class DefaultRequestQueue @Inject constructor(
     private val log = LoggerFactory.getLogger(this.javaClass.name)
     private val executor = ThreadPoolExecutor(5, 5, 1, TimeUnit.MINUTES, LinkedBlockingQueue<Runnable>())
     override val stoppers: ConcurrentHashMap<BuildRunner, CancellationTokenSource> = ConcurrentHashMap()
+    private val idLock = Any()
 
     init {
         Thread.setDefaultUncaughtExceptionHandler(ThreadExceptionHandler())
@@ -50,13 +51,14 @@ class DefaultRequestQueue @Inject constructor(
     }
 
     override fun addRequest(project: Project, commitId: GitSHA, delegated: Boolean, delegatedTask: String): UUID {
-        //TODO not atomic, but does it matter?
-        val uid = UUID.randomUUID()
-        val buildRunner = buildRunnerFactory.create(project, commitId, uid, delegated, delegatedTask)
-        executor.submit(buildRunner)
-        globalBusProvider.get().publish(BuildQueuedMessage(buildRunner.uid, delegated))
-        log.info("Sent request to queue build ${uid} (Project '{}').  Current (transient) queue size is: {}", buildRunner.project.fullProjectName, this.size())
-        return uid
+        synchronized(idLock) {
+            val uid = UUID.randomUUID()
+            val buildRunner = buildRunnerFactory.create(project, commitId, uid, delegated, delegatedTask)
+            executor.submit(buildRunner)
+            globalBusProvider.get().publish(BuildQueuedMessage(buildRunner.uid, delegated))
+            log.info("Sent request to queue build $uid (Project '{}').  Current (transient) queue size is: {}", buildRunner.project.fullProjectName, this.size())
+            return uid
+        }
     }
 
 

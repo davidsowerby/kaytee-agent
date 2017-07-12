@@ -23,8 +23,6 @@
 
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder
 
-import static ch.qos.logback.classic.Level.INFO
-
 appender("STDOUT", ConsoleAppender) {
     encoder(PatternLayoutEncoder) {
         pattern = "%d{HH:mm:ss.SSS}  %-5level %logger{0} - %msg%n"
@@ -41,4 +39,4 @@ appender("FILE", FileAppender) {
 
 logger("uk.q3c", DEBUG)
 logger("net.engio", DEBUG)
-root(INFO, ["STDOUT", "FILE"])
+root(DEBUG, ["STDOUT", "FILE"])

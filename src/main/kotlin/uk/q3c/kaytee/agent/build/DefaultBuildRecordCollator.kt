@@ -148,6 +148,7 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
     @Handler
     fun busMessage(busMessage: BuildProcessCompletedMessage) {
         synchronized(lock) {
+            log.debug("Build ${busMessage.buildRequestId} received BuildProcessCompletedMessage")
             val buildRecord = getRecord(busMessage.buildRequestId)
             buildRecord.processingCompleted = true
         }
@@ -155,7 +156,6 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
 
     @Handler
     fun busMessage(busMessage: TaskFailedMessage) {
-        log.debug("**Received {} for {}", busMessage.javaClass.simpleName, busMessage.taskKey.name)
         synchronized(lock) {
             log.debug("Received {} for {}", busMessage.javaClass.simpleName, busMessage.taskKey.name)
             val taskRecord = updateTaskState(busMessage.result, busMessage)
@@ -183,7 +183,6 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
 
     override fun getRecord(uid: UUID): BuildRecord {
         synchronized(lock) {
-            log.debug("retrieving record for {}", uid)
             val existingRecord = findRecord(uid) ?: throw InvalidBuildRequestIdException(uid)
             return existingRecord
         }
@@ -209,11 +208,11 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
     }
 
     private fun updateTaskState(newState: TaskStateKey, taskMessage: TaskMessage): TaskResult {
-        log.debug("${taskMessage.javaClass.simpleName} received, build id: {}", taskMessage.buildRequestId)
+        log.debug("${taskMessage.javaClass.simpleName} received, task {}, build id: {}", taskMessage.taskKey, taskMessage.buildRequestId)
         val buildRecord = getRecord(taskMessage.buildRequestId)
         val taskRecord = buildRecord.taskResult(taskMessage.taskKey)
         if (taskRecord.state == Not_Required) {
-            throw InvalidBuildStateException("No further messages should be recevied when task in not required")
+            throw InvalidBuildStateException("No further messages should be received when task in not required")
         }
         taskRecord.state = newState
         when (newState) {
