@@ -19,16 +19,24 @@ import uk.q3c.krail.core.eventbus.SubscribeTo
 import java.time.OffsetDateTime
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import javax.annotation.concurrent.ThreadSafe
 
 /**
  * Because all the messages handled here are despatched asynchronously, most likely from different threads, there is no
- * guarantee that they will arrive in the order that might be expected.  This is especially true at the beginning of the cycle,
- * where [BuildQueuedMessage], [PreparationStartedMessage] and [BuildStartedMessage] are all sent very soon after each other.
+ * guarantee that they will arrive in the order that might be expected.
  *
- * For that reason, records are created (if not already existing) by [getRecord] when any message is passed as a parameter
+ * In theory, a real build will not generate messages close together, as each step will take more than a trivial amount of time.
+ *
+ * However, to ensure resilience, no assumption is made about the order in which messages are received.
+ *
+ * For that reason, a record is created whenever a message is received with a build id not already held by the collator.
+ *
+ * To retrieve a build record externally, use [getRecord] with a UUID parameter - this will not create a record but
+ * throw an exception if the record does not exist
  *
  * Created by David Sowerby on 25 Mar 2017
  */
+@ThreadSafe
 @Listener @SubscribeTo(GlobalBus::class)
 class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRecordCollator {
 
@@ -149,7 +157,7 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
     fun busMessage(busMessage: BuildProcessCompletedMessage) {
         synchronized(lock) {
             log.debug("Build ${busMessage.buildRequestId} received BuildProcessCompletedMessage")
-            val buildRecord = getRecord(busMessage.buildRequestId)
+            val buildRecord = getRecord(busMessage)
             buildRecord.processingCompleted = true
         }
     }
@@ -161,7 +169,7 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
             val taskRecord = updateTaskState(busMessage.result, busMessage)
             taskRecord.stdOut = busMessage.stdOut
             taskRecord.stdErr = busMessage.stdErr
-            val buildRecord = getRecord(busMessage.buildRequestId)
+            val buildRecord = getRecord(busMessage)
             buildRecord.failureDescription = taskRecord.stdOut
             log.debug("Build record failure description set to: ${buildRecord.failureDescription}")
             buildRecord.causeOfFailure = Task_Failure
@@ -209,7 +217,7 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
 
     private fun updateTaskState(newState: TaskStateKey, taskMessage: TaskMessage): TaskResult {
         log.debug("${taskMessage.javaClass.simpleName} received, task {}, build id: {}", taskMessage.taskKey, taskMessage.buildRequestId)
-        val buildRecord = getRecord(taskMessage.buildRequestId)
+        val buildRecord = getRecord(taskMessage)
         val taskRecord = buildRecord.taskResult(taskMessage.taskKey)
         if (taskRecord.state == Not_Required) {
             throw InvalidBuildStateException("No further messages should be received when task in not required")
@@ -230,6 +238,12 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
             hooks.publish(buildRecord)
         }
         return taskRecord
+    }
+
+    override fun hasRecord(uid: UUID): Boolean {
+        synchronized(lock) {
+            return findRecord(uid) != null
+        }
     }
 
     private fun updateBuildState(newState: BuildStateKey, buildMessage: BuildMessage): BuildRecord {

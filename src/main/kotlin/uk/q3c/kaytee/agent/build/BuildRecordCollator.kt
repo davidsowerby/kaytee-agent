@@ -38,4 +38,6 @@ interface BuildRecordCollator {
      * Update [buildStateCount].  Use sparingly, as the build records are locked while the count is made
      */
     fun updateBuildStateCount()
+
+    fun hasRecord(uid: UUID): Boolean
 }

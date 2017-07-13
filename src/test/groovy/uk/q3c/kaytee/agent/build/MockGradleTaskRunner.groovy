@@ -9,10 +9,6 @@ import uk.q3c.kaytee.agent.queue.TaskFailedMessage
 import uk.q3c.kaytee.agent.queue.TaskStartedMessage
 import uk.q3c.kaytee.agent.queue.TaskSuccessfulMessage
 import uk.q3c.kaytee.plugin.TaskKey
-
-import java.time.LocalDateTime
-import java.time.temporal.ChronoUnit
-
 /**
  * Created by David Sowerby on 09 Jul 2017
  */
@@ -42,11 +38,11 @@ class MockGradleTaskRunner implements GradleTaskRunner {
         log.debug("publishing TaskStartedMessage for {}", this)
         TaskStartedMessage startMessage = new TaskStartedMessage(this.build.buildRunner.uid, taskKey, build.buildRunner.delegated)
         globalBusProvider.get().publishAsync(startMessage)
-        LocalDateTime timeout = LocalDateTime.now().plus(500, ChronoUnit.MILLIS)
-        while (LocalDateTime.now().isBefore(timeout)) {
-            int a = 10 + 1000
-            int b = a * 50
-        }
+//        LocalDateTime timeout = LocalDateTime.now().plus(500, ChronoUnit.MILLIS)
+//        while (LocalDateTime.now().isBefore(timeout)) {
+//            int a = 10 + 1000
+//            int b = a * 50
+//        }
         if (failOnRun) {
             log.info("$taskKey Task FAILED")
             TaskFailedMessage failedMessage = new TaskFailedMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, TaskStateKey.Failed, "Failed stdout", "Failed stderr")

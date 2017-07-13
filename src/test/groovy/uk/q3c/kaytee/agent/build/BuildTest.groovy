@@ -165,6 +165,11 @@ class BuildTest extends Specification {
 
         when:
         UUID requestId = queue.addRequest(projectA, sha(1))
+        //wait for collator to catch up
+        while (!resultCollator.hasRecord(requestId)) {
+            println 'waiting to start'
+            Thread.sleep(100)
+        }
         while (!resultCollator.getRecord(requestId).processingCompleted && LocalDateTime.now().isBefore(timeout)) {
             println 'waiting for build to complete'
             Thread.sleep(200)

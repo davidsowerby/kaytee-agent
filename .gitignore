@@ -2,6 +2,7 @@ build/*
 /.gradle
 /.idea
 *.iws
+*.iml
 *.log
 *.log.gz
 classes

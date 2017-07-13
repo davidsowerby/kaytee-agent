@@ -14,7 +14,7 @@
 package uk.q3c.kaytee.agent.eventbus;
 
 /**
- * Equivalent to injecting PubSubSupport with @GlobalBus annotation.  Used to prevent accidental overloading with wrong
+ * Equivalent to injecting MBassador with @GlobalBus annotation.  Used to prevent accidental overloading with wrong
  * bus.
  * <p>
  * Created by David Sowerby on 17/11/15.

@@ -6,12 +6,15 @@ import uk.q3c.kaytee.agent.eventbus.GlobalBus
 import uk.q3c.kaytee.agent.eventbus.SubscribeTo
 import uk.q3c.kaytee.agent.queue.BuildMessage
 
+import javax.annotation.concurrent.ThreadSafe
+
 /**
  * Created by David Sowerby on 03 Jun 2017
  */
 
 @Listener
 @SubscribeTo(GlobalBus.class)
+@ThreadSafe
 class GlobalBusMonitor {
 
     Map<UUID, List<BuildMessage>> messages = new HashMap()

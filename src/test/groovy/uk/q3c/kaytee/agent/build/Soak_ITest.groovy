@@ -97,7 +97,6 @@ class Soak_ITest extends Specification {
         @Override
         protected void configure() {
             bind(ManualTaskLauncher.class).to(MockManualTaskLauncher.class)
-            bind(QueueMessageReceiver)
             install(new FactoryModuleBuilder()
                     .implement(GradleTaskRunner.class, DefaultGradleTaskRunner.class)
                     .build(GradleTaskRunnerFactory.class))

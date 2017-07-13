@@ -23,12 +23,19 @@ import uk.q3c.kaytee.plugin.TaskKey
 import uk.q3c.kaytee.plugin.TaskKey.*
 import java.io.File
 import java.util.*
+import javax.annotation.concurrent.ThreadSafe
 
 /**
  * Uses [BuildFactory] for construction
  *
+ * Needs to be thread safe becuase it processes messages from the event bus, which are despatched asynchronously.
+ *
+ * It is also possible that other methods will be accessed by different threads (from different runners) - although it is unlikely
+ * that there will be contention within those calls, it is considered better to be sure that there will not be.
+ *
  * Created by David Sowerby on 14 Jan 2017
  */
+@ThreadSafe
 @Listener @SubscribeTo(GlobalBus::class)
 class DefaultBuild @Inject constructor(
         val preparationStage: PreparationStage,
@@ -56,7 +63,7 @@ class DefaultBuild @Inject constructor(
 
     private val completedTasks: MutableList<TaskKey> = mutableListOf()
     private val taskRunners = ArrayDeque<TaskRunner>()
-    private val completedTasksLock = Any()
+    private val lock = Any()
     private var generatedTaskRunners: Int = 0
 
     private var buildNumber: String = ""
@@ -70,7 +77,7 @@ class DefaultBuild @Inject constructor(
 
     private fun closeTask(taskKey: TaskKey, passed: Boolean, busMessage: BusMessage) {
         log.debug("Build {} is closing task {}", buildRunner.uid, taskKey)
-        synchronized(completedTasksLock) {
+        synchronized(lock) {
             completedTasks.add(taskKey)
             if (passed) {
                 if (completedTasks.size < generatedTaskRunners) {
@@ -101,7 +108,7 @@ class DefaultBuild @Inject constructor(
      * Disabled tasks have results set to NOT_REQUIRED to make it clear that the task was disabled as opposed just not being run
      */
     override fun configure(configuration: KayTeeExtension) {
-        synchronized(taskRunners) {
+        synchronized(lock) {
             configuration.validate()
             generateTasks(configuration)
             raiseIssueOnFail = configuration.raiseIssueOnFail
@@ -110,14 +117,12 @@ class DefaultBuild @Inject constructor(
 
 
     private fun pushTaskToRequestQueue() {
-        synchronized(completedTasksLock) {
-            if (taskRunners.isNotEmpty()) {
-                val taskRunner = taskRunners.poll()
-                log.debug("Build {} is adding task '{}' to queue for processing", buildRunner.uid, taskRunner.identity())
-                requestQueue.addRequest(taskRunner)
-            } else {
-                log.error("Attempted to push task from empty taskRunners {}", buildRunner.identity())
-            }
+        if (taskRunners.isNotEmpty()) {
+            val taskRunner = taskRunners.poll()
+            log.debug("Build {} is adding task '{}' to queue for processing", buildRunner.uid, taskRunner.identity())
+            requestQueue.addRequest(taskRunner)
+        } else {
+            log.error("Attempted to push task from empty taskRunners {}", buildRunner.identity())
         }
     }
 
@@ -200,19 +205,23 @@ class DefaultBuild @Inject constructor(
 
     @Handler(delivery = Invoke.Asynchronously)
     fun taskCompleted(message: TaskSuccessfulMessage) {
-        // filter for messages which apply to this build - probably could make better use of MBassador filtering
-        if (message.buildRequestId == this.buildRunner.uid) {
-            log.debug("{} received task successful message for task: {}", this, message.taskKey)
-            closeTask(message.taskKey, true, message)
+        synchronized(lock) {
+            // filter for messages which apply to this build - probably could make better use of MBassador filtering
+            if (message.buildRequestId == this.buildRunner.uid) {
+                log.debug("{} received task successful message for task: {}", this, message.taskKey)
+                closeTask(message.taskKey, true, message)
+            }
         }
     }
 
     @Handler(delivery = Invoke.Asynchronously)
     fun taskCompleted(message: TaskFailedMessage) {
-        // filter for messages which apply to this build - probably could make better use of MBassador filtering
-        if (message.buildRequestId == this.buildRunner.uid) {
-            log.debug("{} received task failed message for task: {}", this, message.taskKey)
-            closeTask(message.taskKey, false, message)
+        synchronized(lock) {
+            // filter for messages which apply to this build - probably could make better use of MBassador filtering
+            if (message.buildRequestId == this.buildRunner.uid) {
+                log.debug("{} received task failed message for task: {}", this, message.taskKey)
+                closeTask(message.taskKey, false, message)
+            }
         }
     }
 
@@ -269,7 +278,7 @@ class DefaultBuild @Inject constructor(
     }
 
     override fun tasksWaiting(): List<TaskKey> {
-        synchronized(completedTasksLock) {
+        synchronized(lock) {
             val taskKeys: MutableList<TaskKey> = mutableListOf()
             for (taskRunner in taskRunners) {
                 taskKeys.add(taskRunner.taskKey)
@@ -287,22 +296,26 @@ class DefaultBuild @Inject constructor(
         try {
             preparationStage.execute(this)
         } catch (e: Exception) {
-            log.debug("Build {}, preparation failed", this, e)
-            val msg = PreparationFailedMessage(buildRunner.uid, buildRunner.delegated, e)
-            globalBusProvider.get().publishAsync(msg)
-            failBuild(msg.e)
-            return
+            synchronized(lock) {
+                log.debug("Build {}, preparation failed", this, e)
+                val msg = PreparationFailedMessage(buildRunner.uid, buildRunner.delegated, e)
+                globalBusProvider.get().publishAsync(msg)
+                failBuild(msg.e)
+                return
+            }
         }
-        generatedTaskRunners = taskRunners.size
-        log.debug("Build {} has {} tasks to execute", this, generatedTaskRunners)
-        if (taskRunners.isNotEmpty()) {
-            // in effect this starts the build proper - the first task is placed into the queue, and as the task requests are
-            // completed, another is pushed to the request queue until the build completes or fails
-            pushTaskToRequestQueue()
-            globalBusProvider.get().publishAsync(BuildStartedMessage(buildRunner.uid, buildRunner.delegated, buildNumber))
-        } else {
-            // there is nothing to do
-            globalBusProvider.get().publishAsync(BuildFailedMessage(buildRunner.uid, buildRunner.delegated, BuildConfigurationException()))
+        synchronized(lock) {
+            generatedTaskRunners = taskRunners.size
+            log.debug("Build {} has {} tasks to execute", this, generatedTaskRunners)
+            if (taskRunners.isNotEmpty()) {
+                // in effect this starts the build proper - the first task is placed into the queue, and as the task requests are
+                // completed, another is pushed to the request queue until the build completes or fails
+                pushTaskToRequestQueue()
+                globalBusProvider.get().publishAsync(BuildStartedMessage(buildRunner.uid, buildRunner.delegated, buildNumber))
+            } else {
+                // there is nothing to do
+                globalBusProvider.get().publishAsync(BuildFailedMessage(buildRunner.uid, buildRunner.delegated, BuildConfigurationException()))
+            }
         }
     }
 
