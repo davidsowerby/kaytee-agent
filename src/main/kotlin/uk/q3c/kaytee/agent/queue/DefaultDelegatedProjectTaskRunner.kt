@@ -54,7 +54,7 @@ class DefaultDelegatedProjectTaskRunner @Inject constructor(
         val globalBus = globalBusProvider.get()
         try {
             log.debug("publishing TaskStartedMessage for delegate task {}", taskKey)
-            globalBus.publish(TaskStartedMessage(this.build.buildRunner.uid, taskKey, build.buildRunner.delegated))
+            globalBus.publishAsync(TaskStartedMessage(this.build.buildRunner.uid, taskKey, build.buildRunner.delegated))
             val project = projects.getProject(groupConfig.delegate.repoUserName, groupConfig.delegate.repoName)
             val commitSha = GitSHA(groupConfig.delegate.commitId)
             delegateBuildId = requestQueue.addRequest(project = project, commitId = commitSha, delegated = true, delegatedTask = groupConfig.delegate.taskToRun)
@@ -66,7 +66,7 @@ class DefaultDelegatedProjectTaskRunner @Inject constructor(
             }
             val outcome = TaskFailedMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, TaskStateKey.Failed, msg, "Task for execution by delegate project")
             log.debug("publishing TaskFailedMessage for {}", this)
-            globalBus.publish(outcome)
+            globalBus.publishAsync(outcome)
         }
     }
 
@@ -97,7 +97,7 @@ class DefaultDelegatedProjectTaskRunner @Inject constructor(
     private fun publishAndUnsubscribe(taskMessage: BusMessage) {
         val globalBus = globalBusProvider.get()
         log.debug("publishing {} for {}", taskMessage.javaClass.simpleName, this)
-        globalBus.publish(taskMessage)
+        globalBus.publishAsync(taskMessage)
         globalBus.unsubscribe(this)
     }
     override fun toString(): String {

@@ -13,14 +13,14 @@
 
 package uk.q3c.kaytee.agent.eventbus;
 
-import net.engio.mbassy.bus.common.PubSubSupport;
+import net.engio.mbassy.bus.MBassador;
 
 /**
- * Common interface for providers of {@link PubSubSupport}
+ * Common interface for providers of {@link MBassador}
  * <p>
  * Created by David Sowerby on 06 Jan 2016
  */
 public interface BusProvider {
 
-    PubSubSupport<BusMessage> get();
+    MBassador<BusMessage> get();
 }

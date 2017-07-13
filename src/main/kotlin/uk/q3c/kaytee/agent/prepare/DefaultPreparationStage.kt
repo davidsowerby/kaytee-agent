@@ -30,13 +30,15 @@ class DefaultPreparationStage @Inject constructor(
 
     override fun execute(build: Build) {
         log.info("Started preparation for build: {}", build.buildRunner.uid)
-        globalBusProvider.get().publish(PreparationStartedMessage(build.buildRunner.uid, build.buildRunner.delegated))
+        val startedMsg = PreparationStartedMessage(build.buildRunner.uid, build.buildRunner.delegated)
+        globalBusProvider.get().publishAsync(startedMsg)
 
         for (step in steps) {
             step.execute(build)
         }
         // build has now been configured and at least one task placed in the queue
-        globalBusProvider.get().publish(PreparationSuccessfulMessage(build.buildRunner.uid, build.buildRunner.delegated))
+        val successMsg = PreparationSuccessfulMessage(build.buildRunner.uid, build.buildRunner.delegated)
+        globalBusProvider.get().publishAsync(successMsg)
         log.info("Completed preparation for build:  {}", build.buildRunner.uid)
     }
 }

@@ -1,7 +1,7 @@
 package uk.q3c.kaytee.agent.prepare
 
 import com.google.inject.Provider
-import net.engio.mbassy.bus.common.PubSubSupport
+import net.engio.mbassy.bus.MBassador
 import org.apache.commons.codec.digest.DigestUtils
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
@@ -16,7 +16,6 @@ import uk.q3c.kaytee.agent.project.Project
 import uk.q3c.kaytee.agent.queue.*
 import uk.q3c.kaytee.agent.system.InstallationInfo
 import uk.q3c.krail.core.i18n.Translate
-
 /**
  * Created by David Sowerby on 20 Jan 2017
  */
@@ -44,7 +43,7 @@ abstract class PreparationStepSpecification extends Specification {
     RequestQueue requestQueue = Mock(RequestQueue)
     GradleTaskRunnerFactory gradleTaskRunnerFactory = Mock(GradleTaskRunnerFactory)
     ManualTaskRunnerFactory manualTaskRunnerFactory = Mock(ManualTaskRunnerFactory)
-    PubSubSupport<BusMessage> globalBus = Mock(PubSubSupport)
+    MBassador<BusMessage> globalBus = Mock(MBassador)
     DelegatedProjectTaskRunnerFactory delegatedProjectTaskRunnerFactory = Mock(DelegatedProjectTaskRunnerFactory)
     Provider<IssueCreator> issueCreatorProvider = Mock(Provider)
     IssueCreator issueCreator = Mock(IssueCreator)
@@ -63,6 +62,7 @@ abstract class PreparationStepSpecification extends Specification {
         installationInfo.projectInstanceDir(build) >> codeDir
         installationInfo.buildNumberDir(build) >> codeDir
         busProvider.get() >> globalBus
+
     }
 
 

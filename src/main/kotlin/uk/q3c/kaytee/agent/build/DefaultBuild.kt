@@ -164,7 +164,7 @@ class DefaultBuild @Inject constructor(
             createLocalGradleTask(taskKey, false)
         } else {
             val msg = TaskNotRequiredMessage(uid, taskKey, delegated)
-            globalBusProvider.get().publish(msg)
+            globalBusProvider.get().publishAsync(msg)
         }
     }
 
@@ -174,7 +174,7 @@ class DefaultBuild @Inject constructor(
         if (!config.enabled) {
             log.debug("Test group is disabled: {}", taskKey)
             val msg = TaskNotRequiredMessage(buildRunner.uid, taskKey, false)
-            globalBusProvider.get().publish(msg)
+            globalBusProvider.get().publishAsync(msg)
             return
         }
 
@@ -223,7 +223,7 @@ class DefaultBuild @Inject constructor(
     }
 
     private fun failBuild(exception: Exception) {
-        globalBusProvider.get().publish(BuildFailedMessage(buildRunner.uid, buildRunner.delegated, exception))
+        globalBusProvider.get().publishAsync(BuildFailedMessage(buildRunner.uid, buildRunner.delegated, exception))
         if (raiseIssueOnFail) {
             issueCreatorProvider.get().raiseIssue(this)
         }
@@ -231,13 +231,13 @@ class DefaultBuild @Inject constructor(
     }
 
     private fun passBuild() {
-        globalBusProvider.get().publish(BuildSuccessfulMessage(buildRunner.uid, buildRunner.delegated))
+        globalBusProvider.get().publishAsync(BuildSuccessfulMessage(buildRunner.uid, buildRunner.delegated))
         closeBuild()
     }
 
     private fun closeBuild() {
         log.info("Build {} closed, sending BuildProcessCompletedMessage", buildRunner.uid)
-        globalBusProvider.get().publish(BuildProcessCompletedMessage(buildRunner.uid, buildRunner.delegated))
+        globalBusProvider.get().publishAsync(BuildProcessCompletedMessage(buildRunner.uid, buildRunner.delegated))
     }
 
 
@@ -289,7 +289,7 @@ class DefaultBuild @Inject constructor(
         } catch (e: Exception) {
             log.debug("Build {}, preparation failed", this, e)
             val msg = PreparationFailedMessage(buildRunner.uid, buildRunner.delegated, e)
-            globalBusProvider.get().publish(msg)
+            globalBusProvider.get().publishAsync(msg)
             failBuild(msg.e)
             return
         }
@@ -299,10 +299,10 @@ class DefaultBuild @Inject constructor(
             // in effect this starts the build proper - the first task is placed into the queue, and as the task requests are
             // completed, another is pushed to the request queue until the build completes or fails
             pushTaskToRequestQueue()
-            globalBusProvider.get().publish(BuildStartedMessage(buildRunner.uid, buildRunner.delegated, buildNumber))
+            globalBusProvider.get().publishAsync(BuildStartedMessage(buildRunner.uid, buildRunner.delegated, buildNumber))
         } else {
             // there is nothing to do
-            globalBusProvider.get().publish(BuildFailedMessage(buildRunner.uid, buildRunner.delegated, BuildConfigurationException()))
+            globalBusProvider.get().publishAsync(BuildFailedMessage(buildRunner.uid, buildRunner.delegated, BuildConfigurationException()))
         }
     }
 

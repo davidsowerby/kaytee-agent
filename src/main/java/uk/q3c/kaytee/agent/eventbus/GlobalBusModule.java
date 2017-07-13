@@ -18,8 +18,6 @@ import com.google.inject.matcher.AbstractMatcher;
 import com.google.inject.spi.TypeEncounter;
 import com.google.inject.spi.TypeListener;
 import net.engio.mbassy.bus.MBassador;
-import net.engio.mbassy.bus.SyncMessageBus;
-import net.engio.mbassy.bus.common.PubSubSupport;
 import net.engio.mbassy.bus.config.BusConfiguration;
 import net.engio.mbassy.bus.config.ConfigurationErrorHandler;
 import net.engio.mbassy.bus.config.Feature;
@@ -47,11 +45,11 @@ public class GlobalBusModule extends AbstractModule {
      */
     @Override
     protected void configure() {
-        TypeLiteral<PubSubSupport<BusMessage>> eventBusLiteral = new TypeLiteral<PubSubSupport<BusMessage>>() {
+        TypeLiteral<MBassador<BusMessage>> eventBusLiteral = new TypeLiteral<MBassador<BusMessage>>() {
         };
 
-        Key<PubSubSupport<BusMessage>> globalBusKey = Key.get(eventBusLiteral, GlobalBus.class);
-        final Provider<PubSubSupport<BusMessage>> globalBusProvider = this.getProvider(globalBusKey);
+        Key<MBassador<BusMessage>> globalBusKey = Key.get(eventBusLiteral, GlobalBus.class);
+        final Provider<MBassador<BusMessage>> globalBusProvider = this.getProvider(globalBusKey);
 
 
         bindListener(new ListenerAnnotationMatcher(), new BusTypeListener(globalBusProvider));
@@ -87,7 +85,7 @@ public class GlobalBusModule extends AbstractModule {
 
 
     @Provides
-    protected EventBusAutoSubscriber autoSubscriber(@GlobalBus Provider<PubSubSupport<BusMessage>> globalBus) {
+    protected EventBusAutoSubscriber autoSubscriber(@GlobalBus Provider<MBassador<BusMessage>> globalBus) {
         return new DefaultEventBusAutoSubscriber(globalBus);
     }
 
@@ -108,11 +106,10 @@ public class GlobalBusModule extends AbstractModule {
     }
 
 
-    private PubSubSupport<BusMessage> createBus(IBusConfiguration config, IPublicationErrorHandler publicationErrorHandler, ConfigurationErrorHandler
+    private MBassador<BusMessage> createBus(IBusConfiguration config, IPublicationErrorHandler publicationErrorHandler, ConfigurationErrorHandler
             configurationErrorHandler, String name, boolean useAsync) {
         config.addPublicationErrorHandler(publicationErrorHandler);
-        PubSubSupport<BusMessage> eventBus;
-        eventBus = (useAsync) ? new MBassador<>(config) : new SyncMessageBus<>(config);
+        MBassador<BusMessage> eventBus = new MBassador<>(config);
         log.debug("instantiated a {} Bus with id {}", name, eventBus.getRuntime().get(IBusConfiguration.Properties.BusId));
         return eventBus;
     }
@@ -121,9 +118,9 @@ public class GlobalBusModule extends AbstractModule {
     @Provides
     @GlobalBus
     @Singleton
-    protected PubSubSupport<BusMessage> providesGlobalBus(@GlobalBus IBusConfiguration config, @GlobalBus IPublicationErrorHandler publicationErrorHandler,
-                                                          @GlobalBus ConfigurationErrorHandler configurationErrorHandler) {
-        PubSubSupport<BusMessage> bus = createBus(config, publicationErrorHandler, configurationErrorHandler, "Global", true);
+    protected MBassador<BusMessage> providesGlobalBus(@GlobalBus IBusConfiguration config, @GlobalBus IPublicationErrorHandler publicationErrorHandler,
+                                                      @GlobalBus ConfigurationErrorHandler configurationErrorHandler) {
+        MBassador<BusMessage> bus = createBus(config, publicationErrorHandler, configurationErrorHandler, "Global", true);
         bus.getRuntime()
                 .add(BUS_SCOPE, "global")
                 .add(BUS_INDEX, globalBusIndex.getAndIncrement());
@@ -142,9 +139,9 @@ public class GlobalBusModule extends AbstractModule {
     }
 
     private static class BusTypeListener implements TypeListener {
-        private Provider<PubSubSupport<BusMessage>> globalBusProvider;
+        private Provider<MBassador<BusMessage>> globalBusProvider;
 
-        public BusTypeListener(Provider<PubSubSupport<BusMessage>> globalBusProvider) {
+        public BusTypeListener(Provider<MBassador<BusMessage>> globalBusProvider) {
             this.globalBusProvider = globalBusProvider;
         }
 

@@ -14,21 +14,21 @@
 package uk.q3c.kaytee.agent.eventbus;
 
 import com.google.inject.Inject;
-import net.engio.mbassy.bus.common.PubSubSupport;
+import net.engio.mbassy.bus.MBassador;
 
 
 public class DefaultGlobalBusProvider implements GlobalBusProvider {
 
-    private PubSubSupport<BusMessage> globalBus;
+    private MBassador<BusMessage> globalBus;
 
     @Inject
-    protected DefaultGlobalBusProvider(@GlobalBus PubSubSupport<BusMessage> globalBus) {
+    protected DefaultGlobalBusProvider(@GlobalBus MBassador<BusMessage> globalBus) {
         this.globalBus = globalBus;
     }
 
 
     @Override
-    public PubSubSupport<BusMessage> get() {
+    public MBassador<BusMessage> get() {
         return globalBus;
     }
 }

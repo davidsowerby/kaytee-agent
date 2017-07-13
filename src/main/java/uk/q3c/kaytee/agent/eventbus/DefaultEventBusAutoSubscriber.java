@@ -13,7 +13,7 @@ package uk.q3c.kaytee.agent.eventbus;
 
 import com.google.inject.Provider;
 import com.google.inject.spi.InjectionListener;
-import net.engio.mbassy.bus.common.PubSubSupport;
+import net.engio.mbassy.bus.MBassador;
 import net.engio.mbassy.listener.Listener;
 
 import java.lang.annotation.Annotation;
@@ -27,9 +27,9 @@ import java.lang.annotation.Annotation;
 public class DefaultEventBusAutoSubscriber implements EventBusAutoSubscriber {
 
 
-    private Provider<PubSubSupport<BusMessage>> globalBusProvider;
+    private Provider<MBassador<BusMessage>> globalBusProvider;
 
-    public DefaultEventBusAutoSubscriber(Provider<PubSubSupport<BusMessage>> globalBusProvider) {
+    public DefaultEventBusAutoSubscriber(Provider<MBassador<BusMessage>> globalBusProvider) {
         this.globalBusProvider = globalBusProvider;
     }
 

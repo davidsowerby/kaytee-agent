@@ -35,7 +35,7 @@ class SpecifiedCurrentLocale @Inject constructor(val globalBusProvider: GlobalBu
             log.debug("CurrentLocale set to {}", locale)
             if (fireListeners) {
                 log.debug("publish locale change")
-                globalBusProvider.get().publish(LocaleChangeBusMessage(this, locale))
+                globalBusProvider.get().publishAsync(LocaleChangeBusMessage(this, locale))
             }
         }
     }

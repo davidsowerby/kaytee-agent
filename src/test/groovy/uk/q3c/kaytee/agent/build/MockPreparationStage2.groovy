@@ -45,12 +45,12 @@ class MockPreparationStage2 implements PreparationStage {
     @Override
     void execute(@NotNull Build build) {
         log.info("Started preparation for build: {}", build.buildRunner.identity())
-        globalBusProvider.get().publish(new PreparationStartedMessage(build.buildRunner.uid, build.buildRunner.delegated))
+        globalBusProvider.get().publishAsync(new PreparationStartedMessage(build.buildRunner.uid, build.buildRunner.delegated))
         build.configure(buildConfiguration)
         if (failOnRun) {
             throw new UnsupportedVersionException("fake", new IOException())
         } else {
-            globalBusProvider.get().publish(new PreparationSuccessfulMessage(build.buildRunner.uid, build.buildRunner.delegated))
+            globalBusProvider.get().publishAsync(new PreparationSuccessfulMessage(build.buildRunner.uid, build.buildRunner.delegated))
         }
         log.info("Completed preparation for build:  {}", build.buildRunner.identity())
     }

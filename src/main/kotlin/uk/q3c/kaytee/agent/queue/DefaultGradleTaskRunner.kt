@@ -32,7 +32,7 @@ class DefaultGradleTaskRunner @Inject constructor(
     override fun run() {
         try {
             log.debug("publishing TaskStartedMessage for {}", this)
-            globalBusProvider.get().publish(TaskStartedMessage(this.build.buildRunner.uid, taskKey, build.buildRunner.delegated))
+            globalBusProvider.get().publishAsync(TaskStartedMessage(this.build.buildRunner.uid, taskKey, build.buildRunner.delegated))
             log.info("Executing task request {}", identity())
             if (build.buildRunner.delegated) {
                 gradleTaskExecutor.execute(build, build.buildRunner.delegateTask)
@@ -43,7 +43,7 @@ class DefaultGradleTaskRunner @Inject constructor(
             val stdOutFile = installationInfo.gradleStdOutFile(build)
             val outcome = TaskSuccessfulMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, stdOutFile.readText()) // any error would cause exception
             log.debug("publishing TaskSuccessfulMessage for {}", this)
-            globalBusProvider.get().publish(outcome)
+            globalBusProvider.get().publishAsync(outcome)
         } catch (e: Exception) {
             val stdErrFile = installationInfo.gradleStdErrFile(build)
             val stdOutFile = installationInfo.gradleStdOutFile(build)
@@ -56,7 +56,7 @@ class DefaultGradleTaskRunner @Inject constructor(
             }
             val outcome = TaskFailedMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, resultKey, errText, stdOutFile.readText())
             log.debug("publishing TaskFailedMessage for {}", this)
-            globalBusProvider.get().publish(outcome)
+            globalBusProvider.get().publishAsync(outcome)
         }
         // we cannot send the end message here - some tasks are executed asynchronously
     }

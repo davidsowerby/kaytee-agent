@@ -1,6 +1,7 @@
 package uk.q3c.kaytee.agent.prepare
 
-import net.engio.mbassy.bus.common.PubSubSupport
+import net.engio.mbassy.bus.IMessagePublication
+import net.engio.mbassy.bus.MBassador
 import spock.lang.Specification
 import uk.q3c.kaytee.agent.build.Build
 import uk.q3c.kaytee.agent.eventbus.BusMessage
@@ -12,7 +13,6 @@ import uk.q3c.kaytee.agent.project.Project
 import uk.q3c.kaytee.agent.queue.BuildRunner
 import uk.q3c.kaytee.agent.queue.PreparationStartedMessage
 import uk.q3c.kaytee.agent.queue.PreparationSuccessfulMessage
-
 /**
  * Created by David Sowerby on 19 Jan 2017
  */
@@ -28,10 +28,11 @@ class DefaultPreparationStageTest extends Specification {
     NamedFactory namedFactory = Mock(NamedFactory)
     Named named = Mock(Named)
     GlobalBusProvider busProvider = Mock(GlobalBusProvider)
-    PubSubSupport<BusMessage> globalBus = Mock(PubSubSupport)
+    MBassador<BusMessage> globalBus = Mock(MBassador)
     BuildRunner buildRunner = Mock(BuildRunner)
     ConnectBuildToGradle connectBuildToGradle = Mock(ConnectBuildToGradle)
     UUID uid = UUID.randomUUID()
+    IMessagePublication messagePublication = Mock()
 
     void setup() {
         namedFactory.create(LabelKey.Preparation_Stage) >> named
@@ -55,7 +56,7 @@ class DefaultPreparationStageTest extends Specification {
 
         then:
         stage.name() == "Preparation Stage"
-        1 * globalBus.publish(new PreparationStartedMessage(buildRunner.uid, false))
+        1 * globalBus.publishAsync(new PreparationStartedMessage(buildRunner.uid, false)) >> messagePublication
 
         stage.steps.size() == 4
         stage.steps.get(0) == prepareWorkspace
@@ -73,7 +74,6 @@ class DefaultPreparationStageTest extends Specification {
         loadBuildConfiguration.execute(build)
 
         then:
-        1 * globalBus.publish(new PreparationSuccessfulMessage(buildRunner.uid, false))
-
+        1 * globalBus.publishAsync(new PreparationSuccessfulMessage(buildRunner.uid, false)) >> messagePublication
     }
 }

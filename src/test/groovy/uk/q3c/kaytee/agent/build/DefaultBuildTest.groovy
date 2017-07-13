@@ -3,7 +3,7 @@ package uk.q3c.kaytee.agent.build
 import com.google.common.collect.ImmutableList
 import com.google.inject.Provider
 import net.engio.mbassy.bus.IMessagePublication
-import net.engio.mbassy.bus.common.PubSubSupport
+import net.engio.mbassy.bus.MBassador
 import org.apache.commons.codec.digest.DigestUtils
 import spock.lang.Ignore
 import spock.lang.Specification
@@ -38,19 +38,19 @@ class DefaultBuildTest extends Specification {
     MockDelegatedProjectTaskRunnerFactory delegatedProjectTaskRunnerFactory = new MockDelegatedProjectTaskRunnerFactory()
     KayTeeExtension kayTeeExtension
     UUID uid = UUID.randomUUID()
-    PubSubSupport<BusMessage> globalBus = Mock()
+    MBassador<BusMessage> globalBus = Mock()
     Project project = Mock()
     List<TaskKey> defaultLifecycle = ImmutableList.of(Unit_Test, Generate_Build_Info, Generate_Change_Log, Publish_to_Local, Merge_to_Master, Tag, Bintray_Upload)
-
+    IMessagePublication messagePublication = Mock()
 
     void setup() {
+        globalBusProvider.get() >> globalBus
         issueCreatorProvider.get() >> issueCreator
         kayTeeExtension = new KayTeeExtension()
         build = new DefaultBuild(preparationStage, buildNumberReader, requestQueue, globalBusProvider, gradleTaskRunnerFactory, manualTaskRunnerFactory, delegatedProjectTaskRunnerFactory, issueCreatorProvider, buildRunner)
         buildRunner.uid >> uid
         buildRunner.project >> project
         project.fullProjectName >> 'davidsowerby/wiggly'
-        globalBusProvider.get() >> globalBus
 
     }
 
@@ -68,6 +68,7 @@ class DefaultBuildTest extends Specification {
         build.lifecycle == ConstantsKt.standardLifecycle
         build.tasksWaiting() == defaultLifecycle
         !gradleTaskRunnerFactory.runners.get(Unit_Test).includeQualityGate
+
     }
 
     def "configure, modified default"() {
@@ -122,7 +123,7 @@ class DefaultBuildTest extends Specification {
 
         then: "BuildStartedMessage sent"
         1 * buildNumberReader.nextBuildNumber(build) >> '33'
-        1 * globalBus.publish(new BuildStartedMessage(uid, false, '33'))
+        1 * globalBus.publishAsync(new BuildStartedMessage(uid, false, '33')) >> messagePublication
         build.buildNumber() == '33'
 
         when: "first TaskSuccessful message received"
@@ -147,10 +148,10 @@ class DefaultBuildTest extends Specification {
         then: "all tasks complete, BuildSuccessfulMessage sent"
         build.tasksWaiting().isEmpty()
         b.completedTasks.containsAll(defaultLifecycle)
-        1 * globalBus.publish(new BuildSuccessfulMessage(uid, false))
+        1 * globalBus.publishAsync(new BuildSuccessfulMessage(uid, false)) >> messagePublication
 
         then:
-        1 * globalBus.publish(new BuildProcessCompletedMessage(uid, false))
+        1 * globalBus.publishAsync(new BuildProcessCompletedMessage(uid, false)) >> messagePublication
     }
 
     def "delegated task passes"() {
@@ -171,7 +172,7 @@ class DefaultBuildTest extends Specification {
 
         then: "BuildStartedMessage sent"
         1 * buildNumberReader.nextBuildNumber(build) >> '33'
-        1 * globalBus.publish(new BuildStartedMessage(uid, true, '33'))
+        1 * globalBus.publishAsync(new BuildStartedMessage(uid, true, '33')) >> messagePublication
 
         when: "first TaskSuccessful message received"
         TaskSuccessfulMessage message = new TaskSuccessfulMessage(uid, Custom, true, "")
@@ -182,10 +183,10 @@ class DefaultBuildTest extends Specification {
         then: "all tasks complete, BuildSuccessfulMessage sent"
         build.tasksWaiting().isEmpty()
         b.completedTasks.containsAll(ConstantsKt.delegatedLifecycle)
-        1 * globalBus.publish(new BuildSuccessfulMessage(uid, true))
+        1 * globalBus.publishAsync(new BuildSuccessfulMessage(uid, true)) >> messagePublication
 
         then:
-        1 * globalBus.publish(new BuildProcessCompletedMessage(uid, true))
+        1 * globalBus.publishAsync(new BuildProcessCompletedMessage(uid, true)) >> messagePublication
     }
 
     @Unroll
@@ -208,7 +209,7 @@ class DefaultBuildTest extends Specification {
 
         then:
 
-        1 * globalBus.publish(_ as BuildStartedMessage) >> { arguments ->
+        1 * globalBus.publishAsync(_ as BuildStartedMessage) >> { arguments ->
             buildMessage = arguments[0]
             return messagePublication
         }
@@ -216,7 +217,7 @@ class DefaultBuildTest extends Specification {
         then:
 
         buildMessage.buildRequestId == uid
-        1 * globalBus.publish(_ as BuildFailedMessage) >> { arguments ->
+        1 * globalBus.publishAsync(_ as BuildFailedMessage) >> { arguments ->
             buildMessage = arguments[0]
             return messagePublication
         }
@@ -225,7 +226,7 @@ class DefaultBuildTest extends Specification {
 
         then:
 
-        1 * globalBus.publish(_ as BuildProcessCompletedMessage) >> { arguments ->
+        1 * globalBus.publishAsync(_ as BuildProcessCompletedMessage) >> { arguments ->
             buildMessage = arguments[0]
             return messagePublication
         }
@@ -276,8 +277,8 @@ class DefaultBuildTest extends Specification {
 
         then:
         1 * preparationStage.execute(build) >> { throw new IOException("Fake") }
-        1 * globalBus.publish(_ as BuildFailedMessage)
-        1 * globalBus.publish(new BuildProcessCompletedMessage(uid, false))
+        1 * globalBus.publishAsync(_ as BuildFailedMessage) >> messagePublication
+        1 * globalBus.publishAsync(new BuildProcessCompletedMessage(uid, false)) >> messagePublication
     }
 
 

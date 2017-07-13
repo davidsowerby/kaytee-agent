@@ -41,7 +41,7 @@ class MockGradleTaskRunner implements GradleTaskRunner {
     void run() {
         log.debug("publishing TaskStartedMessage for {}", this)
         TaskStartedMessage startMessage = new TaskStartedMessage(this.build.buildRunner.uid, taskKey, build.buildRunner.delegated)
-        globalBusProvider.get().publish(startMessage)
+        globalBusProvider.get().publishAsync(startMessage)
         LocalDateTime timeout = LocalDateTime.now().plus(500, ChronoUnit.MILLIS)
         while (LocalDateTime.now().isBefore(timeout)) {
             int a = 10 + 1000
@@ -50,11 +50,11 @@ class MockGradleTaskRunner implements GradleTaskRunner {
         if (failOnRun) {
             log.info("$taskKey Task FAILED")
             TaskFailedMessage failedMessage = new TaskFailedMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, TaskStateKey.Failed, "Failed stdout", "Failed stderr")
-            globalBusProvider.get().publish(failedMessage)
+            globalBusProvider.get().publishAsync(failedMessage)
         } else {
             log.info("$taskKey Task SUCCEEDED")
             TaskSuccessfulMessage successfulMessage = new TaskSuccessfulMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, "Successful")
-            globalBusProvider.get().publish(successfulMessage)
+            globalBusProvider.get().publishAsync(successfulMessage)
         }
     }
 }

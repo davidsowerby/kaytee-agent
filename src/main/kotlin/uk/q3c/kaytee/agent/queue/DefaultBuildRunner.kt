@@ -30,7 +30,7 @@ data class DefaultBuildRunner @Inject constructor(val buildFactory: BuildFactory
             log.debug("executing build instance, build Id: {}", build.buildRunner.uid)
             build.execute()
         } catch (e: Exception) {
-            globalBusProvider.get().publish(BuildFailedMessage(uid, delegated, e))
+            globalBusProvider.get().publishAsync(BuildFailedMessage(uid, delegated, e))
             log.error("Exception thrown in build execution", e)
         }
     }

@@ -9,7 +9,6 @@ import com.google.inject.util.Modules
 import org.apache.commons.codec.digest.DigestUtils
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import spock.lang.Ignore
 import spock.lang.Specification
 import uk.q3c.build.gitplus.GitPlusModule
 import uk.q3c.build.gitplus.GitSHA
@@ -187,7 +186,6 @@ class Soak_ITest extends Specification {
     def cleanup() {
     }
 
-    @Ignore
     def "Single runner"() {
         given:
         int requestGenerationPeriodInSeconds = 60

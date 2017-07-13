@@ -1,11 +1,10 @@
 package uk.q3c.kaytee.agent.i18n
 
 import net.engio.mbassy.bus.IMessagePublication
-import net.engio.mbassy.bus.common.PubSubSupport
+import net.engio.mbassy.bus.MBassador
 import spock.lang.Specification
 import uk.q3c.kaytee.agent.eventbus.GlobalBusProvider
 import uk.q3c.krail.core.i18n.CurrentLocale
-
 /**
  * Created by David Sowerby on 10 Apr 2017
  */
@@ -13,7 +12,8 @@ class SpecifiedCurrentLocaleTest extends Specification {
 
     CurrentLocale currentLocale
     GlobalBusProvider globalBusProvider = Mock(GlobalBusProvider)
-    PubSubSupport globalBus = Mock(PubSubSupport)
+    MBassador globalBus = Mock(MBassador)
+    IMessagePublication messsagePublication = Mock()
 
     def setup() {
         currentLocale = new SpecifiedCurrentLocale(globalBusProvider)
@@ -39,9 +39,10 @@ class SpecifiedCurrentLocaleTest extends Specification {
         then:
 
         1 * globalBusProvider.get() >> globalBus
-        1 * globalBus.publish(_) >> { arguments ->
+
+        1 * globalBus.publishAsync(_) >> { arguments ->
             msg = arguments[0]
-            imp
+            messsagePublication
         }
         msg.changeSource == currentLocale
         msg.newLocale == Locale.CANADA_FRENCH
@@ -50,16 +51,15 @@ class SpecifiedCurrentLocaleTest extends Specification {
     def "setLocale defaults to fireListeners=true"() {
         given:
         LocaleChangeBusMessage msg
-        IMessagePublication imp = Mock(IMessagePublication)
 
         when:
         currentLocale.setLocale(Locale.CANADA_FRENCH)
 
         then:
         1 * globalBusProvider.get() >> globalBus
-        1 * globalBus.publish(_) >> { arguments ->
+        1 * globalBus.publishAsync(_) >> { arguments ->
             msg = arguments[0] as LocaleChangeBusMessage
-            imp
+            messsagePublication
         }
         msg.changeSource == currentLocale
         msg.newLocale == Locale.CANADA_FRENCH
