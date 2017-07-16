@@ -19,6 +19,8 @@ import net.engio.mbassy.bus.config.IBusConfiguration;
 import uk.q3c.krail.core.eventbus.EventBusException;
 
 /**
+ * Responds to an MBassador configuration error by simply re-throwing the exception
+ *
  * Created by David Sowerby on 10/03/15.
  */
 public class DefaultEventBusConfigurationErrorHandler implements ConfigurationErrorHandler {
@@ -29,6 +31,6 @@ public class DefaultEventBusConfigurationErrorHandler implements ConfigurationEr
      */
     @Override
     public void handle(ConfigurationError error) {
-        throw new EventBusException("Event bus configuration incorrect, " + error);
+        throw new EventBusException("Event bus configuration incorrect", error);
     }
 }

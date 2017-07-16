@@ -17,11 +17,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ *
+ * The MBassador default is to use a ConsoleLogger.
+ *
  * Created by David Sowerby on 10/03/15.
  */
 public class DefaultEventBusErrorHandler implements IPublicationErrorHandler {
 
-    private static Logger log = LoggerFactory.getLogger(uk.q3c.krail.core.eventbus.DefaultEventBusErrorHandler.class);
+    private static Logger log = LoggerFactory.getLogger(DefaultEventBusErrorHandler.class);
 
     /**
      * Handle the given publication error.
@@ -30,6 +33,6 @@ public class DefaultEventBusErrorHandler implements IPublicationErrorHandler {
      */
     @Override
     public void handleError(PublicationError error) {
-        throw new RuntimeException(error.getMessage(), error.getCause());
+        log.error("Error during message publication: {}", error);
     }
 }
