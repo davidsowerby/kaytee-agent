@@ -80,13 +80,13 @@ class DefaultDelegatedProjectTaskRunner @Inject constructor(
     @Handler
     fun delegateResult(buildMessage: BuildSuccessfulMessage) {
         synchronized(lock) {
-            log.debug("Build {} : BuildSuccessfulMessage received from {}", build.buildRunner.uid, buildMessage.buildRequestId)
+            log.trace("Build {} : BuildSuccessfulMessage received from {}", build.buildRunner.uid, buildMessage.buildRequestId)
             if (buildMessage.buildRequestId == delegateBuildId) {
                 log.debug("Build {} : processing BuildSuccessfulMessage received from {}", build.buildRunner.uid, buildMessage.buildRequestId)
                 val taskMessage = TaskSuccessfulMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, "Delegate build ${buildMessage.buildRequestId} completed successfully")
                 publishAndUnsubscribe(taskMessage)
             } else {
-                log.debug("Build {} : ignored BuildSuccessfulMessage received from {}, not relevant to this runner", build.buildRunner.uid, buildMessage.buildRequestId)
+                log.trace("Build {} : ignored BuildSuccessfulMessage received from {}, not relevant to this runner", build.buildRunner.uid, buildMessage.buildRequestId)
             }
         }
     }
@@ -94,13 +94,27 @@ class DefaultDelegatedProjectTaskRunner @Inject constructor(
     @Handler
     fun delegateResult(buildMessage: BuildFailedMessage) {
         synchronized(lock) {
-            log.debug("Build {} : BuildFailedMessage received from {}", build.buildRunner.uid, buildMessage.buildRequestId)
+            log.trace("Build {} : BuildFailedMessage received from {}", build.buildRunner.uid, buildMessage.buildRequestId)
             if (buildMessage.buildRequestId == delegateBuildId) {
                 log.debug("Build {} : processing BuildFailedMessage received from {}", build.buildRunner.uid, buildMessage.buildRequestId)
                 val taskMessage = TaskFailedMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, TaskStateKey.Failed, "${buildMessage.e.message}", "Delegate build ${buildMessage.buildRequestId} failed")
                 publishAndUnsubscribe(taskMessage)
             } else {
-                log.debug("Build {} : ignored BuildFailedMessage received from {}, not relevant to this runner", build.buildRunner.uid, buildMessage.buildRequestId)
+                log.trace("Build {} : ignored BuildFailedMessage received from {}, not relevant to this runner", build.buildRunner.uid, buildMessage.buildRequestId)
+            }
+        }
+    }
+
+    @Handler
+    fun delegateResult(buildMessage: PreparationFailedMessage) {
+        synchronized(lock) {
+            log.trace("Build {} : PreparationFailedMessage received from {}", build.buildRunner.uid, buildMessage.buildRequestId)
+            if (buildMessage.buildRequestId == delegateBuildId) {
+                log.debug("Build {} : processing PreparationFailedMessage received from {}", build.buildRunner.uid, buildMessage.buildRequestId)
+                val taskMessage = TaskFailedMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, TaskStateKey.Failed, "${buildMessage.e.message}", "Delegate build ${buildMessage.buildRequestId} failed")
+                publishAndUnsubscribe(taskMessage)
+            } else {
+                log.trace("Build {} : ignored PreparationFailedMessage received from {}, not relevant to this runner", build.buildRunner.uid, buildMessage.buildRequestId)
             }
         }
     }

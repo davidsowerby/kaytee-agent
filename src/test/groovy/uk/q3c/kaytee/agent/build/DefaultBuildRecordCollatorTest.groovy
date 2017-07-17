@@ -1,16 +1,21 @@
 package uk.q3c.kaytee.agent.build
 
+import net.engio.mbassy.bus.MBassador
 import spock.lang.Specification
 import spock.lang.Unroll
 import uk.q3c.kaytee.agent.app.ConstantsKt
 import uk.q3c.kaytee.agent.app.Hooks
+import uk.q3c.kaytee.agent.eventbus.GlobalBusProvider
+import uk.q3c.kaytee.agent.i18n.BuildFailCauseKey
+import uk.q3c.kaytee.agent.i18n.BuildStateKey
 import uk.q3c.kaytee.agent.i18n.TaskStateKey
 import uk.q3c.kaytee.agent.queue.*
 
 import java.time.Duration
 import java.time.OffsetDateTime
 
-import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.*
+import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Build_Configuration
+import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Not_Applicable
 import static uk.q3c.kaytee.agent.i18n.BuildStateKey.*
 import static uk.q3c.kaytee.plugin.TaskKey.*
 
@@ -25,15 +30,19 @@ class DefaultBuildRecordCollatorTest extends Specification {
     BuildRecord record
     final String stdOut = "stdOut"
     final String stdErr = "stdErr"
+    GlobalBusProvider globalBusProvider = Mock()
+    MBassador globalBus = Mock()
+    StateModel stateModel = new DefaultStateModel()
 
 
     def setupSpec() {
         uid = UUID.randomUUID()
+
     }
 
     def setup() {
-        collator = new DefaultBuildRecordCollator(hooks)
-
+        collator = new DefaultBuildRecordCollator(hooks, globalBusProvider, stateModel)
+        globalBusProvider.get() >> globalBus
     }
 
     @Unroll
@@ -49,7 +58,7 @@ class DefaultBuildRecordCollatorTest extends Specification {
         OffsetDateTime completedAt
 
         when: "Queued"
-        collator.busMessage(queuedMessage)
+        collator.buildMessage(queuedMessage)
         record = collator.getRecord(uid)
 
         then:
@@ -68,27 +77,8 @@ class DefaultBuildRecordCollatorTest extends Specification {
 
         msgsPublished * hooks.publish(_)
 
-        when: "Started"
-        collator.busMessage(startedMessage)
-        record = collator.getRecord(uid)
-
-        then:
-        record.state == Started
-
-        isSet(record.requestedAt)
-        isSet(record.startedAt)
-        isNotSet(record.preparationStartedAt)
-        isNotSet(record.preparationCompletedAt)
-        isNotSet(record.completedAt)
-
-        record.delegated == delegated
-        record.causeOfFailure == Not_Applicable
-        record.failureDescription == ""
-
-        msgsPublished * hooks.publish(_)
-
         when: "Started prep"
-        collator.busMessage(preparationStartedMessage)
+        collator.buildMessage(preparationStartedMessage)
         record = collator.getRecord(uid)
 
 
@@ -96,7 +86,7 @@ class DefaultBuildRecordCollatorTest extends Specification {
         record.state == Preparation_Started
 
         isSet(record.requestedAt)
-        isSet(record.startedAt)
+        isNotSet(record.startedAt)
         isSet(record.preparationStartedAt)
         isNotSet(record.preparationCompletedAt)
         isNotSet(record.completedAt)
@@ -106,12 +96,32 @@ class DefaultBuildRecordCollatorTest extends Specification {
         record.failureDescription == ""
 
         when: "Prep successful"
-        collator.busMessage(preparationSuccessfulMessage)
+        collator.buildMessage(preparationSuccessfulMessage)
         record = collator.getRecord(uid)
 
 
         then:
         record.state == Preparation_Successful
+
+        isSet(record.requestedAt)
+        isNotSet(record.startedAt)
+        isSet(record.preparationStartedAt)
+        isSet(record.preparationCompletedAt)
+        isNotSet(record.completedAt)
+
+        record.delegated == delegated
+        record.causeOfFailure == Not_Applicable
+        record.failureDescription == ""
+
+        msgsPublished * hooks.publish(_)
+
+
+        when: "Started"
+        collator.buildMessage(startedMessage)
+        record = collator.getRecord(uid)
+
+        then:
+        record.state == Started
 
         isSet(record.requestedAt)
         isSet(record.startedAt)
@@ -126,7 +136,7 @@ class DefaultBuildRecordCollatorTest extends Specification {
         msgsPublished * hooks.publish(_)
 
         when: "Build successful"
-        collator.busMessage(buildSuccessfulMessage)
+        collator.buildMessage(buildSuccessfulMessage)
         record = collator.getRecord(uid)
         completedAt = record.completedAt
 
@@ -147,15 +157,15 @@ class DefaultBuildRecordCollatorTest extends Specification {
         record.failureDescription == ""
 
         msgsPublished * hooks.publish(_)
-        !record.processingCompleted
+        !record.hasCompleted()
 
 
         when: "Build processing completed"
-        collator.busMessage(buildCompletedMessage)
+        collator.buildMessage(buildCompletedMessage)
         record = collator.getRecord(uid)
 
         then:
-        record.processingCompleted
+        record.hasCompleted()
         record.completedAt == completedAt // completion time should remain unchanged
 
         where:
@@ -175,24 +185,24 @@ class DefaultBuildRecordCollatorTest extends Specification {
         PreparationFailedMessage preparationFailedMessage = new PreparationFailedMessage(uid, delegated, new IllegalArgumentException(exceptionMsg as String))
 
         when: "Queued, Build and Prep started, prep fails"
-        collator.busMessage(queuedMessage)
-        collator.busMessage(startedMessage)
-        collator.busMessage(preparationStartedMessage)
-        collator.busMessage(preparationFailedMessage)
+        collator.buildMessage(queuedMessage)
+        collator.buildMessage(startedMessage)
+        collator.buildMessage(preparationStartedMessage)
+        collator.buildMessage(preparationFailedMessage)
         record = collator.getRecord(uid)
 
 
         then:
-        record.state == Failed
+        record.state == BuildStateKey.Preparation_Failed
 
         isSet(record.requestedAt)
-        isSet(record.startedAt)
+        isNotSet(record.startedAt)
         isSet(record.preparationStartedAt)
         isSet(record.preparationCompletedAt)
-        isSet(record.completedAt)
+        isNotSet(record.completedAt)
 
         record.delegated == delegated
-        record.causeOfFailure == Preparation_Failed
+        record.causeOfFailure == BuildFailCauseKey.Preparation_Failed
         if (exceptionMsg == null) {
             record.failureDescription == "IllegalArgumentException"
         } else {
@@ -220,11 +230,11 @@ class DefaultBuildRecordCollatorTest extends Specification {
         BuildFailedMessage buildFailedMessage = new BuildFailedMessage(uid, delegated, new BuildConfigurationException())
 
         when: "Queued, Build and Prep started, prep fails"
-        collator.busMessage(queuedMessage)
-        collator.busMessage(startedMessage)
-        collator.busMessage(preparationStartedMessage)
-        collator.busMessage(preparationSuccessfulMessage)
-        collator.busMessage(buildFailedMessage)
+        collator.buildMessage(queuedMessage)
+        collator.buildMessage(preparationStartedMessage)
+        collator.buildMessage(preparationSuccessfulMessage)
+        collator.buildMessage(startedMessage)
+        collator.buildMessage(buildFailedMessage)
         record = collator.getRecord(uid)
 
 
@@ -258,8 +268,8 @@ class DefaultBuildRecordCollatorTest extends Specification {
         TaskRequestedMessage taskRequestedMessage = new TaskRequestedMessage(uid, taskKey, delegated)
         TaskStartedMessage taskStartedMessage = new TaskStartedMessage(uid, taskKey, delegated)
         TaskSuccessfulMessage taskSuccessfulMessage = new TaskSuccessfulMessage(uid, taskKey, delegated, stdOut)
-        collator.busMessage(queuedMessage)
-        collator.busMessage(startedMessage)
+        collator.buildMessage(queuedMessage)
+        collator.buildMessage(startedMessage)
         BuildRecord buildRecord = collator.getRecord(uid)
         TaskResult taskRecord = buildRecord.taskResult(taskKey)
 
@@ -323,8 +333,8 @@ class DefaultBuildRecordCollatorTest extends Specification {
         TaskFailedMessage taskFailedMessage = new TaskFailedMessage(uid, taskKey, delegated, TaskStateKey.Quality_Gate_Failed, stdOut, stdErr)
 
         when:
-        collator.busMessage(queuedMessage)
-        collator.busMessage(startedMessage)
+        collator.buildMessage(queuedMessage)
+        collator.buildMessage(startedMessage)
         collator.busMessage(taskRequestedMessage)
         collator.busMessage(taskStartedMessage)
         collator.busMessage(taskFailedMessage)
@@ -358,8 +368,8 @@ class DefaultBuildRecordCollatorTest extends Specification {
         TaskStartedMessage taskStartedMessage = new TaskStartedMessage(uid, Merge_to_Master, delegated)
 
         when:
-        collator.busMessage(queuedMessage)
-        collator.busMessage(startedMessage)
+        collator.buildMessage(queuedMessage)
+        collator.buildMessage(startedMessage)
         collator.busMessage(taskNotRequiredMessage)
         BuildRecord buildRecord = collator.getRecord(uid)
         TaskResult taskRecord = buildRecord.taskResult(Merge_to_Master)

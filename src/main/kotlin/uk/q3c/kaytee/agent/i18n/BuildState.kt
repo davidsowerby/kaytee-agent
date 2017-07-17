@@ -1,8 +1,8 @@
 package uk.q3c.kaytee.agent.i18n
 
-import uk.q3c.kaytee.agent.i18n.BuildStateKey.*
+import uk.q3c.kaytee.agent.queue.BuildFailedMessage
+import uk.q3c.kaytee.agent.queue.BuildSuccessfulMessage
 import uk.q3c.krail.core.i18n.I18NKey
-import java.util.*
 
 /**
  * See [BuildFailCauses]
@@ -16,14 +16,19 @@ enum class BuildStateKey : I18NKey {
     Requested,
     Preparation_Started,
     Preparation_Successful,
+    Preparation_Failed,
     Started,
 
     Cancelled,
     Failed,
     Successful,
+
+    /**
+     * All processing completed when true, including any post processing done after [BuildSuccessfulMessage] or [BuildFailedMessage] received
+     */
+    Complete
 }
 
-val finalStates: EnumSet<BuildStateKey> = EnumSet.of(Cancelled, Failed, Successful)
 
 enum class BuildFailCauseKey : I18NKey {
     Unsupported_Build_Argument,

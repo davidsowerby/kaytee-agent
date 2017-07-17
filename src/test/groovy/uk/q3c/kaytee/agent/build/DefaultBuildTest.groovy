@@ -266,7 +266,7 @@ class DefaultBuildTest extends Specification {
         thrown BuildConfigurationException
     }
 
-    def "preparation fails, PreparationFailedMessage and BuildFailedMessage sent"() {
+    def "preparation fails, only PreparationFailedMessage sent"() {
         given:
         build.configure(kayTeeExtension)
         buildRunner.delegated >> false
@@ -277,7 +277,7 @@ class DefaultBuildTest extends Specification {
 
         then:
         1 * preparationStage.execute(build) >> { throw new IOException("Fake") }
-        1 * globalBus.publishAsync(_ as BuildFailedMessage) >> messagePublication
+        0 * globalBus.publishAsync(_ as BuildFailedMessage) >> messagePublication
         1 * globalBus.publishAsync(new BuildProcessCompletedMessage(uid, false)) >> messagePublication
     }
 

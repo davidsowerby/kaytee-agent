@@ -6,16 +6,20 @@ import net.engio.mbassy.listener.Listener
 import org.apache.commons.lang3.exception.ExceptionUtils
 import org.slf4j.LoggerFactory
 import uk.q3c.kaytee.agent.app.Hooks
-import uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Preparation_Failed
+import uk.q3c.kaytee.agent.eventbus.GlobalBus
+import uk.q3c.kaytee.agent.eventbus.GlobalBusProvider
+import uk.q3c.kaytee.agent.eventbus.SubscribeTo
+import uk.q3c.kaytee.agent.i18n.BuildFailCauseKey
 import uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Task_Failure
 import uk.q3c.kaytee.agent.i18n.BuildStateKey
-import uk.q3c.kaytee.agent.i18n.BuildStateKey.Preparation_Started
-import uk.q3c.kaytee.agent.i18n.BuildStateKey.Preparation_Successful
+import uk.q3c.kaytee.agent.i18n.BuildStateKey.*
+import uk.q3c.kaytee.agent.i18n.BuildStateKey.Cancelled
 import uk.q3c.kaytee.agent.i18n.TaskStateKey
 import uk.q3c.kaytee.agent.i18n.TaskStateKey.*
+import uk.q3c.kaytee.agent.i18n.TaskStateKey.Failed
+import uk.q3c.kaytee.agent.i18n.TaskStateKey.Successful
 import uk.q3c.kaytee.agent.queue.*
-import uk.q3c.krail.core.eventbus.GlobalBus
-import uk.q3c.krail.core.eventbus.SubscribeTo
+
 import java.time.OffsetDateTime
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -38,7 +42,7 @@ import javax.annotation.concurrent.ThreadSafe
  */
 @ThreadSafe
 @Listener @SubscribeTo(GlobalBus::class)
-class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRecordCollator {
+class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks, val globalBusProvider: GlobalBusProvider, val stateModel: StateModel) : BuildRecordCollator {
 
 
     override val records: MutableMap<UUID, BuildRecord> = ConcurrentHashMap()
@@ -61,68 +65,14 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
         }
     }
 
+
     @Handler
-    fun busMessage(busMessage: BuildQueuedMessage) {
+    fun buildMessage(busMessage: BuildMessage) {
         synchronized(lock) {
-            updateBuildState(BuildStateKey.Requested, busMessage)
+            updateBuildState(busMessage)
         }
     }
 
-    @Handler
-    fun busMessage(busMessage: BuildStartedMessage) {
-        synchronized(lock) {
-            updateBuildState(BuildStateKey.Started, busMessage)
-        }
-    }
-
-    @Handler
-    fun busMessage(busMessage: BuildSuccessfulMessage) {
-        synchronized(lock) {
-            updateBuildState(BuildStateKey.Successful, busMessage)
-        }
-    }
-
-
-    @Handler
-    fun busMessage(busMessage: BuildFailedMessage) {
-        synchronized(lock) {
-            val record = updateBuildState(BuildStateKey.Failed, busMessage)
-            record.causeOfFailure = BuildExceptionLookup().lookupKeyFromException(busMessage.e)
-            record.failureDescription =
-                    if (busMessage.e.message != null) {
-                        busMessage.e.message as String
-                    } else {
-                        busMessage.e.javaClass.simpleName
-                    }
-        }
-    }
-
-
-    @Handler
-    fun busMessage(busMessage: PreparationStartedMessage) {
-        synchronized(lock) {
-            updateBuildState(Preparation_Started, busMessage)
-        }
-    }
-
-    @Handler
-    fun busMessage(busMessage: PreparationSuccessfulMessage) {
-        synchronized(lock) {
-            updateBuildState(Preparation_Successful, busMessage)
-        }
-    }
-
-    @Handler
-    fun busMessage(busMessage: PreparationFailedMessage) {
-        synchronized(lock) {
-            val record = updateBuildState(BuildStateKey.Failed, busMessage)
-            val stacktrace = ExceptionUtils.getRootCauseStackTrace(busMessage.e)
-            record.failureDescription =
-                    stacktrace.joinToString(separator = "\n")
-            record.causeOfFailure = Preparation_Failed
-            record.preparationCompletedAt = busMessage.time
-        }
-    }
 
     @Handler
     fun busMessage(busMessage: TaskNotRequiredMessage) {
@@ -148,18 +98,16 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
     @Handler
     fun busMessage(busMessage: TaskSuccessfulMessage) {
         synchronized(lock) {
-            val taskRecord = updateTaskState(TaskStateKey.Successful, busMessage)
+            val taskRecord = updateTaskState(Successful, busMessage)
             taskRecord.stdOut = busMessage.stdOut
         }
     }
 
+
     @Handler
-    fun busMessage(busMessage: BuildProcessCompletedMessage) {
-        synchronized(lock) {
-            log.debug("Build ${busMessage.buildRequestId} received BuildProcessCompletedMessage")
-            val buildRecord = getRecord(busMessage)
-            buildRecord.processingCompleted = true
-        }
+    fun busMessage(busMessage: BuildMessageEnvelope) {
+        log.debug("Build ${busMessage.buildMessage.buildRequestId} received BuildMessageEnvelope, containing ${busMessage.buildMessage.javaClass.simpleName}")
+        buildMessage(busMessage.buildMessage)
     }
 
     @Handler
@@ -169,7 +117,7 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
             val taskRecord = updateTaskState(busMessage.result, busMessage)
             taskRecord.stdOut = busMessage.stdOut
             taskRecord.stdErr = busMessage.stdErr
-            val buildRecord = getRecord(busMessage)
+            val buildRecord = getRecord(busMessage.buildRequestId)
             buildRecord.failureDescription = taskRecord.stdOut
             log.debug("Build record failure description set to: ${buildRecord.failureDescription}")
             buildRecord.causeOfFailure = Task_Failure
@@ -217,7 +165,7 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
 
     private fun updateTaskState(newState: TaskStateKey, taskMessage: TaskMessage): TaskResult {
         log.debug("${taskMessage.javaClass.simpleName} received, task {}, build id: {}", taskMessage.taskKey, taskMessage.buildRequestId)
-        val buildRecord = getRecord(taskMessage)
+        val buildRecord = getRecord(taskMessage.buildRequestId)
         val taskRecord = buildRecord.taskResult(taskMessage.taskKey)
         if (taskRecord.state == Not_Required) {
             throw InvalidBuildStateException("No further messages should be received when task in not required")
@@ -226,9 +174,9 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
         when (newState) {
 
             TaskStateKey.Cancelled -> taskRecord.completedAt = taskMessage.time
-            TaskStateKey.Failed -> taskRecord.completedAt = taskMessage.time
+            Failed -> taskRecord.completedAt = taskMessage.time
             Not_Run -> throw InvalidBuildStateException("Cannot update the task record to be TASK NOT RUN")
-            TaskStateKey.Successful -> taskRecord.completedAt = taskMessage.time
+            Successful -> taskRecord.completedAt = taskMessage.time
             TaskStateKey.Requested -> taskRecord.requestedAt = taskMessage.time
             Quality_Gate_Failed -> taskRecord.completedAt = taskMessage.time
             TaskStateKey.Started -> taskRecord.startedAt = taskMessage.time
@@ -246,30 +194,85 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks) : BuildRe
         }
     }
 
-    private fun updateBuildState(newState: BuildStateKey, buildMessage: BuildMessage): BuildRecord {
-        log.debug("${buildMessage.javaClass.simpleName} received, build id: {}", buildMessage.buildRequestId)
+    private fun updateBuildState(buildMessage: BuildMessage): BuildRecord {
+        log.debug("Build {} ${buildMessage.javaClass.simpleName} received", buildMessage.buildRequestId)
         val buildRecord = getRecord(buildMessage)
-        buildRecord.state = newState
+        val newState: BuildStateKey = buildMessage.targetState
 
-        when (newState) {
-            BuildStateKey.Requested -> buildRecord.requestedAt = buildMessage.time
-            BuildStateKey.Started -> buildRecord.startedAt = buildMessage.time
-            BuildStateKey.Successful -> buildRecord.completedAt = buildMessage.time
-            BuildStateKey.Failed -> {
-                buildRecord.completedAt = buildMessage.time
-            }
-
-            BuildStateKey.Not_Started -> throw InvalidBuildStateException("Cannot update the build record to be NOT STARTED")
-            BuildStateKey.Preparation_Started -> buildRecord.preparationStartedAt = buildMessage.time
-            BuildStateKey.Preparation_Successful -> buildRecord.preparationCompletedAt = buildMessage.time
-            BuildStateKey.Cancelled -> buildRecord.preparationCompletedAt = buildMessage.time
+        if (stateModel.currentStateValid(buildRecord.state, newState)) {
+            log.debug("Build ${buildMessage.buildRequestId} state change is valid, current state is '${buildRecord.state}', target state is '$newState'")
+            processNewState(buildMessage, newState, buildRecord, buildMessage.time)
+        } else {
+            log.debug("Build ${buildMessage.buildRequestId} state change is NOT valid, current state is '${buildRecord.state}', target state is '$newState'")
+            resendMessage(buildMessage)
         }
-
 
         if (!buildMessage.delegated) {
             hooks.publish(buildRecord)
         }
         return buildRecord
+    }
+
+    private fun processNewState(buildMessage: BuildMessage, newState: BuildStateKey, buildRecord: BuildRecord, time: OffsetDateTime) {
+        when (newState) {
+            Not_Started -> throw InvalidBuildStateException("Cannot update the build record to be NOT STARTED")
+            BuildStateKey.Requested -> buildRecord.requestedAt = time
+            BuildStateKey.Started -> {
+                buildRecord.startedAt = time
+            }
+            BuildStateKey.Successful -> {
+                buildRecord.completedAt = time
+                buildRecord.outcome = BuildStateKey.Successful
+            }
+            BuildStateKey.Failed -> {
+                buildRecord.completedAt = time
+                buildRecord.outcome = BuildStateKey.Failed
+                val busMessage = buildMessage as BuildFailedMessage
+                buildRecord.causeOfFailure = BuildExceptionLookup().lookupKeyFromException(busMessage.e)
+                buildRecord.failureDescription =
+                        if (busMessage.e.message != null) {
+                            busMessage.e.message as String
+                        } else {
+                            busMessage.e.javaClass.simpleName
+                        }
+            }
+
+
+            Preparation_Started -> {
+                buildRecord.preparationStartedAt = time
+            }
+            Preparation_Successful -> {
+                buildRecord.preparationCompletedAt = time
+            }
+            Cancelled -> buildRecord.preparationCompletedAt = time
+
+            Preparation_Failed -> {
+                buildRecord.outcome = BuildStateKey.Preparation_Failed
+                buildRecord.preparationCompletedAt = time
+                buildRecord.causeOfFailure = BuildFailCauseKey.Preparation_Failed
+                val busMessage = buildMessage as PreparationFailedMessage
+                val stacktrace = ExceptionUtils.getRootCauseStackTrace(busMessage.e)
+                buildRecord.failureDescription = stacktrace.joinToString(separator = "\n")
+            }
+
+            Complete -> {
+                buildRecord.processCompletedAt = time
+            }
+        }
+        val oldState = buildRecord.state
+        buildRecord.state = buildMessage.targetState
+        log.debug("Build ${buildRecord.uid} changed state from ${oldState} to ${buildMessage.targetState}")
+    }
+
+
+    /**
+     * If messages arrive in the wrong order, we re-send the message in an envelope (this prevents other message consumers being confused)
+     * This should give things time to catch up
+     *
+     * TODO some form of time out - maybe only resend a limited number of times before giving up, recorded in BuildMessage
+     */
+    private fun resendMessage(buildMessage: BuildMessage) {
+        globalBusProvider.get().publishAsync(BuildMessageEnvelope(buildMessage))
     }
 }
 

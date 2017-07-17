@@ -187,14 +187,14 @@ class Soak_ITest extends Specification {
 
     def "Single runner"() {
         given:
-        int requestGenerationPeriodInSeconds = 60
+        int requestGenerationPeriodInSeconds = 20
         Thread requestGeneratorThread = new Thread(new BuildRequestGenerator(requestGenerationPeriodInSeconds, queue, projects))
         requestGeneratorThread.run()
         Thread.sleep(200) // let queue fill up a bit so we don't finish before we start
 
         when:
 
-        LocalDateTime timeout = LocalDateTime.now().plusSeconds(requestGenerationPeriodInSeconds + 25)
+        LocalDateTime timeout = LocalDateTime.now().plusSeconds(requestGenerationPeriodInSeconds + 10)
 
         //wait for queue to drain
         while (!allBuildsComplete() && LocalDateTime.now().isBefore(timeout)) {
@@ -230,7 +230,7 @@ class Soak_ITest extends Specification {
         buildsCompleted = 0
 
         for (BuildRecord result : resultCollator.records.values()) {
-            if (result.processingCompleted) {
+            if (result.hasCompleted()) {
                 buildsCompleted++
             } else {
                 println "${result.uid}  not completed"

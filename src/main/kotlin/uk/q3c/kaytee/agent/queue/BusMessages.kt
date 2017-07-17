@@ -2,6 +2,7 @@ package uk.q3c.kaytee.agent.queue
 
 import uk.q3c.kaytee.agent.build.BuildRecord
 import uk.q3c.kaytee.agent.eventbus.BusMessage
+import uk.q3c.kaytee.agent.i18n.BuildStateKey
 import uk.q3c.kaytee.agent.i18n.TaskStateKey
 import uk.q3c.kaytee.agent.project.Project
 import uk.q3c.kaytee.plugin.TaskKey
@@ -12,6 +13,7 @@ import java.util.*
 interface BuildMessage : TimedMessage {
     val buildRequestId: UUID
     val delegated: Boolean
+    val targetState: BuildStateKey
 }
 
 interface TimedMessage : BusMessage {
@@ -29,7 +31,9 @@ abstract class AbstractTaskMessage : TaskMessage {
     override val time: OffsetDateTime = OffsetDateTime.now()
 }
 
-interface TaskMessage : BuildMessage {
+interface TaskMessage : TimedMessage {
+    val buildRequestId: UUID
+    val delegated: Boolean
     val taskKey: TaskKey
 }
 
@@ -44,25 +48,43 @@ interface InitialBuildMessage : BuildMessage
 data class BuildRequestMessage(val project: Project, val commitId: String) : BusMessage
 
 data class BuildQueuedMessage(override val buildRequestId: UUID, override val delegated: Boolean) : AbstractBuildMessage(), InitialBuildMessage {
+    override val targetState = BuildStateKey.Requested
     fun path(): String {
         val buildRecord = BuildRecord(buildRequestId, time, delegated)
         return buildRecord.path
     }
 }
 
-data class BuildStartedMessage(override val buildRequestId: UUID, override val delegated: Boolean, val buildNumber: String) : AbstractBuildMessage()
-data class BuildSuccessfulMessage(override val buildRequestId: UUID, override val delegated: Boolean) : AbstractBuildMessage()
-data class BuildFailedMessage(override val buildRequestId: UUID, override val delegated: Boolean, val e: Exception) : AbstractBuildMessage()
+data class BuildStartedMessage(override val buildRequestId: UUID, override val delegated: Boolean, val buildNumber: String) : AbstractBuildMessage() {
+    override val targetState = BuildStateKey.Started
+}
+
+data class BuildSuccessfulMessage(override val buildRequestId: UUID, override val delegated: Boolean) : AbstractBuildMessage() {
+    override val targetState = BuildStateKey.Successful
+}
+
+data class BuildFailedMessage(override val buildRequestId: UUID, override val delegated: Boolean, val e: Exception) : AbstractBuildMessage() {
+    override val targetState = BuildStateKey.Failed
+}
 /**
  * The build itself is completed when either a [BuildSuccessfulMessage] or a [BuildFailedMessage] is sent, but there may be some post processing to do.
  * This message is sent to indicate that all of that post-processing is also complete
  */
-data class BuildProcessCompletedMessage(override val buildRequestId: UUID, override val delegated: Boolean) : AbstractBuildMessage()
+data class BuildProcessCompletedMessage(override val buildRequestId: UUID, override val delegated: Boolean) : AbstractBuildMessage() {
+    override val targetState = BuildStateKey.Complete
+}
 
-data class PreparationStartedMessage(override val buildRequestId: UUID, override val delegated: Boolean) : AbstractBuildMessage(), InitialBuildMessage
-data class PreparationSuccessfulMessage(override val buildRequestId: UUID, override val delegated: Boolean) : AbstractBuildMessage()
+data class PreparationStartedMessage(override val buildRequestId: UUID, override val delegated: Boolean) : AbstractBuildMessage(), InitialBuildMessage {
+    override val targetState = BuildStateKey.Preparation_Started
+}
 
-data class PreparationFailedMessage(override val buildRequestId: UUID, override val delegated: Boolean, val e: Exception) : AbstractBuildMessage()
+data class PreparationSuccessfulMessage(override val buildRequestId: UUID, override val delegated: Boolean) : AbstractBuildMessage() {
+    override val targetState = BuildStateKey.Preparation_Successful
+}
+
+data class PreparationFailedMessage(override val buildRequestId: UUID, override val delegated: Boolean, val e: Exception) : AbstractBuildMessage() {
+    override val targetState = BuildStateKey.Preparation_Failed
+}
 
 data class TaskNotRequiredMessage(override val buildRequestId: UUID, override val taskKey: TaskKey, override val delegated: Boolean) : AbstractTaskMessage(), TaskMessage
 data class TaskRequestedMessage(override val buildRequestId: UUID, override val taskKey: TaskKey, override val delegated: Boolean) : AbstractTaskMessage(), TaskMessage
@@ -70,9 +92,10 @@ data class TaskStartedMessage(override val buildRequestId: UUID, override val ta
 data class TaskSuccessfulMessage(override val buildRequestId: UUID, override val taskKey: TaskKey, override val delegated: Boolean, val stdOut: String) : AbstractTaskMessage()
 data class TaskFailedMessage(override val buildRequestId: UUID, override val taskKey: TaskKey, override val delegated: Boolean, val result: TaskStateKey, val stdOut: String, val stdErr: String) : AbstractTaskMessage()
 
-/**
- * Used to indicate a problem with messages getting out of sync and not being handled
- */
-class MessagingException(msg: String) : RuntimeException(msg)
+data class BuildMessageEnvelope(val buildMessage: BuildMessage) : BusMessage
+
+
+
+
 
 

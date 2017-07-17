@@ -8,11 +8,10 @@ import uk.q3c.kaytee.agent.app.standardLifecycle
 import uk.q3c.kaytee.agent.app.zeroDate
 import uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Not_Applicable
 import uk.q3c.kaytee.agent.i18n.BuildStateKey
+import uk.q3c.kaytee.agent.i18n.BuildStateKey.Complete
 import uk.q3c.kaytee.agent.i18n.BuildStateKey.Not_Started
 import uk.q3c.kaytee.agent.i18n.TaskStateKey
 import uk.q3c.kaytee.agent.i18n.TaskStateKey.*
-import uk.q3c.kaytee.agent.queue.BuildFailedMessage
-import uk.q3c.kaytee.agent.queue.BuildSuccessfulMessage
 import uk.q3c.kaytee.plugin.TaskKey
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
@@ -47,14 +46,12 @@ class BuildRecord(uid: UUID, var requestedAt: OffsetDateTime, val delegated: Boo
      * The time the build finished, regardless of whether it passed or failed
      */
     var completedAt: OffsetDateTime = zeroDate
+    var processCompletedAt: OffsetDateTime = zeroDate
     var state: BuildStateKey = Not_Started
     var causeOfFailure = Not_Applicable
+    var outcome = Not_Started
     var failureDescription = ""
     var failedTask: TaskKey = TaskKey.Custom // valid only if a task has failed
-    /**
-     * All processing completed when true, including any post processing done after [BuildSuccessfulMessage] or [BuildFailedMessage] received
-     */
-    var processingCompleted: Boolean = false
     private val stateLock = Any()
     private val taskLock = Any()
     // once parallel tasking enabled, there is a contention risk here.
@@ -87,7 +84,7 @@ class BuildRecord(uid: UUID, var requestedAt: OffsetDateTime, val delegated: Boo
 
     fun passed(): Boolean {
         synchronized(stateLock) {
-            return state == BuildStateKey.Successful
+            return outcome == BuildStateKey.Successful
         }
     }
 
@@ -110,6 +107,10 @@ class BuildRecord(uid: UUID, var requestedAt: OffsetDateTime, val delegated: Boo
             }
         }
         return buf.toString()
+    }
+
+    fun hasCompleted(): Boolean {
+        return state == Complete
     }
 
 

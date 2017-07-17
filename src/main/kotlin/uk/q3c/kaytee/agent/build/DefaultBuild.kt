@@ -59,6 +59,7 @@ class DefaultBuild @Inject constructor(
     lateinit override var parentBuild: Build
     lateinit override var gradleLauncher: BuildLauncher
     lateinit override var lifecycle: List<TaskKey>
+    private var failed = true
 
 
     private val completedTasks: MutableList<TaskKey> = mutableListOf()
@@ -233,18 +234,19 @@ class DefaultBuild @Inject constructor(
 
     private fun failBuild(exception: Exception) {
         globalBusProvider.get().publishAsync(BuildFailedMessage(buildRunner.uid, buildRunner.delegated, exception))
-        if (raiseIssueOnFail) {
-            issueCreatorProvider.get().raiseIssue(this)
-        }
         closeBuild()
     }
 
     private fun passBuild() {
+        failed = false
         globalBusProvider.get().publishAsync(BuildSuccessfulMessage(buildRunner.uid, buildRunner.delegated))
         closeBuild()
     }
 
     private fun closeBuild() {
+        if (failed && raiseIssueOnFail) {
+            issueCreatorProvider.get().raiseIssue(this)
+        }
         log.info("Build {} closed, sending BuildProcessCompletedMessage", buildRunner.uid)
         globalBusProvider.get().publishAsync(BuildProcessCompletedMessage(buildRunner.uid, buildRunner.delegated))
     }
@@ -300,7 +302,7 @@ class DefaultBuild @Inject constructor(
                 log.debug("Build {}, preparation failed", this, e)
                 val msg = PreparationFailedMessage(buildRunner.uid, buildRunner.delegated, e)
                 globalBusProvider.get().publishAsync(msg)
-                failBuild(msg.e)
+                closeBuild()
                 return
             }
         }

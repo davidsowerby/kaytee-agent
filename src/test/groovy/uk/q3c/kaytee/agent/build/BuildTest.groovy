@@ -16,6 +16,8 @@ import uk.q3c.kaytee.agent.app.ApiModule
 import uk.q3c.kaytee.agent.app.Hooks
 import uk.q3c.kaytee.agent.eventbus.GlobalBusModule
 import uk.q3c.kaytee.agent.eventbus.GlobalBusProvider
+import uk.q3c.kaytee.agent.i18n.BuildFailCauseKey
+import uk.q3c.kaytee.agent.i18n.BuildStateKey
 import uk.q3c.kaytee.agent.i18n.I18NModule
 import uk.q3c.kaytee.agent.lifecycle.LifecycleModule
 import uk.q3c.kaytee.agent.prepare.PreparationStage
@@ -33,12 +35,11 @@ import uk.q3c.kaytee.plugin.KayTeeExtension
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
-import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.*
-import static uk.q3c.kaytee.agent.i18n.BuildStateKey.Failed
-import static uk.q3c.kaytee.agent.i18n.BuildStateKey.Successful
+import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Not_Applicable
+import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Task_Failure
+import static uk.q3c.kaytee.agent.i18n.BuildStateKey.*
 import static uk.q3c.kaytee.plugin.TaskKey.Bintray_Upload
 import static uk.q3c.kaytee.plugin.TaskKey.Custom
-
 /**
  *
  * The {@link MockPreparationStage2} is used to avoid the need for disk access or code pull.  This stage can be made to fail
@@ -170,7 +171,7 @@ class BuildTest extends Specification {
             println 'waiting to start'
             Thread.sleep(100)
         }
-        while (!resultCollator.getRecord(requestId).processingCompleted && LocalDateTime.now().isBefore(timeout)) {
+        while (!(resultCollator.getRecord(requestId).hasCompleted()) && LocalDateTime.now().isBefore(timeout)) {
             println 'waiting for build to complete'
             Thread.sleep(200)
         }
@@ -178,17 +179,19 @@ class BuildTest extends Specification {
 
 
         then:
+
+        record.outcome == outcome
+        record.state == BuildStateKey.Complete
         record.causeOfFailure == causeOfFailure
-        record.state == endState
 
         where:
 
-        desc                        | buildConfig             | failingTask    | failPrep | endState   | causeOfFailure
-        "Successful standard build" | defaultConfig           | null           | false    | Successful | Not_Applicable
-        "Successful with delegate"  | configWithDelegatedTask | null           | false    | Successful | Not_Applicable
-        "Prep fails"                | defaultConfig           | null           | true     | Failed     | Unsupported_Gradle_Version
-        "Task fails"                | defaultConfig           | Bintray_Upload | false    | Failed     | Task_Failure
-        "Delegate task fails"       | configWithDelegatedTask | Custom         | false    | Failed     | Task_Failure
+        desc                        | buildConfig             | failingTask    | failPrep | outcome            | causeOfFailure
+        "Successful standard build" | defaultConfig           | null           | false    | Successful         | Not_Applicable
+        "Successful with delegate"  | configWithDelegatedTask | null           | false    | Successful         | Not_Applicable
+        "Prep fails"                | defaultConfig           | null           | true     | Preparation_Failed | BuildFailCauseKey.Preparation_Failed
+        "Task fails"                | defaultConfig           | Bintray_Upload | false    | Failed             | Task_Failure
+        "Delegate task fails"       | configWithDelegatedTask | Custom         | false    | Failed             | Task_Failure
     }
 
 
