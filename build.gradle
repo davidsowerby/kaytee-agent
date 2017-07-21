@@ -97,6 +97,8 @@ dependencies {
     }
 
     // testing
+    testCompile 'io.kotlintest:kotlintest:2.0.4'
+    testCompile 'com.nhaarman:mockito-kotlin:1.5.0'
     testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
     testCompile 'cglib:cglib-nodep:3.2.0'
     testCompile 'org.objenesis:objenesis:2.2'

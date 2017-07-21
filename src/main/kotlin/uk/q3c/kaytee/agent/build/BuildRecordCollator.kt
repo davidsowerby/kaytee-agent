@@ -25,7 +25,7 @@ interface BuildRecordCollator {
     /**
      * Gets a record using the [buildMessage.buildRequestId] as a key.  If a record is not found, one is created
      */
-    fun getRecord(buildMessage: BuildMessage): BuildRecord
+    fun getOrCreateRecord(buildMessage: BuildMessage): BuildRecord
 
     /**
      * Gets a record using [uid] as a key.  If a record is not found, an exception is thrown

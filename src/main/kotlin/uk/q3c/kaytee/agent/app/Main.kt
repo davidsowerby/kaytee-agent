@@ -16,6 +16,7 @@ import uk.q3c.kaytee.agent.queue.QueueModule
 import uk.q3c.kaytee.agent.system.BaseDirectoryReader
 import uk.q3c.kaytee.agent.system.SystemModule
 import uk.q3c.rest.hal.HalMapper
+import uk.q3c.util.file.FileKUtilsModule
 
 
 object Main {
@@ -42,6 +43,7 @@ object Main {
                 module(SystemModule())
                 module(GitPlusModule())
                 module(ValidationModule())
+                module(FileKUtilsModule())
                 module(OrientModule("memory:dbname", "admin", "admin"))
                 bind(PersistenceService::class.java)
             }

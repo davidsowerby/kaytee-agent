@@ -46,6 +46,7 @@ class DefaultBuild @Inject constructor(
         val manualTaskRunnerFactory: ManualTaskRunnerFactory,
         val delegatedProjectTaskRunnerFactory: DelegatedProjectTaskRunnerFactory,
         val issueCreatorProvider: Provider<IssueCreator>,
+        val buildRecordWriter: BuildRecordWriter,
         @Assisted override val buildRunner: BuildRunner) :
 
         Build,
@@ -247,6 +248,7 @@ class DefaultBuild @Inject constructor(
         if (failed && raiseIssueOnFail) {
             issueCreatorProvider.get().raiseIssue(this)
         }
+        buildRecordWriter.write(this)
         log.info("Build {} closed, sending BuildProcessCompletedMessage", buildRunner.uid)
         globalBusProvider.get().publishAsync(BuildProcessCompletedMessage(buildRunner.uid, buildRunner.delegated))
     }

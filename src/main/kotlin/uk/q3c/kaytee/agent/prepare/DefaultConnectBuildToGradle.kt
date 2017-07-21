@@ -1,7 +1,6 @@
 package uk.q3c.kaytee.agent.prepare
 
 import com.google.inject.Inject
-import org.apache.commons.io.FileUtils
 import org.gradle.tooling.GradleConnector
 import org.slf4j.LoggerFactory
 import uk.q3c.kaytee.agent.build.Build
@@ -10,12 +9,13 @@ import uk.q3c.kaytee.agent.i18n.Named
 import uk.q3c.kaytee.agent.i18n.NamedFactory
 import uk.q3c.kaytee.agent.queue.RequestQueue
 import uk.q3c.kaytee.agent.system.InstallationInfo
+import uk.q3c.util.file.FileKUtils
 import java.io.IOException
 
 /**
  * Created by David Sowerby on 26 Jan 2017
  */
-class DefaultConnectBuildToGradle @Inject constructor(val requestQueue: RequestQueue, val installationInfo: InstallationInfo, namedFactory: NamedFactory) :
+class DefaultConnectBuildToGradle @Inject constructor(val requestQueue: RequestQueue, val installationInfo: InstallationInfo, val fileUtils: FileKUtils, namedFactory: NamedFactory) :
         ConnectBuildToGradle,
         Named by namedFactory.create(LabelKey.Connect_Build_to_Gradle) {
 
@@ -34,7 +34,7 @@ class DefaultConnectBuildToGradle @Inject constructor(val requestQueue: RequestQ
 
         val gradleOutputDir = installationInfo.buildOutputDir(build)
         if (!gradleOutputDir.exists()) {
-            FileUtils.forceMkdir(gradleOutputDir)
+            fileUtils.forceMkdir(gradleOutputDir)
         }
 
         val stderrOutputFile = installationInfo.gradleStdErrFile(build)

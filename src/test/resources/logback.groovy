@@ -39,4 +39,4 @@ appender("FILE", FileAppender) {
 
 logger("uk.q3c", DEBUG)
 logger("net.engio", DEBUG)
-root(DEBUG, ["STDOUT", "FILE"])
+root(INFO, ["STDOUT", "FILE"])

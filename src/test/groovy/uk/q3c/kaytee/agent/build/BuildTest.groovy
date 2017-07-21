@@ -31,6 +31,7 @@ import uk.q3c.kaytee.agent.queue.RequestQueue
 import uk.q3c.kaytee.agent.system.InstallationInfo
 import uk.q3c.kaytee.agent.system.SystemModule
 import uk.q3c.kaytee.plugin.KayTeeExtension
+import uk.q3c.util.file.FileKUtilsModule
 
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
@@ -139,6 +140,7 @@ class BuildTest extends Specification {
         bindings.add(new I18NModule())
         bindings.add(Modules.override(new ApiModule()).with(new TestApiModule()))
         bindings.add(new ProjectModule())
+        bindings.add(new FileKUtilsModule())
 
         Injector injector = Guice.createInjector(bindings)
         queue = injector.getInstance(RequestQueue)

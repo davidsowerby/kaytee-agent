@@ -125,7 +125,7 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks, val globa
         }
     }
 
-    override fun getRecord(buildMessage: BuildMessage): BuildRecord {
+    override fun getOrCreateRecord(buildMessage: BuildMessage): BuildRecord {
         synchronized(lock) {
             log.debug("retrieving record for {}", buildMessage)
             val existingRecord = findRecord(buildMessage.buildRequestId)
@@ -196,7 +196,7 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks, val globa
 
     private fun updateBuildState(buildMessage: BuildMessage): BuildRecord {
         log.debug("Build {} ${buildMessage.javaClass.simpleName} received", buildMessage.buildRequestId)
-        val buildRecord = getRecord(buildMessage)
+        val buildRecord = getOrCreateRecord(buildMessage)
         val newState: BuildStateKey = buildMessage.targetState
 
         if (stateModel.currentStateValid(buildRecord.state, newState)) {

@@ -10,6 +10,7 @@ import uk.q3c.kaytee.agent.project.Project
 import uk.q3c.kaytee.agent.queue.BuildRunner
 import uk.q3c.kaytee.agent.system.DefaultInstallationInfo
 import uk.q3c.kaytee.agent.system.InstallationInfo
+import uk.q3c.util.file.DefaultFileKUtils
 
 /**
  * Created by David Sowerby on 19 Jan 2017
@@ -38,7 +39,7 @@ class DefaultPrepareWorkspaceTest extends Specification {
         installationInfo = new DefaultInstallationInfo()
         File dataRoot = new File(temp, "kaytee-data")
         System.setProperty(ConstantsKt.baseDir_propertyName, dataRoot.absolutePath)
-        step = new DefaultPrepareWorkspace(installationInfo, i18NNamedFactory)
+        step = new DefaultPrepareWorkspace(installationInfo, new DefaultFileKUtils(), i18NNamedFactory)
 
         build.buildRunner >> buildRunner
         buildRunner.project >> project

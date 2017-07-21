@@ -47,6 +47,7 @@ abstract class PreparationStepSpecification extends Specification {
     DelegatedProjectTaskRunnerFactory delegatedProjectTaskRunnerFactory = Mock(DelegatedProjectTaskRunnerFactory)
     Provider<IssueCreator> issueCreatorProvider = Mock(Provider)
     IssueCreator issueCreator = Mock(IssueCreator)
+    BuildRecordWriter buildRecordWriter = Mock()
 
     def setup() {
         issueCreatorProvider.get() >> issueCreator
@@ -54,7 +55,7 @@ abstract class PreparationStepSpecification extends Specification {
         project.shortProjectName >> projectName
         project.remoteUserName >> repoUserName
         BuildRunner buildRunner = new DefaultBuildRunner(buildFactory, busProvider, false, "", gitHash, project, UUID.randomUUID())
-        build = new DefaultBuild(preparationStage, buildNumberReader, requestQueue, busProvider, gradleTaskRunnerFactory, manualTaskRunnerFactory, delegatedProjectTaskRunnerFactory, issueCreatorProvider, buildRunner)
+        build = new DefaultBuild(preparationStage, buildNumberReader, requestQueue, busProvider, gradleTaskRunnerFactory, manualTaskRunnerFactory, delegatedProjectTaskRunnerFactory, issueCreatorProvider, buildRecordWriter, buildRunner)
         translate.from(_) >> translatedKey
         temp = temporaryFolder.getRoot()
         codeDir = new File(temp, projectName)

@@ -42,12 +42,13 @@ class DefaultBuildTest extends Specification {
     Project project = Mock()
     List<TaskKey> defaultLifecycle = ImmutableList.of(Unit_Test, Generate_Build_Info, Generate_Change_Log, Publish_to_Local, Merge_to_Master, Tag, Bintray_Upload)
     IMessagePublication messagePublication = Mock()
+    BuildRecordWriter recordWriter = Mock()
 
     void setup() {
         globalBusProvider.get() >> globalBus
         issueCreatorProvider.get() >> issueCreator
         kayTeeExtension = new KayTeeExtension()
-        build = new DefaultBuild(preparationStage, buildNumberReader, requestQueue, globalBusProvider, gradleTaskRunnerFactory, manualTaskRunnerFactory, delegatedProjectTaskRunnerFactory, issueCreatorProvider, buildRunner)
+        build = new DefaultBuild(preparationStage, buildNumberReader, requestQueue, globalBusProvider, gradleTaskRunnerFactory, manualTaskRunnerFactory, delegatedProjectTaskRunnerFactory, issueCreatorProvider, recordWriter, buildRunner)
         buildRunner.uid >> uid
         buildRunner.project >> project
         project.fullProjectName >> 'davidsowerby/wiggly'
@@ -151,6 +152,7 @@ class DefaultBuildTest extends Specification {
         1 * globalBus.publishAsync(new BuildSuccessfulMessage(uid, false)) >> messagePublication
 
         then:
+        1 * recordWriter.write(b)
         1 * globalBus.publishAsync(new BuildProcessCompletedMessage(uid, false)) >> messagePublication
     }
 
