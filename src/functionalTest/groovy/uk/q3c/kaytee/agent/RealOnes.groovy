@@ -111,7 +111,7 @@ class RealOnes extends FunctionalTestBase {
         timeoutPeriod = 18000 // 5 mins
         defaultSubscribe()
         final String fullProjectName = "davidsowerby/gitplus"
-        BuildRequest buildRequest = new BuildRequest(fullProjectName, "c862b83a86d505038902a1908e69d33e9b88593f")
+        BuildRequest buildRequest = new BuildRequest(fullProjectName, "d9c80c89245eea96a34547dec55a11bab45dbfa7")
         timeoutAt = LocalDateTime.now().plusSeconds(timeoutPeriod)
 
 
@@ -130,7 +130,64 @@ class RealOnes extends FunctionalTestBase {
         }
         then:
         !timedOut
-        finalRecord.state == BuildStateKey.Successful
+        finalRecord.state == BuildStateKey.Complete
+    }
+
+
+    def "changelog"() {
+        given:
+        timeoutPeriod = 18000 // 5 mins
+        defaultSubscribe()
+        final String fullProjectName = "davidsowerby/changelog"
+        BuildRequest buildRequest = new BuildRequest(fullProjectName, "29039d1ee1f6322dc17a30c784da3ab7711b6269")
+        timeoutAt = LocalDateTime.now().plusSeconds(timeoutPeriod)
+
+
+        when:
+        requestSpec { RequestSpec requestSpec ->
+            requestSpec.body.type("application/hal+json")
+            requestSpec.body.text(JsonOutput.toJson(buildRequest))
+        }
+        ReceivedResponse response = post(ConstantsKt.buildRequests)
+        String t = response.getBody()
+        println t
+        while (!buildStopped()) {
+            int togo = Duration.between(LocalDateTime.now(), timeoutAt).seconds
+            println "Waiting for build to complete, timeout in $togo seconds    "
+            Thread.sleep(1000)
+        }
+        then:
+        !timedOut
+        finalRecord.state == BuildStateKey.Complete
+        finalRecord.outcome == BuildStateKey.Successful
+    }//
+
+    def "testUtil"() {
+        given:
+        timeoutPeriod = 18000 // 5 mins
+        defaultSubscribe()
+        final String fullProjectName = "davidsowerby/q3c-testUtil"
+        BuildRequest buildRequest = new BuildRequest(fullProjectName, "0a47c4ad9880094b1cadb7609e0a3bc062c83777")
+        timeoutAt = LocalDateTime.now().plusSeconds(timeoutPeriod)
+
+
+        when:
+        requestSpec { RequestSpec requestSpec ->
+            requestSpec.body.type("application/hal+json")
+            requestSpec.body.text(JsonOutput.toJson(buildRequest))
+        }
+        ReceivedResponse response = post(ConstantsKt.buildRequests)
+        String t = response.getBody()
+        println t
+        while (!buildStopped()) {
+            int togo = Duration.between(LocalDateTime.now(), timeoutAt).seconds
+            println "Waiting for build to complete, timeout in $togo seconds    "
+            Thread.sleep(1000)
+        }
+        then:
+        !timedOut
+        finalRecord.state == BuildStateKey.Complete
+        finalRecord.outcome == BuildStateKey.Successful
     }
 
     private void defaultSubscribe() {
