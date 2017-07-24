@@ -42,7 +42,7 @@ enum class BuildFailCauseKey : I18NKey {
 
     Build_Cancelled,
 
-    Preparation_Failed,
+    Preparation_Failure,
 
     Build_Configuration,
     Not_Applicable,

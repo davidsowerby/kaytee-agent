@@ -17,6 +17,6 @@ class BuildFailCauses : EnumResourceBundle<BuildFailCauseKey>() {
         put(Gradle_Connection_Failure, "The Gradle connection failed")
         put(Gradle_Illegal_State, "Operation attempted while the Gradle connection is closed or is closing")
         put(Unexpected_Exception_Type, "Build threw an unexpected exception type, please submit an issue")
-        put(Preparation_Failed, "Failure occurred while preparing the build environment")
+        put(Preparation_Failure, "Failure occurred while preparing the build environment")
     }
 }

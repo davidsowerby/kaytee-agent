@@ -3,14 +3,11 @@
   "baseVersion": "0.0.0.0",
   "generateBuildInfo": true,
   "generateChangeLog": true,
-  "versionTag": true,
   "raiseIssueOnFail": true,
   "unitTest": {
     "enabled": true,
     "qualityGate": true,
-    "auto": true,
-    "manual": false,
-    "delegated": false,
+    "taskType": "GRADLE",
     "thresholds": {
       "instruction": 70.0,
       "branch": 70.0,
@@ -31,9 +28,7 @@
   "integrationTest": {
     "enabled": true,
     "qualityGate": true,
-    "auto": true,
-    "manual": false,
-    "delegated": false,
+    "taskType": "GRADLE",
     "thresholds": {
       "instruction": 70.0,
       "branch": 70.0,
@@ -54,9 +49,7 @@
   "functionalTest": {
     "enabled": true,
     "qualityGate": true,
-    "auto": true,
-    "manual": false,
-    "delegated": false,
+    "taskType": "GRADLE",
     "thresholds": {
       "instruction": 70.0,
       "branch": 70.0,
@@ -77,9 +70,7 @@
   "acceptanceTest": {
     "enabled": false,
     "qualityGate": false,
-    "auto": true,
-    "manual": false,
-    "delegated": false,
+    "taskType": "GRADLE",
     "thresholds": {
       "instruction": 70.0,
       "branch": 70.0,
@@ -100,9 +91,7 @@
   "productionTest": {
     "enabled": false,
     "qualityGate": false,
-    "auto": true,
-    "manual": false,
-    "delegated": false,
+    "taskType": "GRADLE",
     "thresholds": {
       "instruction": 70.0,
       "branch": 70.0,
@@ -121,6 +110,7 @@
     }
   },
   "release": {
+    "versionTag": true,
     "toBintray": false,
     "mergeToMaster": false
   },

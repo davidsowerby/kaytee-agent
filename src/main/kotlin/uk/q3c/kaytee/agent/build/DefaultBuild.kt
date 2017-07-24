@@ -21,6 +21,7 @@ import uk.q3c.kaytee.plugin.GroupConfig
 import uk.q3c.kaytee.plugin.KayTeeExtension
 import uk.q3c.kaytee.plugin.TaskKey
 import uk.q3c.kaytee.plugin.TaskKey.*
+import uk.q3c.kaytee.plugin.TaskType
 import java.io.File
 import java.util.*
 import javax.annotation.concurrent.ThreadSafe
@@ -139,6 +140,7 @@ class DefaultBuild @Inject constructor(
                 generateTask(configuration, task)
             }
         }
+        generatedTaskRunners = taskRunners.size
     }
 
     private fun generateCustomTask(delegateTask: String) {
@@ -152,7 +154,7 @@ class DefaultBuild @Inject constructor(
         val delegated = buildRunner.delegated
         when (taskKey) {
             Unit_Test, Integration_Test, Functional_Test, Acceptance_Test, Production_Test -> generateTestGroupTask(configuration, taskKey)
-            Publish_to_Local -> createLocalGradleTask(taskKey, false)
+            Publish_to_Local -> optionalTask(uid, taskKey, configuration.publishToMavenLocal, delegated)
             Generate_Build_Info -> optionalTask(uid, taskKey, configuration.generateBuildInfo, delegated)
 
             Extract_Gradle_Configuration -> createLocalGradleTask(taskKey, false) // not normally expected here but does no harm
@@ -189,7 +191,12 @@ class DefaultBuild @Inject constructor(
         // but that is managed within the GradleTaskRunner
         val actualTaskKey = taskKey
 
-
+        @Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
+        when (config.taskType) {
+            TaskType.GRADLE -> createLocalGradleTask(actualTaskKey, config.qualityGate)
+            TaskType.DELEGATED -> createDelegatedProjectTask(actualTaskKey, config)
+            TaskType.MANUAL -> createManualTask(actualTaskKey, config)
+        }
 
     }
 
@@ -284,29 +291,28 @@ class DefaultBuild @Inject constructor(
     }
 
     override fun execute() {
-        log.info("starting build {} ", this)
+        log.info("starting build {}", this)
+
         try {
             preparationStage.execute(this)
+            // LoadConfiguration  step in preparation creates the tasks
+            log.debug("{} has ${taskRunners.size} tasks", this)
+            if (taskRunners.isEmpty()) {
+                // No tasks have been defined
+                globalBusProvider.get().publishAsync(BuildFailedMessage(buildRunner.uid, buildRunner.delegated, BuildConfigurationException()))
+            } else {
+                // in effect this starts the build proper - the first task is placed into the queue, and as the task requests are
+                // completed, another is pushed to the request queue until the build completes or fails
+                pushTaskToRequestQueue()
+                globalBusProvider.get().publishAsync(BuildStartedMessage(buildRunner.uid, buildRunner.delegated, buildNumber))
+
+            }
         } catch (e: Exception) {
             synchronized(lock) {
                 log.debug("Build {}, preparation failed", this, e)
                 val msg = PreparationFailedMessage(buildRunner.uid, buildRunner.delegated, e)
                 globalBusProvider.get().publishAsync(msg)
                 closeBuild()
-                return
-            }
-        }
-        synchronized(lock) {
-            generatedTaskRunners = taskRunners.size
-            log.debug("Build {} has {} tasks to execute", this, generatedTaskRunners)
-            if (taskRunners.isNotEmpty()) {
-                // in effect this starts the build proper - the first task is placed into the queue, and as the task requests are
-                // completed, another is pushed to the request queue until the build completes or fails
-                pushTaskToRequestQueue()
-                globalBusProvider.get().publishAsync(BuildStartedMessage(buildRunner.uid, buildRunner.delegated, buildNumber))
-            } else {
-                // there is nothing to do
-                globalBusProvider.get().publishAsync(BuildFailedMessage(buildRunner.uid, buildRunner.delegated, BuildConfigurationException()))
             }
         }
     }

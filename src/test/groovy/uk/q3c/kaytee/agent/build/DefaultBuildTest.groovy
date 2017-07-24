@@ -5,7 +5,6 @@ import com.google.inject.Provider
 import net.engio.mbassy.bus.IMessagePublication
 import net.engio.mbassy.bus.MBassador
 import org.apache.commons.codec.digest.DigestUtils
-import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Unroll
 import uk.q3c.kaytee.agent.app.ConstantsKt
@@ -17,9 +16,9 @@ import uk.q3c.kaytee.agent.project.Project
 import uk.q3c.kaytee.agent.queue.*
 import uk.q3c.kaytee.plugin.KayTeeExtension
 import uk.q3c.kaytee.plugin.TaskKey
+import uk.q3c.kaytee.plugin.TaskType
 
 import static uk.q3c.kaytee.plugin.TaskKey.*
-
 /**
  * Created by David Sowerby on 09 Jul 2017
  */
@@ -244,16 +243,16 @@ class DefaultBuildTest extends Specification {
 
     }
 
-    @Ignore("Cannot do this test until it is possible to disable PublishToMavenLocal")
-    def "config has all tasks disabled, throw BuildConfigurationException"() {
+    def "config has all tasks disabled, send BuildFailedMessage with BuildConfigurationException"() {
         given:
         kayTeeExtension.unitTest.enabled = false
         kayTeeExtension.release.mergeToMaster = false
         kayTeeExtension.release.toBintray = false
-        kayTeeExtension.versionTag = false
+        kayTeeExtension.release.versionTag = false
         kayTeeExtension.generateChangeLog = false
         kayTeeExtension.generateBuildInfo = false
-//        kayTeeExtension.publishToMavenLocal = false
+        kayTeeExtension.publishToMavenLocal = false
+        BuildFailedMessage buildMessage
 
         when:
         build.configure(kayTeeExtension)
@@ -265,7 +264,11 @@ class DefaultBuildTest extends Specification {
         build.execute()
 
         then:
-        thrown BuildConfigurationException
+        1 * globalBus.publishAsync(_ as BuildFailedMessage) >> { arguments ->
+            buildMessage = arguments[0]
+            return messagePublication
+        }
+        buildMessage.e instanceof BuildConfigurationException
     }
 
     def "preparation fails, only PreparationFailedMessage sent"() {
@@ -286,10 +289,9 @@ class DefaultBuildTest extends Specification {
 
     def "create mix of gradle, delegated and manual tasks"() {
         given:
-        kayTeeExtension.functionalTest.manual = true
+        kayTeeExtension.functionalTest.taskType = TaskType.MANUAL
         kayTeeExtension.functionalTest.enabled = true
-        kayTeeExtension.functionalTest.auto = false
-        kayTeeExtension.acceptanceTest.delegated = true
+        kayTeeExtension.acceptanceTest.taskType = TaskType.DELEGATED
         kayTeeExtension.acceptanceTest.enabled = true
         kayTeeExtension.acceptanceTest.delegate.commitId = sha(2)
         kayTeeExtension.acceptanceTest.delegate.repoUserName = 'davidsowerby'

@@ -65,7 +65,7 @@ class DefaultIssueCreatorTest extends Specification {
 
     def "raise issue succeeds returns a new issue, non task failure"() {
         given:
-        buildRecord.causeOfFailure = BuildFailCauseKey.Preparation_Failed
+        buildRecord.causeOfFailure = BuildFailCauseKey.Preparation_Failure
         buildRecord.failureDescription = failureDescription
         buildRecord.failedTask = TaskKey.Custom
 
@@ -80,14 +80,14 @@ class DefaultIssueCreatorTest extends Specification {
         buildRecordCollator.getRecord(uid) >> buildRecord
 
         then:
-        1 * gitRemote.createIssue("KayTee build: Preparation Failed", failureDescription, "bug") >> new GPIssue(23)
+        1 * gitRemote.createIssue("KayTee build: Preparation Failure", failureDescription, "bug") >> new GPIssue(23)
         issue.number == 23
 
     }
 
     def "raise issue fails, returns issue number 0"() {
         given:
-        buildRecord.causeOfFailure = BuildFailCauseKey.Preparation_Failed
+        buildRecord.causeOfFailure = BuildFailCauseKey.Preparation_Failure
         buildRecord.failureDescription = failureDescription
         buildRecord.failedTask = TaskKey.Custom
 
@@ -102,7 +102,7 @@ class DefaultIssueCreatorTest extends Specification {
         buildRecordCollator.getRecord(uid) >> buildRecord
 
         then:
-        1 * gitRemote.createIssue("KayTee build: Preparation Failed", failureDescription, "bug") >> {
+        1 * gitRemote.createIssue("KayTee build: Preparation Failure", failureDescription, "bug") >> {
             throw new IOException()
         }
         issue.number == 0

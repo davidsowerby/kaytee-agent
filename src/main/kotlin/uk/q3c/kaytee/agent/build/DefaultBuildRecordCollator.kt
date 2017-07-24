@@ -249,7 +249,7 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks, val globa
             Preparation_Failed -> {
                 buildRecord.outcome = BuildStateKey.Preparation_Failed
                 buildRecord.preparationCompletedAt = time
-                buildRecord.causeOfFailure = BuildFailCauseKey.Preparation_Failed
+                buildRecord.causeOfFailure = BuildFailCauseKey.Preparation_Failure
                 val busMessage = buildMessage as PreparationFailedMessage
                 val stacktrace = ExceptionUtils.getRootCauseStackTrace(busMessage.e)
                 buildRecord.failureDescription = stacktrace.joinToString(separator = "\n")

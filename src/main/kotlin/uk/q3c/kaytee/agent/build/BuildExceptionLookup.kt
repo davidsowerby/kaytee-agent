@@ -30,7 +30,7 @@ class BuildExceptionLookup {
             is GradleConnectionException -> Gradle_Connection_Failure
 
             is IllegalStateException -> Gradle_Illegal_State
-            is BuildPreparationException -> Preparation_Failed
+            is BuildPreparationException -> Preparation_Failure
             is TaskException -> Task_Failure
             else -> {
                 log.warn("Unexpected exception type causing Build failure: ", e)

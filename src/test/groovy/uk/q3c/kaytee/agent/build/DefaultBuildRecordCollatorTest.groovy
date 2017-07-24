@@ -202,7 +202,7 @@ class DefaultBuildRecordCollatorTest extends Specification {
         isNotSet(record.completedAt)
 
         record.delegated == delegated
-        record.causeOfFailure == BuildFailCauseKey.Preparation_Failed
+        record.causeOfFailure == BuildFailCauseKey.Preparation_Failure
         if (exceptionMsg == null) {
             record.failureDescription == "IllegalArgumentException"
         } else {

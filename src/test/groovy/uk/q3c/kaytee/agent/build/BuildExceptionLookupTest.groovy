@@ -31,6 +31,6 @@ class BuildExceptionLookupTest extends Specification {
         lookup.lookupKeyFromException(new GradleConnectionException("x")) == Gradle_Connection_Failure
         lookup.lookupKeyFromException(new IllegalStateException("x")) == Gradle_Illegal_State
         lookup.lookupKeyFromException(new NullPointerException("x")) == Unexpected_Exception_Type
-        lookup.lookupKeyFromException(new BuildPreparationException("x", new NullPointerException())) == Preparation_Failed
+        lookup.lookupKeyFromException(new BuildPreparationException("x", new NullPointerException())) == Preparation_Failure
     }
 }

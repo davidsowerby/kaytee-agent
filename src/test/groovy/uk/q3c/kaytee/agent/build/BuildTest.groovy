@@ -16,7 +16,6 @@ import uk.q3c.kaytee.agent.app.ApiModule
 import uk.q3c.kaytee.agent.app.Hooks
 import uk.q3c.kaytee.agent.eventbus.GlobalBusModule
 import uk.q3c.kaytee.agent.eventbus.GlobalBusProvider
-import uk.q3c.kaytee.agent.i18n.BuildFailCauseKey
 import uk.q3c.kaytee.agent.i18n.BuildStateKey
 import uk.q3c.kaytee.agent.i18n.I18NModule
 import uk.q3c.kaytee.agent.lifecycle.LifecycleModule
@@ -31,13 +30,13 @@ import uk.q3c.kaytee.agent.queue.RequestQueue
 import uk.q3c.kaytee.agent.system.InstallationInfo
 import uk.q3c.kaytee.agent.system.SystemModule
 import uk.q3c.kaytee.plugin.KayTeeExtension
+import uk.q3c.kaytee.plugin.TaskType
 import uk.q3c.util.file.FileKUtilsModule
 
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 
-import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Not_Applicable
-import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Task_Failure
+import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.*
 import static uk.q3c.kaytee.agent.i18n.BuildStateKey.*
 import static uk.q3c.kaytee.plugin.TaskKey.Bintray_Upload
 import static uk.q3c.kaytee.plugin.TaskKey.Custom
@@ -121,7 +120,7 @@ class BuildTest extends Specification {
     def setupSpec() {
         configWithDelegatedTask = new KayTeeExtension()
         configWithDelegatedTask.functionalTest.enabled = true
-        configWithDelegatedTask.functionalTest.delegated = true
+        configWithDelegatedTask.functionalTest.taskType = TaskType.DELEGATED
         configWithDelegatedTask.functionalTest.delegate.repoName = 'wiggly'
         configWithDelegatedTask.functionalTest.delegate.repoUserName = 'davidsowerby'
         configWithDelegatedTask.functionalTest.delegate.commitId = sha(2)
@@ -191,7 +190,7 @@ class BuildTest extends Specification {
         desc                        | buildConfig             | failingTask    | failPrep | outcome            | causeOfFailure
         "Successful standard build" | defaultConfig           | null           | false    | Successful         | Not_Applicable
         "Successful with delegate"  | configWithDelegatedTask | null           | false    | Successful         | Not_Applicable
-        "Prep fails"                | defaultConfig           | null           | true     | Preparation_Failed | BuildFailCauseKey.Preparation_Failed
+        "Prep fails"                | defaultConfig           | null           | true     | Preparation_Failed | Preparation_Failure
         "Task fails"                | defaultConfig           | Bintray_Upload | false    | Failed             | Task_Failure
         "Delegate task fails"       | configWithDelegatedTask | Custom         | false    | Failed             | Task_Failure
     }
