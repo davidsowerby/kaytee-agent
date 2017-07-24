@@ -161,7 +161,7 @@ class DefaultBuild @Inject constructor(
             Bintray_Upload -> optionalTask(uid, taskKey, configuration.release.toBintray, delegated)
             Custom -> throw InvalidTaskException(taskKey, "Custom task should call generateCustomTask()")
             Version_Check -> throw InvalidTaskException(taskKey, "VersionCheck is called from within LoadBuildConfiguration and should not be executed directly")
-            Tag -> optionalTask(uid, taskKey, configuration.versionTag, delegated)
+            Tag -> optionalTask(uid, taskKey, configuration.release.versionTag, delegated)
         }
     }
 
@@ -189,19 +189,7 @@ class DefaultBuild @Inject constructor(
         // but that is managed within the GradleTaskRunner
         val actualTaskKey = taskKey
 
-        // if an auto step, we then need to know whether it is local Gradle,or a delegated task
-        if (config.auto) {
-            if (config.delegated) {
-                createDelegatedProjectTask(actualTaskKey, config)
-            } else {
-                createLocalGradleTask(actualTaskKey, config.qualityGate)
-            }
-        }
 
-        // it is possible that a step is both auto and manual
-        if (config.manual) {
-            createManualTask(actualTaskKey, config)
-        }
 
     }
 
