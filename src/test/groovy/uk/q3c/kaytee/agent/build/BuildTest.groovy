@@ -38,8 +38,7 @@ import java.time.temporal.ChronoUnit
 
 import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.*
 import static uk.q3c.kaytee.agent.i18n.BuildStateKey.*
-import static uk.q3c.kaytee.plugin.TaskKey.Bintray_Upload
-import static uk.q3c.kaytee.plugin.TaskKey.Custom
+import static uk.q3c.kaytee.plugin.TaskKey.*
 /**
  *
  * The {@link MockPreparationStage2} is used to avoid the need for disk access or code pull.  This stage can be made to fail

@@ -54,7 +54,7 @@ class DefaultGradleTaskRunner @Inject constructor(
             } else {
                 TaskStateKey.Failed
             }
-            val outcome = TaskFailedMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, resultKey, errText, stdOutFile.readText())
+            val outcome = TaskFailedMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, resultKey, errText, stdOutFile.readText(), e)
             log.debug("publishing TaskFailedMessage for {}", this)
             globalBusProvider.get().publishAsync(outcome)
         }

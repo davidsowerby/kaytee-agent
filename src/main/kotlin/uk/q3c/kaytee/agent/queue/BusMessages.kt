@@ -90,7 +90,7 @@ data class TaskNotRequiredMessage(override val buildRequestId: UUID, override va
 data class TaskRequestedMessage(override val buildRequestId: UUID, override val taskKey: TaskKey, override val delegated: Boolean) : AbstractTaskMessage(), TaskMessage
 data class TaskStartedMessage(override val buildRequestId: UUID, override val taskKey: TaskKey, override val delegated: Boolean) : AbstractTaskMessage(), TaskMessage
 data class TaskSuccessfulMessage(override val buildRequestId: UUID, override val taskKey: TaskKey, override val delegated: Boolean, val stdOut: String) : AbstractTaskMessage()
-data class TaskFailedMessage(override val buildRequestId: UUID, override val taskKey: TaskKey, override val delegated: Boolean, val result: TaskStateKey, val stdOut: String, val stdErr: String) : AbstractTaskMessage()
+data class TaskFailedMessage(override val buildRequestId: UUID, override val taskKey: TaskKey, override val delegated: Boolean, val result: TaskStateKey, val stdOut: String, val stdErr: String, val exception: Exception) : AbstractTaskMessage()
 
 data class BuildMessageEnvelope(val buildMessage: BuildMessage) : BusMessage
 

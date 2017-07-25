@@ -1,5 +1,6 @@
 package uk.q3c.kaytee.agent.build
 
+import com.google.common.base.Joiner
 import com.google.inject.Inject
 import net.engio.mbassy.listener.Handler
 import net.engio.mbassy.listener.Listener
@@ -19,7 +20,6 @@ import uk.q3c.kaytee.agent.i18n.TaskStateKey.*
 import uk.q3c.kaytee.agent.i18n.TaskStateKey.Failed
 import uk.q3c.kaytee.agent.i18n.TaskStateKey.Successful
 import uk.q3c.kaytee.agent.queue.*
-
 import java.time.OffsetDateTime
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
@@ -119,6 +119,7 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks, val globa
             taskRecord.stdErr = busMessage.stdErr
             val buildRecord = getRecord(busMessage.buildRequestId)
             buildRecord.failureDescription = taskRecord.stdOut
+            buildRecord.stacktrace = Joiner.on("\n").join(ExceptionUtils.getRootCauseStackTrace(busMessage.exception))
             log.debug("Build record failure description set to: ${buildRecord.failureDescription}")
             buildRecord.causeOfFailure = Task_Failure
             buildRecord.failedTask = busMessage.taskKey
@@ -251,8 +252,8 @@ class DefaultBuildRecordCollator @Inject constructor(val hooks: Hooks, val globa
                 buildRecord.preparationCompletedAt = time
                 buildRecord.causeOfFailure = BuildFailCauseKey.Preparation_Failure
                 val busMessage = buildMessage as PreparationFailedMessage
-                val stacktrace = ExceptionUtils.getRootCauseStackTrace(busMessage.e)
-                buildRecord.failureDescription = stacktrace.joinToString(separator = "\n")
+                buildRecord.stacktrace = Joiner.on("\n").join(ExceptionUtils.getRootCauseStackTrace(busMessage.e))
+                buildRecord.failureDescription = busMessage.e.toString()
             }
 
             Complete -> {

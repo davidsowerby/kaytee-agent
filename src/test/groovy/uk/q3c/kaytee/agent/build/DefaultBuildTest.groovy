@@ -203,7 +203,7 @@ class DefaultBuildTest extends Specification {
         when:
         build.execute()
         DefaultBuild b = build as DefaultBuild
-        b.taskCompleted(new TaskFailedMessage(uid, failedTask, delegated, TaskStateKey.Failed, "stdout", "stderr"))
+        b.taskCompleted(new TaskFailedMessage(uid, failedTask, delegated, TaskStateKey.Failed, "stdout", "stderr", new RuntimeException("fake")))
 
         then:
         1 * buildNumberReader.nextBuildNumber(build) >> '33'

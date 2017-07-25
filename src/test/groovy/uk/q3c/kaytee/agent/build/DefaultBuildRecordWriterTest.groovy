@@ -34,14 +34,17 @@ class DefaultBuildRecordWriterTest extends Specification {
     UUID uid
     BuildRecord record
     File recordFile
+    File stacktraceFile
 
     def setup() {
         uid = UUID.randomUUID()
         record = new BuildRecord(uid, OffsetDateTime.now(), false)
+        record.stacktrace = "stacktrace"
 
         temp = temporaryFolder.getRoot()
         buildDir = new File(temp, "wiggly")
         recordFile = new File(buildDir, "buildRecord.json")
+        stacktraceFile = new File(buildDir, "stacktrace.txt")
 
         when(installationInfo.buildOutputDir(build)).thenReturn(buildDir)
         when(build.buildRunner).thenReturn(buildRunner)
@@ -62,6 +65,7 @@ class DefaultBuildRecordWriterTest extends Specification {
 
         then:
         recordFile.exists()
+        stacktraceFile.exists()
     }
 
     def "folder does not exist"() {
@@ -77,6 +81,7 @@ class DefaultBuildRecordWriterTest extends Specification {
 
         then:
         recordFile.exists()
+        stacktraceFile.exists()
     }
 
     def "folder does not exist and cannot be created"() {

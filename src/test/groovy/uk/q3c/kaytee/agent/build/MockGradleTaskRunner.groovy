@@ -45,7 +45,7 @@ class MockGradleTaskRunner implements GradleTaskRunner {
 //        }
         if (failOnRun) {
             log.info("$taskKey Task FAILED")
-            TaskFailedMessage failedMessage = new TaskFailedMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, TaskStateKey.Failed, "Failed stdout", "Failed stderr")
+            TaskFailedMessage failedMessage = new TaskFailedMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, TaskStateKey.Failed, "Failed stdout", "Failed stderr", new RuntimeException("Fake"))
             globalBusProvider.get().publishAsync(failedMessage)
         } else {
             log.info("$taskKey Task SUCCEEDED")

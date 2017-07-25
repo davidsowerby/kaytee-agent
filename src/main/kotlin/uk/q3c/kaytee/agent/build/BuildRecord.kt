@@ -52,6 +52,10 @@ class BuildRecord(uid: UUID, var requestedAt: OffsetDateTime, val delegated: Boo
     var outcome = Not_Started
     var failureDescription = ""
     var failedTask: TaskKey = TaskKey.Custom // valid only if a task has failed
+    /**
+     * empty unless exception thrown, and holds only root cause stacktrace
+     */
+    var stacktrace = ""
     private val stateLock = Any()
     private val taskLock = Any()
     // once parallel tasking enabled, there is a contention risk here.

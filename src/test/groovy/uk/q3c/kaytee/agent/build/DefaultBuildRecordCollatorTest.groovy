@@ -14,11 +14,9 @@ import uk.q3c.kaytee.agent.queue.*
 import java.time.Duration
 import java.time.OffsetDateTime
 
-import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Build_Configuration
-import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.Not_Applicable
+import static uk.q3c.kaytee.agent.i18n.BuildFailCauseKey.*
 import static uk.q3c.kaytee.agent.i18n.BuildStateKey.*
 import static uk.q3c.kaytee.plugin.TaskKey.*
-
 /**
  * Created by David Sowerby on 11 Jun 2017
  */
@@ -330,7 +328,7 @@ class DefaultBuildRecordCollatorTest extends Specification {
         BuildStartedMessage startedMessage = new BuildStartedMessage(uid, delegated, "0.0")
         TaskRequestedMessage taskRequestedMessage = new TaskRequestedMessage(uid, taskKey, delegated)
         TaskStartedMessage taskStartedMessage = new TaskStartedMessage(uid, taskKey, delegated)
-        TaskFailedMessage taskFailedMessage = new TaskFailedMessage(uid, taskKey, delegated, TaskStateKey.Quality_Gate_Failed, stdOut, stdErr)
+        TaskFailedMessage taskFailedMessage = new TaskFailedMessage(uid, taskKey, delegated, TaskStateKey.Quality_Gate_Failed, stdOut, stdErr, new RuntimeException("fake"))
 
         when:
         collator.buildMessage(queuedMessage)

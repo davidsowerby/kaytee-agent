@@ -70,7 +70,7 @@ class DefaultDelegatedProjectTaskRunner @Inject constructor(
                 if (e.message != null) {
                     msg = e.message as String
                 }
-                val outcome = TaskFailedMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, TaskStateKey.Failed, msg, "Task for execution by delegate project")
+                val outcome = TaskFailedMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, TaskStateKey.Failed, msg, "Task for execution by delegate project", e)
                 log.debug("publishing TaskFailedMessage for {}", this)
                 globalBus.publishAsync(outcome)
             }
@@ -97,7 +97,7 @@ class DefaultDelegatedProjectTaskRunner @Inject constructor(
             log.trace("Build {} : BuildFailedMessage received from {}", build.buildRunner.uid, buildMessage.buildRequestId)
             if (buildMessage.buildRequestId == delegateBuildId) {
                 log.debug("Build {} : processing BuildFailedMessage received from {}", build.buildRunner.uid, buildMessage.buildRequestId)
-                val taskMessage = TaskFailedMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, TaskStateKey.Failed, "${buildMessage.e.message}", "Delegate build ${buildMessage.buildRequestId} failed")
+                val taskMessage = TaskFailedMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, TaskStateKey.Failed, "${buildMessage.e.message}", "Delegate build ${buildMessage.buildRequestId} failed", buildMessage.e)
                 publishAndUnsubscribe(taskMessage)
             } else {
                 log.trace("Build {} : ignored BuildFailedMessage received from {}, not relevant to this runner", build.buildRunner.uid, buildMessage.buildRequestId)
@@ -111,7 +111,7 @@ class DefaultDelegatedProjectTaskRunner @Inject constructor(
             log.trace("Build {} : PreparationFailedMessage received from {}", build.buildRunner.uid, buildMessage.buildRequestId)
             if (buildMessage.buildRequestId == delegateBuildId) {
                 log.debug("Build {} : processing PreparationFailedMessage received from {}", build.buildRunner.uid, buildMessage.buildRequestId)
-                val taskMessage = TaskFailedMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, TaskStateKey.Failed, "${buildMessage.e.message}", "Delegate build ${buildMessage.buildRequestId} failed")
+                val taskMessage = TaskFailedMessage(build.buildRunner.uid, taskKey, build.buildRunner.delegated, TaskStateKey.Failed, "${buildMessage.e.message}", "Delegate build ${buildMessage.buildRequestId} failed", buildMessage.e)
                 publishAndUnsubscribe(taskMessage)
             } else {
                 log.trace("Build {} : ignored PreparationFailedMessage received from {}, not relevant to this runner", build.buildRunner.uid, buildMessage.buildRequestId)

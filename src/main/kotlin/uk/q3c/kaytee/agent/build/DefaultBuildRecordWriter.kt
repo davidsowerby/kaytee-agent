@@ -26,8 +26,11 @@ class DefaultBuildRecordWriter @Inject constructor(val installationInfo: Install
         }
         try {
             val buildRecord = buildRecordCollator.getRecord(uid)
-            val file = File(buildDir, "buildRecord.json")
-            objectMapper.writeValue(file, buildRecord)
+            val recordFile = File(buildDir, "buildRecord.json")
+            objectMapper.writeValue(recordFile, buildRecord)
+
+            val stacktraceFile = File(buildDir, "stacktrace.txt")
+            fileUtils.write(stacktraceFile, buildRecord.stacktrace)
         } catch (e: Exception) {
             log.error("Unable to write build record for $uid", e)
         }

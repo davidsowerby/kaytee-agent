@@ -13,12 +13,19 @@ import java.io.File
  */
 interface FileKUtils {
     fun forceMkdir(file: File)
+    fun write(file: File, data: String)
 }
 
 class DefaultFileKUtils : FileKUtils {
 
     override fun forceMkdir(file: File) {
         org.apache.commons.io.FileUtils.forceMkdir(file)
+
     }
+
+    override fun write(file: File, data: String) {
+        org.apache.commons.io.FileUtils.write(file, data)
+    }
+
 
 }
