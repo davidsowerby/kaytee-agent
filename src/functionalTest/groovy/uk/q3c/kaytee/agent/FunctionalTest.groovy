@@ -67,6 +67,13 @@ class FunctionalTest extends FunctionalTestBase {
         BuildRequest buildRequest = new BuildRequest("davidsowerby/kaytee-test", commitId)
         timeoutAt = LocalDateTime.now().plusSeconds(timeoutPeriod)
 
+        String shortSha = new GitSHA(commitId).short()
+        File buildOutputDir = new File(dataArea, "kaytee-test/$shortSha/build-output")
+        File stdErr = new File(buildOutputDir, "stderr.txt")
+        File stdOut = new File(buildOutputDir, "stdout.txt")
+        File buildRecord = new File(buildOutputDir, "buildRecord.json")
+        File stacktrace = new File(buildOutputDir, "stacktrace.txt")
+
 
         when:
         submitRequest(buildRequest)
@@ -119,7 +126,6 @@ class FunctionalTest extends FunctionalTestBase {
         mergeToMasterResult.passed() == expMerge
         tagResult.passed() == expTagged
 
-
         if (expTagged) {
             hasTag(commitId, baseVersion)
         } else {
@@ -130,6 +136,12 @@ class FunctionalTest extends FunctionalTestBase {
         } else {
             !masterMerged(commitId)
         }
+
+        // buildOutput
+        stdErr.exists()
+        stdOut.exists()
+        buildRecord.exists()
+        stacktrace.exists()
 
         where:
 

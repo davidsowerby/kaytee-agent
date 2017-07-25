@@ -19,14 +19,19 @@ class DefaultBuildRecordWriter @Inject constructor(val installationInfo: Install
         if (!buildDir.exists()) {
             try {
                 fileUtils.forceMkdir(buildDir)
-                val buildRecord = buildRecordCollator.getRecord(uid)
-                val file = File(buildDir, "buildRecord.json")
-                objectMapper.writeValue(file, buildRecord)
             } catch (e: Exception) {
-                log.error("Unable to write build record for $uid", e)
-
+                log.error("Unable create directory $buildDir", e)
+                return
             }
         }
+        try {
+            val buildRecord = buildRecordCollator.getRecord(uid)
+            val file = File(buildDir, "buildRecord.json")
+            objectMapper.writeValue(file, buildRecord)
+        } catch (e: Exception) {
+            log.error("Unable to write build record for $uid", e)
+        }
+
 
     }
 }
