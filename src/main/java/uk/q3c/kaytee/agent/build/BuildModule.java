@@ -17,7 +17,7 @@ public class BuildModule extends AbstractModule {
         bind(BuildNumberReader.class).to(DefaultBuildNumberReader.class);
         bind(IssueCreator.class).to(DefaultIssueCreator.class);
         bind(StateModel.class).to(DefaultStateModel.class);
-        bind(BuildRecordWriter.class).to(DefaultBuildRecordWriter.class);
+        bind(BuildOutputWriter.class).to(DefaultBuildOutputWriter.class);
         install(new FactoryModuleBuilder()
                 .implement(BuildRunner.class, DefaultBuildRunner.class)
                 .build(BuildRunnerFactory.class));

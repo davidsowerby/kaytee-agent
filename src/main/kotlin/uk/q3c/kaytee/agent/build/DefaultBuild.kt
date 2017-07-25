@@ -47,7 +47,7 @@ class DefaultBuild @Inject constructor(
         val manualTaskRunnerFactory: ManualTaskRunnerFactory,
         val delegatedProjectTaskRunnerFactory: DelegatedProjectTaskRunnerFactory,
         val issueCreatorProvider: Provider<IssueCreator>,
-        val buildRecordWriter: BuildRecordWriter,
+        val buildRecordWriter: BuildOutputWriter,
         @Assisted override val buildRunner: BuildRunner) :
 
         Build,
@@ -56,6 +56,7 @@ class DefaultBuild @Inject constructor(
 
     private val log = LoggerFactory.getLogger(this.javaClass.name)
     override var raiseIssueOnFail: Boolean = false
+    override var baseVersion = ""
     lateinit override var stderrOutputFile: File
     lateinit override var stdoutOutputFile: File
     lateinit override var parentBuild: Build
@@ -100,6 +101,10 @@ class DefaultBuild @Inject constructor(
         return buildNumber
     }
 
+    override fun version(): String {
+        return "$baseVersion.$buildNumber"
+    }
+
 
     /**
      * Sets the configuration for this Build.  Configuration is extracted from the build.gradle file in the
@@ -115,6 +120,7 @@ class DefaultBuild @Inject constructor(
             configuration.validate()
             generateTasks(configuration)
             raiseIssueOnFail = configuration.raiseIssueOnFail
+            baseVersion = configuration.baseVersion
         }
     }
 

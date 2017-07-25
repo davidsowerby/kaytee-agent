@@ -73,6 +73,7 @@ class FunctionalTest extends FunctionalTestBase {
         File stdOut = new File(buildOutputDir, "stdout.txt")
         File buildRecord = new File(buildOutputDir, "buildRecord.json")
         File stacktrace = new File(buildOutputDir, "stacktrace.txt")
+        File buildInfo = new File(buildOutputDir, "buildInfo.txt")
 
 
         when:
@@ -142,6 +143,7 @@ class FunctionalTest extends FunctionalTestBase {
         stdOut.exists()
         buildRecord.exists()
         stacktrace.exists()
+        buildInfo.exists()
 
         where:
 

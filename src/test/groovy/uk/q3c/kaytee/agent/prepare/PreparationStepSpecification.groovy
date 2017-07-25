@@ -47,7 +47,7 @@ abstract class PreparationStepSpecification extends Specification {
     DelegatedProjectTaskRunnerFactory delegatedProjectTaskRunnerFactory = Mock(DelegatedProjectTaskRunnerFactory)
     Provider<IssueCreator> issueCreatorProvider = Mock(Provider)
     IssueCreator issueCreator = Mock(IssueCreator)
-    BuildRecordWriter buildRecordWriter = Mock()
+    BuildOutputWriter buildRecordWriter = Mock()
 
     def setup() {
         issueCreatorProvider.get() >> issueCreator

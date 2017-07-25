@@ -18,14 +18,14 @@ import static org.mockito.Mockito.*
 /**
  * Created by David Sowerby on 25 Jul 2017
  */
-class DefaultBuildRecordWriterTest extends Specification {
+class DefaultBuildOutputWriterTest extends Specification {
 
     InstallationInfo installationInfo = mock(InstallationInfo)
     BuildRecordCollator buildRecordCollator = mock(BuildRecordCollator)
     Build build = mock(Build)
     BuildRunner buildRunner = mock(BuildRunner)
     FileKUtils fileUtils
-    BuildRecordWriter writer
+    BuildOutputWriter writer
 
     @Rule
     TemporaryFolder temporaryFolder
@@ -35,6 +35,7 @@ class DefaultBuildRecordWriterTest extends Specification {
     BuildRecord record
     File recordFile
     File stacktraceFile
+    File buildInfoFile
 
     def setup() {
         uid = UUID.randomUUID()
@@ -45,17 +46,19 @@ class DefaultBuildRecordWriterTest extends Specification {
         buildDir = new File(temp, "wiggly")
         recordFile = new File(buildDir, "buildRecord.json")
         stacktraceFile = new File(buildDir, "stacktrace.txt")
+        buildInfoFile = new File(buildDir, "buildInfo.txt")
 
         when(installationInfo.buildOutputDir(build)).thenReturn(buildDir)
         when(build.buildRunner).thenReturn(buildRunner)
         when(buildRunner.uid).thenReturn(uid)
         when(buildRecordCollator.getRecord(uid)).thenReturn(record)
+        when(build.version()).thenReturn("1.2.3.4.abcdef")
     }
 
     def "folder exists"() {
         given:
         fileUtils = new DefaultFileKUtils()
-        writer = new DefaultBuildRecordWriter(installationInfo, new ObjectMapper(), buildRecordCollator, fileUtils)
+        writer = new DefaultBuildOutputWriter(installationInfo, new ObjectMapper(), buildRecordCollator, fileUtils)
         if (!buildDir.exists()) {
             FileUtils.forceMkdir(buildDir)
         }
@@ -66,12 +69,13 @@ class DefaultBuildRecordWriterTest extends Specification {
         then:
         recordFile.exists()
         stacktraceFile.exists()
+        buildInfoFile.exists()
     }
 
     def "folder does not exist"() {
         given:
         fileUtils = new DefaultFileKUtils()
-        writer = new DefaultBuildRecordWriter(installationInfo, new ObjectMapper(), buildRecordCollator, fileUtils)
+        writer = new DefaultBuildOutputWriter(installationInfo, new ObjectMapper(), buildRecordCollator, fileUtils)
         if (buildDir.exists()) {
             FileUtils.forceDelete(buildDir)
         }
@@ -82,15 +86,16 @@ class DefaultBuildRecordWriterTest extends Specification {
         then:
         recordFile.exists()
         stacktraceFile.exists()
+        buildInfoFile.exists()
     }
 
     def "folder does not exist and cannot be created"() {
         given:
         LogMonitor logMonitor = new LogMonitor()
-        logMonitor.addClassFilter(DefaultBuildRecordWriter)
+        logMonitor.addClassFilter(DefaultBuildOutputWriter)
         fileUtils = mock(FileKUtils)
         when(fileUtils.forceMkdir(buildDir)).thenThrow(new RuntimeException("fake"))
-        writer = new DefaultBuildRecordWriter(installationInfo, new ObjectMapper(), buildRecordCollator, fileUtils)
+        writer = new DefaultBuildOutputWriter(installationInfo, new ObjectMapper(), buildRecordCollator, fileUtils)
         if (buildDir.exists()) {
             FileUtils.forceDelete(buildDir)
         }

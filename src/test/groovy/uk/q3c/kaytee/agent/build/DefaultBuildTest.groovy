@@ -7,6 +7,7 @@ import net.engio.mbassy.bus.MBassador
 import org.apache.commons.codec.digest.DigestUtils
 import spock.lang.Specification
 import spock.lang.Unroll
+import uk.q3c.build.gitplus.GitSHA
 import uk.q3c.kaytee.agent.app.ConstantsKt
 import uk.q3c.kaytee.agent.eventbus.BusMessage
 import uk.q3c.kaytee.agent.eventbus.GlobalBusProvider
@@ -41,7 +42,7 @@ class DefaultBuildTest extends Specification {
     Project project = Mock()
     List<TaskKey> defaultLifecycle = ImmutableList.of(Unit_Test, Generate_Build_Info, Generate_Change_Log, Publish_to_Local, Merge_to_Master, Tag, Bintray_Upload)
     IMessagePublication messagePublication = Mock()
-    BuildRecordWriter recordWriter = Mock()
+    BuildOutputWriter recordWriter = Mock()
 
     void setup() {
         globalBusProvider.get() >> globalBus
@@ -309,6 +310,18 @@ class DefaultBuildTest extends Specification {
         manualTaskRunnerFactory.runners.containsKey(Functional_Test)
     }
 
+    def "version"() {
+        given:
+        kayTeeExtension.baseVersion = "1.2.4.5"
+        buildNumberReader.nextBuildNumber(build) >> new GitSHA(sha(3)).short()
+
+        when:
+        build.configure(kayTeeExtension)
+        String version = build.version()
+
+        then:
+        version == "1.2.4.5.11f6ad8"
+    }
 
     private String sha(int i) {
         return DigestUtils.sha1Hex('x').toString()

@@ -10,27 +10,31 @@ import java.io.File
 /**
  * Created by David Sowerby on 19 Jul 2017
  */
-class DefaultBuildRecordWriter @Inject constructor(val installationInfo: InstallationInfo, val objectMapper: ObjectMapper, val buildRecordCollator: BuildRecordCollator, val fileUtils: FileKUtils) : BuildRecordWriter {
+class DefaultBuildOutputWriter @Inject constructor(val installationInfo: InstallationInfo, val objectMapper: ObjectMapper, val buildRecordCollator: BuildRecordCollator, val fileUtils: FileKUtils) : BuildOutputWriter {
     private val log = LoggerFactory.getLogger(this.javaClass.name)
 
     override fun write(build: Build) {
-        val buildDir = installationInfo.buildOutputDir(build)
+        val buildOutputDir = installationInfo.buildOutputDir(build)
         val uid = build.buildRunner.uid
-        if (!buildDir.exists()) {
+        if (!buildOutputDir.exists()) {
             try {
-                fileUtils.forceMkdir(buildDir)
+                fileUtils.forceMkdir(buildOutputDir)
             } catch (e: Exception) {
-                log.error("Unable create directory $buildDir", e)
+                log.error("Unable create directory $buildOutputDir", e)
                 return
             }
         }
         try {
             val buildRecord = buildRecordCollator.getRecord(uid)
-            val recordFile = File(buildDir, "buildRecord.json")
+            val recordFile = File(buildOutputDir, "buildRecord.json")
             objectMapper.writeValue(recordFile, buildRecord)
 
-            val stacktraceFile = File(buildDir, "stacktrace.txt")
+            val stacktraceFile = File(buildOutputDir, "stacktrace.txt")
             fileUtils.write(stacktraceFile, buildRecord.stacktrace)
+
+            val buildInfoFile = File(buildOutputDir, "buildInfo.txt")
+            fileUtils.write(buildInfoFile, build.version())
+
         } catch (e: Exception) {
             log.error("Unable to write build record for $uid", e)
         }

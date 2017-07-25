@@ -34,6 +34,7 @@ interface Build : ProjectInstance {
      * Raise an issue if a build fails.  Generally set by the[KayTeeExtension] passed to [configure]
      */
     var raiseIssueOnFail: Boolean
+    var baseVersion: String
     val buildRunner: BuildRunner
     var parentBuild: Build
 
@@ -69,4 +70,10 @@ interface Build : ProjectInstance {
      * even though they may not yet been executed
      */
     fun tasksWaiting(): List<TaskKey>
+
+    /**
+     * Returns the version being used - this is drawn from the base version provided by the plugin configuration, plus the
+     * short git hash code
+     */
+    fun version(): String
 }
