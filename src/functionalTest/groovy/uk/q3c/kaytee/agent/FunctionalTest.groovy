@@ -177,10 +177,9 @@ class FunctionalTest extends FunctionalTestBase {
 
     boolean hasTag(String commitId, String baseVersion) {
         GitSHA gitSha = new GitSHA(commitId)
-        String version = "$baseVersion.${gitSha.short()}"
         List<Tag> tags = gitPlus.local.tags()
         for (tag in tags) {
-            if (tag.tagName == version) {
+            if (tag.tagName == baseVersion) {
                 if (tag.commit.hash == commitId) {
                     return true
                 }

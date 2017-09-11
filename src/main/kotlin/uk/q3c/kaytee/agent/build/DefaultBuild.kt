@@ -22,6 +22,8 @@ import uk.q3c.kaytee.plugin.KayTeeExtension
 import uk.q3c.kaytee.plugin.TaskKey
 import uk.q3c.kaytee.plugin.TaskKey.*
 import uk.q3c.kaytee.plugin.TaskType
+import uk.q3c.util.version.VersionNumber
+import uk.q3c.util.version.parseVersion
 import java.io.File
 import java.util.*
 import javax.annotation.concurrent.ThreadSafe
@@ -56,7 +58,7 @@ class DefaultBuild @Inject constructor(
 
     private val log = LoggerFactory.getLogger(this.javaClass.name)
     override var raiseIssueOnFail: Boolean = false
-    override var baseVersion = ""
+    override var version = VersionNumber()
     lateinit override var stderrOutputFile: File
     lateinit override var stdoutOutputFile: File
     lateinit override var parentBuild: Build
@@ -102,7 +104,7 @@ class DefaultBuild @Inject constructor(
     }
 
     override fun version(): String {
-        return "$baseVersion.$buildNumber"
+        return version.toString()
     }
 
 
@@ -120,7 +122,7 @@ class DefaultBuild @Inject constructor(
             configuration.validate()
             generateTasks(configuration)
             raiseIssueOnFail = configuration.raiseIssueOnFail
-            baseVersion = configuration.baseVersion
+            version = parseVersion(configuration.version.number, configuration.version.qualifier, configuration.version.buildMetaData, configuration.version.scheme)
         }
     }
 
@@ -252,6 +254,7 @@ class DefaultBuild @Inject constructor(
         buildRecordWriter.write(this)
         log.info("Build {} closed, sending BuildProcessCompletedMessage", buildRunner.uid)
         globalBusProvider.get().publishAsync(BuildProcessCompletedMessage(buildRunner.uid, buildRunner.delegated))
+        log.info("Build completed for {}:{}", this.project.shortProjectName, this.version())
     }
 
 

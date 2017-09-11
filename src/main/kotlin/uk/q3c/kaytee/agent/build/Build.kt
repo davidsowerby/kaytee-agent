@@ -5,6 +5,7 @@ import uk.q3c.kaytee.agent.queue.BuildRunner
 import uk.q3c.kaytee.agent.queue.ProjectInstance
 import uk.q3c.kaytee.plugin.KayTeeExtension
 import uk.q3c.kaytee.plugin.TaskKey
+import uk.q3c.util.version.VersionNumber
 import java.io.File
 
 /**
@@ -34,7 +35,7 @@ interface Build : ProjectInstance {
      * Raise an issue if a build fails.  Generally set by the[KayTeeExtension] passed to [configure]
      */
     var raiseIssueOnFail: Boolean
-    var baseVersion: String
+    var version: VersionNumber
     val buildRunner: BuildRunner
     var parentBuild: Build
 

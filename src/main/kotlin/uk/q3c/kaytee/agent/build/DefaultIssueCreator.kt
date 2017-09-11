@@ -18,6 +18,7 @@ class DefaultIssueCreator @Inject constructor(val buildRecordCollator: BuildReco
         log.debug("raising issue for build failure, build $build")
         try {
             gitPlus.useRemoteOnly(build.project.remoteUserName, build.project.shortProjectName)
+            gitPlus.propertiesFromGradle()
             gitPlus.execute()
             val buildRecord = buildRecordCollator.getRecord(build.buildRunner.uid)
             val subTitle = if (buildRecord.causeOfFailure == BuildFailCauseKey.Task_Failure) {

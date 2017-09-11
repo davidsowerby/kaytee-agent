@@ -1,6 +1,5 @@
 {
   "remoteRepoUserName": "davidsowerby",
-  "baseVersion": "0.0.0.0",
   "generateBuildInfo": true,
   "generateChangeLog": true,
   "raiseIssueOnFail": true,
@@ -113,6 +112,16 @@
     "versionTag": true,
     "toBintray": false,
     "mergeToMaster": false
+  },
+  "version": {
+    "number": "0.0.0.0",
+    "qualifier": "",
+    "buildMetaData": "",
+    "scheme": {
+      "depth": 4,
+      "qualifierSeparator": "-",
+      "buildMetaDataSeparator": "+"
+    }
   },
   "changeLog": {
     "remoteRepoUser": "not specified",

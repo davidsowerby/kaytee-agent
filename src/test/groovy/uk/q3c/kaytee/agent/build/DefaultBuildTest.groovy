@@ -312,7 +312,7 @@ class DefaultBuildTest extends Specification {
 
     def "version"() {
         given:
-        kayTeeExtension.baseVersion = "1.2.4.5"
+        kayTeeExtension.version.number = "1.2.4.5"
         buildNumberReader.nextBuildNumber(build) >> new GitSHA(sha(3)).short()
 
         when:
@@ -320,7 +320,7 @@ class DefaultBuildTest extends Specification {
         String version = build.version()
 
         then:
-        version == "1.2.4.5.11f6ad8"
+        version == "1.2.4.5"
     }
 
     private String sha(int i) {
