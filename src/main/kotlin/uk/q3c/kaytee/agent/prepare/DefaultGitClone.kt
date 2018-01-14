@@ -36,11 +36,7 @@ class DefaultGitClone @Inject constructor(val installationInfo: InstallationInfo
 
             gitPlus.local.checkoutCommit(build.gitHash, "kaytee")
             log.debug("Checked out commit {} to new branch 'kaytee'", build.gitHash)
-            val branches = gitPlus.local.branches()
 
-            // We'' check for both branches because the default branch may not have been set to 'develop' in remote
-            checkBranch(branches, "master")
-            checkBranch(branches, "develop")
 
         } catch (e: Exception) {
             val msg = "Git clone or checkout operation failed"
@@ -48,10 +44,5 @@ class DefaultGitClone @Inject constructor(val installationInfo: InstallationInfo
         }
     }
 
-    private fun checkBranch(branches: List<String>, branchName: String) {
-        if (!branches.contains(branchName)) {
-            gitPlus.local.createBranch(branchName)
-            gitPlus.local.pull(branchName)
-        }
-    }
+
 }
