@@ -78,7 +78,7 @@ class RealOnes extends FunctionalTestBase {
 //        "davidsowerby/kaytee-test"  | "7ac2e38d98118837fd65fea5f32e2ef8b49cca53"  // all pass
 //        "davidsowerby/hal-kotlin" | "db324765d4bb7298336db94661ff89717ce25836"
 //        "davidsowerby/krail-quartz" | "4cd389070ae3c4dce7bb322f449aa2e11c1e2977"
-        "davidsowerby/krail-jpa" | "2e911630031013eec76ba233c88455abf218cb05"
+//        "davidsowerby/krail-jpa" | "7307718a6f2d4a8a226959dfb959485703eea3e2"
 //        "davidsowerby/krail-bench" | "be496da515f80babcae4f0661ffe341568ad92e4"
 //        "davidsowerby/q3c-util" | "ef36d712d07cec52da21407235d143b1340d7a5a"
 //        "davidsowerby/krail-i18n-api" | "c2c1f03ec9253a84f627e603af2cde66e97d1107"
@@ -92,7 +92,7 @@ class RealOnes extends FunctionalTestBase {
 //        "davidsowerby/eventbus-api" | "82cc2046e41394af8030260eef4acc9d3431c72d"
 //        "davidsowerby/eventbus-mbassador" | "de34a9430a8d7b8e01ae17df3b104aa18fe41d14"
 //        "davidsowerby/krail-testapp" | "333ec6a997a0a75da4a4e61a514ccb26a57e3739"
-//        "davidsowerby/krail" | "8026fe2a7dbe0bfe01b313c258bf93276d031b71"
+        "davidsowerby/krail" | "6130024d9b45f4611aa948bd9855f62c6cc3ffe3"
 
 
     }
