@@ -68,31 +68,31 @@ class RealOnes extends FunctionalTestBase {
 
         where:
 
-        projectName                      | commitId
+        projectName              | commitId
 //        "davidsowerby/q3c-testutils" | "224418e162e563f2c36a63db87975ab8fe9fce95"
-//        "davidsowerby/gitplus"      | "67e3f5372b8365687ac97c5b057c4049dfe405b0"
-//        "davidsowerby/changelog"      | "8dede082161afc3507b8c7c6c0419e18576ec7cc"
-//        "davidsowerby/kaytee-plugin" | "9a990b070cd1b33b2e104834dbe10a04d6baeca1"
+//        "davidsowerby/gitplus"      | "81b6c50d190f0e18f532700ce785714bf4d209c9"
+//        "davidsowerby/changelog"      | "d67f3254677755ef7db236a0c1ede3b0fbdc728d"
+//        "davidsowerby/kaytee-plugin" | "684cbfaceef6e428f9b61ddad8595b20651d553d"
 //        "davidsowerby/projectadmin"      | "74653a2c6b5c56d3d86a36bbaaab9ba29be93651"
 //        "davidsowerby/hal-kotlin"      | "a35241d1f0c4e619e337499e351a45cb1abd6db2"
 //        "davidsowerby/kaytee-test"  | "7ac2e38d98118837fd65fea5f32e2ef8b49cca53"  // all pass
 //        "davidsowerby/hal-kotlin" | "db324765d4bb7298336db94661ff89717ce25836"
 //        "davidsowerby/krail-quartz" | "4cd389070ae3c4dce7bb322f449aa2e11c1e2977"
-//        "davidsowerby/krail-jpa" | "7307718a6f2d4a8a226959dfb959485703eea3e2"
+        "davidsowerby/krail-jpa" | "03f081d591b1911b295c1a1a2ed23e59aead5b6c"
 //        "davidsowerby/krail-bench" | "be496da515f80babcae4f0661ffe341568ad92e4"
-//        "davidsowerby/q3c-util" | "ef36d712d07cec52da21407235d143b1340d7a5a"
-//        "davidsowerby/krail-i18n-api" | "c2c1f03ec9253a84f627e603af2cde66e97d1107"
-//        "davidsowerby/krail-i18n" | "f4da39d534710a894808e6dd2dc5f513ac5da7e7"
-//        "davidsowerby/krail-persist-api" | "2a4ecc3038a348824ebe01fd9d7f1bcda741275e"
-//        "davidsowerby/krail-option-api" | "6e1bd25944b042d4519bd487fa07249bbdd4bd9b"
-//        "davidsowerby/krail-option" | "6e1bd25944b042d4519bd487fa07249bbdd4bd9b"
-//        "davidsowerby/krail-service-api" | "7c2738c897dbc562512643249779e90da550d2d7"
-//        "davidsowerby/krail-config-api" | "c764a8ae7d05fe7c731ff49970662168513412d4"
-//        "davidsowerby/krail-config" | "9eb074317a9f81674886ff6ed78f01fef84bbce0"
-//        "davidsowerby/eventbus-api" | "82cc2046e41394af8030260eef4acc9d3431c72d"
-//        "davidsowerby/eventbus-mbassador" | "de34a9430a8d7b8e01ae17df3b104aa18fe41d14"
+//        "davidsowerby/q3c-util" | "77e494d115045b94bb738488d833e21d66bf1c3f"
+//        "davidsowerby/krail-i18n-api" | "78f15d64d9b19028b7e3c85502eb90ede561538d"
+//        "davidsowerby/krail-i18n" | "74b01ba762ec0255680c9d140b991a5edaaf42ce"
+//        "davidsowerby/krail-persist-api" | "d76905c850ea8577992fb84cf9c09aec7a01944c"
+//        "davidsowerby/krail-option-api" | "5aa21238d27b72644f15f82a3db4a6cfb4bbf1b8"
+//        "davidsowerby/krail-option" | "d285b0f192d8f0e0ea8e23c29551e69f7237f671"
+//        "davidsowerby/krail-service-api" | "99b66cd7a7958e8ca1e161f768f8f544748e874c"
+//        "davidsowerby/krail-config-api" | "b12ae7a632762941aab354d69cca889ee55348a9"
+//        "davidsowerby/krail-config" | "fbc9a4d56c1f0b4c48798ea34d8dac0c180ba429"
+//        "davidsowerby/eventbus-api" | "85a4883bed56b4adfee1865ff5ca844b1b52d14b"
+//        "davidsowerby/eventbus-mbassador" | "4f0490ef8107eac400067035b6466b665bacb93f"
 //        "davidsowerby/krail-testapp" | "333ec6a997a0a75da4a4e61a514ccb26a57e3739"
-        "davidsowerby/krail" | "6130024d9b45f4611aa948bd9855f62c6cc3ffe3"
+//        "davidsowerby/krail" | "6130024d9b45f4611aa948bd9855f62c6cc3ffe3"
 
 
     }

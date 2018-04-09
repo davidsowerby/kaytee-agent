@@ -1,6 +1,6 @@
 buildscript {
     ext.kotlin_version = '1.2.31'
-    ext.kaytee_plugin_version = "0.18.10.0"
+    ext.kaytee_plugin_version = "0.19.1.0"
 
     repositories {
         mavenLocal()
@@ -17,6 +17,7 @@ buildscript {
 
 plugins {
     id 'idea'
+    id 'groovy'
 }
 
 
@@ -36,7 +37,7 @@ ext.slf4jVersion = '1.7.6'
 sourceCompatibility = '1.8'
 targetCompatibility = '1.8'
 
-version = '0.6.3.0'
+version = '0.6.3.1'
 group = 'uk.q3c.kaytee'
 
 kaytee {
@@ -61,6 +62,7 @@ dependencies {
 //    compile 'org.slf4j:slf4j-api:' + slf4jVersion
 //    compile 'ch.qos.logback:logback-classic:1.1.2'
 //    compile 'ch.qos.logback:logback-core:1.1.2'
+
 
     compile ratpack.dependency("guice")
     compile 'uk.q3c.rest:hal-kotlin:0.5.4.0.db32476'
