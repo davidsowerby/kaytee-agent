@@ -4,7 +4,7 @@ package uk.q3c.kaytee.agent.i18n
  * Created by David Sowerby on 03 May 2016
  */
 
-import uk.q3c.krail.core.i18n.I18NKey
+import uk.q3c.krail.i18n.I18NKey
 
 enum class UserErrorMessageKey : I18NKey {
 

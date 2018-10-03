@@ -135,6 +135,11 @@ class MockGradleLauncher implements BuildLauncher {
     }
 
     @Override
+    BuildLauncher setEnvironmentVariables(Map<String, String> envVariables) {
+        return null
+    }
+
+    @Override
     BuildLauncher addProgressListener(ProgressListener listener) {
         return null
     }

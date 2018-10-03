@@ -47,7 +47,7 @@ class DefaultDelegatedProjectTaskRunner @Inject constructor(
     private val log = LoggerFactory.getLogger(this.javaClass.name)
 
     override fun identity(): String {
-        return "${build.buildRunner.project.shortProjectName}:${build.buildRunner.uid}:$taskKey}"
+        return "${build.buildRunner.project.projectName}:${build.buildRunner.uid}:$taskKey}"
     }
 
     /**
@@ -61,7 +61,7 @@ class DefaultDelegatedProjectTaskRunner @Inject constructor(
 
                 log.debug("publishing TaskStartedMessage for delegate task {}", taskKey)
                 globalBus.publishAsync(TaskStartedMessage(this.build.buildRunner.uid, taskKey, build.buildRunner.delegated))
-                val project = projects.getProject(groupConfig.delegate.repoUserName, groupConfig.delegate.repoName)
+                val project = this.build.project
                 val commitSha = GitSHA(groupConfig.delegate.commitId)
                 log.debug("build id for delegate is: {}", delegateBuildId)
                 delegateBuildId = requestQueue.addRequest(project = project, commitId = commitSha, delegated = true, delegatedTask = groupConfig.delegate.taskToRun)

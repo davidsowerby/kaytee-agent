@@ -36,7 +36,7 @@ data class DefaultBuildRunner @Inject constructor(val buildFactory: BuildFactory
     }
 
     override fun identity(): String {
-        return "project: '${project.fullProjectName}' git sha:${gitHash.sha}"
+        return "project: '${project.remoteUri.path}' git sha:${gitHash.sha}"
     }
 
     override fun toString(): String {

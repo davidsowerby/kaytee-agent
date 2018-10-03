@@ -68,7 +68,7 @@ class MockGradleLauncher2 implements BuildLauncher {
     @Override
     void run(ResultHandler<? super Void> handler) throws IllegalStateException {
 
-        throw new RuntimeException("TODO");
+        throw new RuntimeException("TODO")
     }
 
     @Override
@@ -113,6 +113,11 @@ class MockGradleLauncher2 implements BuildLauncher {
 
     @Override
     BuildLauncher setJvmArguments(Iterable<String> jvmArguments) {
+        return null
+    }
+
+    @Override
+    BuildLauncher setEnvironmentVariables(Map<String, String> envVariables) {
         return null
     }
 

@@ -12,10 +12,6 @@
 package uk.q3c.kaytee.agent.eventbus;
 
 import net.engio.mbassy.listener.Listener;
-import uk.q3c.krail.core.eventbus.EventBusModule;
-import uk.q3c.krail.core.eventbus.GlobalBus;
-import uk.q3c.krail.core.eventbus.SessionBus;
-import uk.q3c.krail.core.eventbus.UIBus;
 
 import java.lang.annotation.Annotation;
 import java.lang.annotation.Inherited;

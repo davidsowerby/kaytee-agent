@@ -12,19 +12,16 @@
 package uk.q3c.kaytee.agent.eventbus;
 
 import com.google.inject.BindingAnnotation;
-import uk.q3c.krail.core.persist.cache.option.OptionCache;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import static java.lang.annotation.ElementType.*;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
-/**
- * Binding annotation to identify a Guava cache configuration for {@link OptionCache}
- * <p>
- * Created by David Sowerby on 06/02/15.
- */
+
 @BindingAnnotation
 @Target({FIELD, PARAMETER, METHOD})
 @Retention(RUNTIME)

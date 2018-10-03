@@ -5,9 +5,9 @@ import com.google.inject.Injector
 import spock.lang.Specification
 import uk.q3c.kaytee.agent.TestMessageKey
 import uk.q3c.kaytee.agent.eventbus.GlobalBusModule
-import uk.q3c.krail.core.i18n.Translate
+import uk.q3c.krail.i18n.Translate
 
-import static uk.q3c.kaytee.agent.i18n.DeveloperErrorMessageKey.Invalid_Method
+import static uk.q3c.kaytee.agent.i18n.DeveloperErrorMessageKey.*
 
 /**
  * Created by David Sowerby on 12 Mar 2017

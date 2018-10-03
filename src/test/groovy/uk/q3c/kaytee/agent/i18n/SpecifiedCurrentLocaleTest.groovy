@@ -4,7 +4,8 @@ import net.engio.mbassy.bus.IMessagePublication
 import net.engio.mbassy.bus.MBassador
 import spock.lang.Specification
 import uk.q3c.kaytee.agent.eventbus.GlobalBusProvider
-import uk.q3c.krail.core.i18n.CurrentLocale
+import uk.q3c.krail.i18n.CurrentLocale
+
 /**
  * Created by David Sowerby on 10 Apr 2017
  */

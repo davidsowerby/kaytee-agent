@@ -3,11 +3,11 @@ package uk.q3c.kaytee.agent.i18n;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
-import uk.q3c.krail.core.i18n.CurrentLocale;
-import uk.q3c.krail.core.i18n.Translate;
-import uk.q3c.krail.core.persist.clazz.i18n.ClassPatternDao;
-import uk.q3c.krail.core.persist.clazz.i18n.ClassPatternSource;
-import uk.q3c.krail.core.persist.common.i18n.PatternDao;
+import uk.q3c.krail.i18n.CurrentLocale;
+import uk.q3c.krail.i18n.Translate;
+import uk.q3c.krail.i18n.persist.PatternDao;
+import uk.q3c.krail.i18n.persist.clazz.ClassPatternDao;
+import uk.q3c.krail.i18n.persist.clazz.ClassPatternSource;
 
 /**
  * Created by David Sowerby on 21 Jan 2017

@@ -3,9 +3,11 @@ package uk.q3c.kaytee.agent.prepare
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
+import uk.q3c.build.gitplus.remote.ServiceProvider
 import uk.q3c.kaytee.agent.app.ConstantsKt
 import uk.q3c.kaytee.agent.build.Build
 import uk.q3c.kaytee.agent.i18n.NamedFactory
+import uk.q3c.kaytee.agent.project.DefaultProject
 import uk.q3c.kaytee.agent.project.Project
 import uk.q3c.kaytee.agent.queue.BuildRunner
 import uk.q3c.kaytee.agent.system.DefaultInstallationInfo
@@ -29,12 +31,12 @@ class DefaultPrepareWorkspaceTest extends Specification {
     File codeBuildDir0
     File codeBuildDir1
     BuildRunner buildRunner = Mock(BuildRunner)
-    Project project = Mock(Project)
+    Project project
     final String projectName = "wiggly"
     final String shortHash = "aaaaaaa"
 
     void setup() {
-
+        project = new DefaultProject(ServiceProvider.GITHUB, new URI("https://github.com/davidsowerby/wiggly"), UUID.randomUUID())
         temp = temporaryFolder.getRoot()
         installationInfo = new DefaultInstallationInfo()
         File dataRoot = new File(temp, "kaytee-data")
@@ -43,7 +45,6 @@ class DefaultPrepareWorkspaceTest extends Specification {
 
         build.buildRunner >> buildRunner
         buildRunner.project >> project
-        project.shortProjectName >> projectName
 
 
         build.buildNumber() >> shortHash

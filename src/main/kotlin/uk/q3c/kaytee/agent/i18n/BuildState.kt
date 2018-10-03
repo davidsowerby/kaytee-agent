@@ -2,7 +2,7 @@ package uk.q3c.kaytee.agent.i18n
 
 import uk.q3c.kaytee.agent.queue.BuildFailedMessage
 import uk.q3c.kaytee.agent.queue.BuildSuccessfulMessage
-import uk.q3c.krail.core.i18n.I18NKey
+import uk.q3c.krail.i18n.I18NKey
 
 /**
  * See [BuildFailCauses]

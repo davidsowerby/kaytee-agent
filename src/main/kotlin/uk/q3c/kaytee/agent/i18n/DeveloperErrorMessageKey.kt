@@ -8,7 +8,7 @@ package uk.q3c.kaytee.agent.i18n
 
 import org.apache.http.HttpStatus
 import org.apache.http.HttpStatus.SC_METHOD_NOT_ALLOWED
-import uk.q3c.krail.core.i18n.I18NKey
+import uk.q3c.krail.i18n.I18NKey
 
 enum class DeveloperErrorMessageKey(val httpCode: Int) : I18NKey {
 

@@ -1,7 +1,7 @@
 package uk.q3c.kaytee.agent.i18n
 
 import uk.q3c.kaytee.agent.i18n.DeveloperErrorMessageKey.*
-import uk.q3c.krail.core.persist.clazz.i18n.EnumResourceBundle
+import uk.q3c.krail.i18n.EnumResourceBundle
 
 /**
  * Created by David Sowerby on 09 Jan 2017

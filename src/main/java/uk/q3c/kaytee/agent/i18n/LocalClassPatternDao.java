@@ -5,9 +5,13 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.ClassUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import uk.q3c.krail.core.i18n.I18NKey;
-import uk.q3c.krail.core.persist.cache.i18n.PatternCacheKey;
-import uk.q3c.krail.core.persist.clazz.i18n.*;
+import uk.q3c.krail.i18n.EnumResourceBundle;
+import uk.q3c.krail.i18n.I18NKey;
+import uk.q3c.krail.i18n.clazz.ClassBundleControl;
+import uk.q3c.krail.i18n.clazz.DefaultClassPatternDao;
+import uk.q3c.krail.i18n.persist.PatternCacheKey;
+import uk.q3c.krail.i18n.persist.clazz.ClassPatternDao;
+import uk.q3c.krail.i18n.persist.clazz.ClassPatternSource;
 
 import javax.annotation.Nonnull;
 import java.io.File;

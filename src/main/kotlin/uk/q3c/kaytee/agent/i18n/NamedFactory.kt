@@ -1,6 +1,6 @@
 package uk.q3c.kaytee.agent.i18n
 
-import uk.q3c.krail.core.i18n.I18NKey
+import uk.q3c.krail.i18n.I18NKey
 
 /**
  *

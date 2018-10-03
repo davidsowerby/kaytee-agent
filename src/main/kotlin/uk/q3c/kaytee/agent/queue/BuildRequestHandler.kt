@@ -36,7 +36,7 @@ class BuildRequestHandler @Inject constructor(
     override fun post(context: Context) {
         context.parse(Jackson.fromJson(BuildRequest::class.java))
                 .then { buildRequest ->
-                    log.debug("processing build request for project: '{}'", buildRequest.projectFullName)
+                    log.debug("processing build request for project: '{}'", buildRequest.projectUri)
                     try {
                         val project = projects.getProject(buildRequest)
                         val uid = requestQueue.addRequest(project, GitSHA(buildRequest.commitId))

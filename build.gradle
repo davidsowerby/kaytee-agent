@@ -1,6 +1,7 @@
 buildscript {
-    ext.kotlin_version = '1.2.31'
-    ext.kaytee_plugin_version = "0.19.1.0"
+    ext.kotlin_version = '1.2.61'
+    ext.kaytee_plugin_version = "0.22.0.0"
+    ext.junit_platform_version = "1.0.3"
 
     repositories {
         mavenLocal()
@@ -12,6 +13,7 @@ buildscript {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath "io.ratpack:ratpack-gradle:1.4.5"
         classpath "uk.q3c.kaytee:kaytee-plugin:$kaytee_plugin_version"
+        classpath "org.junit.platform:junit-platform-gradle-plugin:$junit_platform_version"
     }
 }
 
@@ -27,6 +29,7 @@ apply plugin: 'kotlin'
 apply plugin: "io.ratpack.ratpack-java"
 apply plugin: "io.ratpack.ratpack-groovy"
 apply from: "gradle/idea.gradle"
+apply from: "gradle/spek.gradle"
 apply plugin: 'uk.q3c.kaytee'
 
 // dependency versions
@@ -41,14 +44,22 @@ version = '0.6.3.0'
 group = 'uk.q3c.kaytee'
 
 kaytee {
+    remoteProjectUri = "https://github.com/davidsowerby/kaytee-agent"
+    
+    version {
+        number = '0.1.0.0'
+    }
+
     functionalTest {
         enabled = true
     }
 }
 
 repositories {
-    jcenter()
+    maven { url 'https://repo.gradle.org/gradle/libs-releases' }
     mavenCentral()
+    jcenter()
+
 }
 
 
@@ -63,19 +74,17 @@ dependencies {
 //    compile 'ch.qos.logback:logback-classic:1.1.2'
 //    compile 'ch.qos.logback:logback-core:1.1.2'
 
+    compile group: 'com.google.inject.extensions', name: 'guice-assistedinject', version: '4.1.0'
 
     compile ratpack.dependency("guice")
     compile 'uk.q3c.rest:hal-kotlin:0.5.4.0.db32476'
     compile "com.fasterxml.jackson.module:jackson-module-kotlin:2.7.5"
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.7.5"
-    //krail for I18N only.  Reduce when I18N moved out of Krail
-    compile ("uk.q3c.krail:krail:0.9.9"){
-        exclude group: 'net.engio'
-    }
+    compile 'uk.q3c.krail:krail-i18n:0.11.4.0'
     compile "net.engio:mbassador:1.3.0"
     compile "uk.q3c.kaytee:kaytee-plugin:$kaytee_plugin_version"
 //    compile "org.gradle:gradle-tooling-api:" + toolingApiVersion
-    compile group: 'org.gradle', name: 'gradle-tooling-api', version: '4.3'
+    compile group: 'org.gradle', name: 'gradle-tooling-api', version: '4.9'
 
 
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
@@ -116,7 +125,7 @@ dependencies {
 mainClassName = "uk.q3c.kaytee.agent.app.Main"
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '4.4.1'
+    gradleVersion = '4.10.1'
 }
 
 

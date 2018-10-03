@@ -62,7 +62,7 @@ class DefaultGradleTaskRunner @Inject constructor(
     }
 
     override fun identity(): String {
-        return "${build.buildRunner.project.shortProjectName}:${build.buildRunner.uid}:$taskKey}"
+        return "${build.buildRunner.project.projectName}:${build.buildRunner.uid}:$taskKey}"
     }
 
     override fun toString(): String {

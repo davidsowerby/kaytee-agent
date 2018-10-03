@@ -8,6 +8,7 @@ import uk.q3c.build.gitplus.GitSHA
 import uk.q3c.build.gitplus.gitplus.GitPlus
 import uk.q3c.build.gitplus.local.GitBranch
 import uk.q3c.build.gitplus.local.Tag
+import uk.q3c.build.gitplus.remote.ServiceProvider
 import uk.q3c.kaytee.agent.api.BuildRequest
 import uk.q3c.kaytee.agent.app.ConstantsKt
 import uk.q3c.kaytee.agent.build.TaskResult
@@ -64,7 +65,7 @@ class FunctionalTest extends FunctionalTestBase {
         given:
         timeoutPeriod = 18000 // 5 mins
         defaultSubscribe()
-        BuildRequest buildRequest = new BuildRequest("davidsowerby/kaytee-test", commitId)
+        BuildRequest buildRequest = new BuildRequest("https://github.com/davidsowerby/kaytee-test", commitId, ServiceProvider.GITHUB)
         timeoutAt = LocalDateTime.now().plusSeconds(timeoutPeriod)
 
         String shortSha = new GitSHA(commitId).short()

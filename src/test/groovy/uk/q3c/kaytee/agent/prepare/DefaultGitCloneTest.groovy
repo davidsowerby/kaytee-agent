@@ -38,18 +38,18 @@ class DefaultGitCloneTest extends PreparationStepSpecification {
         1 * gitLocal.projectDirParent(codeDir) >> gitLocal
         1 * gitLocal.cloneFromRemote(true) >> gitLocal
         1 * gitLocal.cloneExistsResponse(CloneExistsResponse.EXCEPTION) >> gitLocal
-        1 * gitRemote.repoUser(repoUserName) >> gitRemote
+        1 * gitRemote.repoNamespace(repoNamespace) >> gitRemote
         1 * gitRemote.repoName(projectName) >> gitRemote
 
         then:
         1 * gitPlus.execute()
         1 * gitLocal.checkoutCommit(gitHash, 'kaytee')
 
-        then:
-        1 * gitPlus.local.createBranch("develop")
-        1 * gitPlus.local.pull("develop")
-        0 * gitPlus.local.createBranch("master")
-        0 * gitPlus.local.pull("master")
+//        then:
+//        1 * gitPlus.local.createBranch("develop")
+//        1 * gitPlus.local.pull("develop")
+//        0 * gitPlus.local.createBranch("master")
+//        0 * gitPlus.local.pull("master")
     }
 
     def "clone fails"() {
@@ -60,7 +60,7 @@ class DefaultGitCloneTest extends PreparationStepSpecification {
         1 * gitLocal.cloneFromRemote(true) >> gitLocal
         1 * gitLocal.cloneExistsResponse(CloneExistsResponse.EXCEPTION) >> gitLocal
         1 * gitLocal.projectDirParent(codeDir) >> gitLocal
-        1 * gitRemote.repoUser(repoUserName) >> gitRemote
+        1 * gitRemote.repoNamespace(repoNamespace) >> gitRemote
         1 * gitRemote.repoName(projectName) >> gitRemote
 
         then:

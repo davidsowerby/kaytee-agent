@@ -2,8 +2,8 @@ package uk.q3c.kaytee.agent.i18n
 
 import com.google.inject.Inject
 import com.google.inject.assistedinject.Assisted
-import uk.q3c.krail.core.i18n.I18NKey
-import uk.q3c.krail.core.i18n.Translate
+import uk.q3c.krail.i18n.I18NKey
+import uk.q3c.krail.i18n.Translate
 
 /**
  * Created by David Sowerby on 21 Jan 2017

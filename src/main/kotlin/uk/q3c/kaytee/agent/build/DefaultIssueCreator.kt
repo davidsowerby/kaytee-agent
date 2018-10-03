@@ -17,7 +17,7 @@ class DefaultIssueCreator @Inject constructor(val buildRecordCollator: BuildReco
     override fun raiseIssue(build: Build): GPIssue {
         log.debug("raising issue for build failure, build $build")
         try {
-            gitPlus.useRemoteOnly(build.project.remoteUserName, build.project.shortProjectName)
+            gitPlus.useRemoteOnly(build.project.remoteUri)
             gitPlus.propertiesFromGradle()
             gitPlus.execute()
             val buildRecord = buildRecordCollator.getRecord(build.buildRunner.uid)
@@ -29,7 +29,7 @@ class DefaultIssueCreator @Inject constructor(val buildRecordCollator: BuildReco
             val issueTitle = "KayTee build: $subTitle"
             val issueBody = buildRecord.failureDescription
             val newIssue = gitPlus.remote.createIssue(issueTitle, issueBody, "bug")
-            log.info("New issue ${newIssue.number} raised in ${gitPlus.remote.remoteRepoFullName()}")
+            log.info("New issue ${newIssue.number} raised in ${gitPlus.remote.remoteProjectUri}")
             return newIssue
         } catch (e: Exception) {
             log.warn("Failed to create issue", e)

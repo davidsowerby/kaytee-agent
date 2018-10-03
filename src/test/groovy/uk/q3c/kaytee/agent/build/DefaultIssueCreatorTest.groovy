@@ -33,8 +33,8 @@ class DefaultIssueCreatorTest extends Specification {
         creator = new DefaultIssueCreator(buildRecordCollator, gitPlus)
         gitPlus.remote >> gitRemote
         build.project >> project
-        project.remoteUserName >> userName
-        project.shortProjectName >> projectName
+        project.remoteNamespace >> userName
+        project.projectName >> projectName
         build.buildRunner >> buildRunner
         buildRunner.uid >> uid
         buildRecord = new BuildRecord(uid, OffsetDateTime.now(), false)

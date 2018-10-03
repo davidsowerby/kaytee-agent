@@ -5,7 +5,7 @@ import ratpack.http.HttpMethod
 import uk.q3c.kaytee.agent.i18n.DeveloperErrorMessageKey
 import uk.q3c.kaytee.agent.i18n.DeveloperErrorMessageKey.Invalid_Method
 import uk.q3c.kaytee.agent.i18n.UserErrorMessageKey
-import uk.q3c.krail.core.i18n.Translate
+import uk.q3c.krail.i18n.Translate
 
 /**
  * Created by David Sowerby on 04 Mar 2017

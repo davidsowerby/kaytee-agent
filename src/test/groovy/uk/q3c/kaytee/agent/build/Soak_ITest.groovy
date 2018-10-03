@@ -12,6 +12,7 @@ import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 import uk.q3c.build.gitplus.GitPlusModule
 import uk.q3c.build.gitplus.GitSHA
+import uk.q3c.build.gitplus.remote.ServiceProvider
 import uk.q3c.kaytee.agent.app.ApiModule
 import uk.q3c.kaytee.agent.app.Hooks
 import uk.q3c.kaytee.agent.eventbus.GlobalBusModule
@@ -153,10 +154,10 @@ class Soak_ITest extends Specification {
 
     def setup() {
         temp = temporaryFolder.getRoot()
-        projectA = new DefaultProject('davidsowerby/projectA', UUID.randomUUID())
-        projectB = new DefaultProject('davidsowerby/projectB', UUID.randomUUID())
-        projectC = new DefaultProject('davidsowerby/projectC', UUID.randomUUID())
-        projectD = new DefaultProject('davidsowerby/projectD', UUID.randomUUID())
+        projectA = new DefaultProject(ServiceProvider.GITHUB, new URI("https://github.com/davidsowerby/projectA"), UUID.randomUUID())
+        projectB = new DefaultProject(ServiceProvider.GITHUB, new URI("https://github.com/davidsowerby/projectB"), UUID.randomUUID())
+        projectC = new DefaultProject(ServiceProvider.GITHUB, new URI("https://github.com/davidsowerby/projectC"), UUID.randomUUID())
+        projectD = new DefaultProject(ServiceProvider.GITHUB, new URI("https://github.com/davidsowerby/projectD"), UUID.randomUUID())
 
         projects.add(projectA)
         projects.add(projectB)

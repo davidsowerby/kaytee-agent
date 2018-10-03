@@ -16,7 +16,22 @@ import uk.q3c.kaytee.agent.eventbus.GlobalBusProvider
 import uk.q3c.kaytee.agent.eventbus.SubscribeTo
 import uk.q3c.kaytee.agent.prepare.LoadBuildConfiguration
 import uk.q3c.kaytee.agent.prepare.PreparationStage
-import uk.q3c.kaytee.agent.queue.*
+import uk.q3c.kaytee.agent.queue.BuildFailedMessage
+import uk.q3c.kaytee.agent.queue.BuildProcessCompletedMessage
+import uk.q3c.kaytee.agent.queue.BuildRunner
+import uk.q3c.kaytee.agent.queue.BuildStartedMessage
+import uk.q3c.kaytee.agent.queue.BuildSuccessfulMessage
+import uk.q3c.kaytee.agent.queue.DelegatedProjectTaskRunner
+import uk.q3c.kaytee.agent.queue.DelegatedProjectTaskRunnerFactory
+import uk.q3c.kaytee.agent.queue.GradleTaskRunnerFactory
+import uk.q3c.kaytee.agent.queue.ManualTaskRunnerFactory
+import uk.q3c.kaytee.agent.queue.PreparationFailedMessage
+import uk.q3c.kaytee.agent.queue.ProjectInstance
+import uk.q3c.kaytee.agent.queue.RequestQueue
+import uk.q3c.kaytee.agent.queue.TaskFailedMessage
+import uk.q3c.kaytee.agent.queue.TaskNotRequiredMessage
+import uk.q3c.kaytee.agent.queue.TaskRunner
+import uk.q3c.kaytee.agent.queue.TaskSuccessfulMessage
 import uk.q3c.kaytee.plugin.GroupConfig
 import uk.q3c.kaytee.plugin.KayTeeExtension
 import uk.q3c.kaytee.plugin.TaskKey
@@ -31,7 +46,7 @@ import javax.annotation.concurrent.ThreadSafe
 /**
  * Uses [BuildFactory] for construction
  *
- * Needs to be thread safe becuase it processes messages from the event bus, which are despatched asynchronously.
+ * Needs to be thread safe because it processes messages from the event bus, which are despatched asynchronously.
  *
  * It is also possible that other methods will be accessed by different threads (from different runners) - although it is unlikely
  * that there will be contention within those calls, it is considered better to be sure that there will not be.
@@ -59,11 +74,11 @@ class DefaultBuild @Inject constructor(
     private val log = LoggerFactory.getLogger(this.javaClass.name)
     override var raiseIssueOnFail: Boolean = false
     override var version = VersionNumber()
-    lateinit override var stderrOutputFile: File
-    lateinit override var stdoutOutputFile: File
-    lateinit override var parentBuild: Build
-    lateinit override var gradleLauncher: BuildLauncher
-    lateinit override var lifecycle: List<TaskKey>
+    override lateinit var stderrOutputFile: File
+    override lateinit var stdoutOutputFile: File
+    override lateinit var parentBuild: Build
+    override lateinit var gradleLauncher: BuildLauncher
+    override lateinit var lifecycle: List<TaskKey>
     private var failed = true
 
 
@@ -254,7 +269,7 @@ class DefaultBuild @Inject constructor(
         buildRecordWriter.write(this)
         log.info("Build {} closed, sending BuildProcessCompletedMessage", buildRunner.uid)
         globalBusProvider.get().publishAsync(BuildProcessCompletedMessage(buildRunner.uid, buildRunner.delegated))
-        log.info("Build completed for {}:{}", this.project.shortProjectName, this.version())
+        log.info("Build completed for {}:{}", this.project.projectName, this.version())
     }
 
 
@@ -296,7 +311,7 @@ class DefaultBuild @Inject constructor(
     }
 
     override fun toString(): String {
-        return "Build ${buildRunner.uid} for project ${project.fullProjectName}"
+        return "Build ${buildRunner.uid} for ${project.remoteProvider.name} project ${project.fqProjectName}"
     }
 
     override fun execute() {

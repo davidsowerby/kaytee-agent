@@ -22,15 +22,14 @@ class DefaultGitClone @Inject constructor(val installationInfo: InstallationInfo
 
 
     override fun execute(build: Build) {
-        log.debug("executing GitClone preparation step for '{}'", build.buildRunner.project.shortProjectName)
+        log.debug("executing GitClone preparation step for '{}'", build.buildRunner.project.projectName)
         try {
             gitPlus.local
                     .projectDirParent(installationInfo.buildNumberDir(build))
                     .cloneFromRemote(true)
                     .cloneExistsResponse(CloneExistsResponse.EXCEPTION)
             gitPlus.remote
-                    .repoUser(build.project.remoteUserName)
-                    .repoName(build.project.shortProjectName)
+                    .remoteProjectUri(build.project.remoteUri)
             gitPlus.execute()
             log.debug("Cloning complete")
 

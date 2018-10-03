@@ -1,8 +1,7 @@
-package uk.q3c.kaytee.i18n
+package uk.q3c.kaytee.agent.i18n
 
-import uk.q3c.kaytee.agent.i18n.MessageKey
 import uk.q3c.kaytee.agent.i18n.MessageKey.*
-import uk.q3c.krail.core.persist.clazz.i18n.EnumResourceBundle
+import uk.q3c.krail.i18n.EnumResourceBundle
 
 /**
  * Created by David Sowerby on 09 Jan 2017

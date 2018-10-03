@@ -17,13 +17,13 @@ class TestBuildNumberReader implements BuildNumberReader {
     String nextBuildNumber(@NotNull Build build) {
 
         synchronized (mapLock) {
-            Integer counter = numbers.get(build.project.shortProjectName)
+            Integer counter = numbers.get(build.project.projectName)
             if (counter == null) {
                 counter = 0
             }
             counter++
-            numbers.put(build.project.shortProjectName, counter)
-            return numbers.get(build.project.shortProjectName)
+            numbers.put(build.project.projectName, counter)
+            return numbers.get(build.project.projectName)
         }
 
     }

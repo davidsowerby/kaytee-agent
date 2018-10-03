@@ -15,18 +15,22 @@ package uk.q3c.kaytee.agent.i18n;
 import com.google.inject.Inject;
 import uk.q3c.kaytee.agent.i18n.lib.DefaultMessageFormat;
 import uk.q3c.kaytee.agent.i18n.lib.MessageFormatMode;
-import uk.q3c.krail.core.i18n.CurrentLocale;
-import uk.q3c.krail.core.i18n.I18NKey;
-import uk.q3c.krail.core.i18n.PatternSource;
-import uk.q3c.krail.core.i18n.Translate;
-import uk.q3c.krail.core.persist.cache.i18n.PatternCacheKey;
-import uk.q3c.krail.core.persist.clazz.i18n.ClassPatternDao;
-import uk.q3c.krail.core.persist.common.i18n.PatternDao;
+import uk.q3c.krail.i18n.CurrentLocale;
+import uk.q3c.krail.i18n.I18NKey;
+import uk.q3c.krail.i18n.Translate;
+import uk.q3c.krail.i18n.persist.PatternCacheKey;
+import uk.q3c.krail.i18n.persist.PatternDao;
+import uk.q3c.krail.i18n.persist.PatternSource;
+import uk.q3c.krail.i18n.persist.clazz.ClassPatternDao;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.text.Collator;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 
 /**
  * Translates from an  {@link I18NKey} to a value from a {@link PatternSource}, expanding its arguments if it has them.
@@ -61,6 +65,11 @@ public class LocalTranslate implements Translate {
     @Override
     public String from(@Nullable I18NKey key, Object... arguments) {
         return from(key, currentLocale.getLocale(), arguments);
+    }
+
+    @Override
+    public String from(uk.q3c.util.text.MessageFormatMode strictness, boolean checkLocaleIsSupported, I18NKey key, Locale locale, Object... arguments) {
+        throw new UnsupportedOperationException("strictness not implemented in local translate implementation");
     }
 
     /**
