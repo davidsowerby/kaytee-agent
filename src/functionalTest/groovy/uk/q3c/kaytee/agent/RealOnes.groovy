@@ -71,10 +71,10 @@ class RealOnes extends FunctionalTestBase {
 
         projectUrl                               | commitId                                   | provider
 //        "https://gitlab.com/dsowerby/q3c-testutils"        | "224418e162e563f2c36a63db87975ab8fe9fce95" | ServiceProvider.GITLAB
-        "https://gitlab.com/krail-build/gitplus" | "211e7dacd5e0a2ad39f7ac74998ce83ff95be71a" | ServiceProvider.GITLAB
-//        "https://gitlab.com/krail-build/changelog"         | "0e029139529d58310b267a0883079b5c94fb95af" | ServiceProvider.GITLAB
+        "https://gitlab.com/krail-build/gitplus" | "d0e586d4dac94d0bd59d13b2b7cfd2a2c6b80be3" | ServiceProvider.GITLAB
+//        "https://gitlab.com/krail-build/changelog"         | "6e0f54e179e5211927ee236eb4c00f0478472eec" | ServiceProvider.GITLAB
 //        "https://gitlab.com/krail-build/kaytee-plugin"     | "55eef2566fa630a5e42aa739028e6d55c4e2ed54" | ServiceProvider.GITLAB
-//        "https://gitlab.com/krail-build/projectadmin"      | "74653a2c6b5c56d3d86a36bbaaab9ba29be93651" | ServiceProvider.GITLAB
+//        "https://gitlab.com/krail-build/projectadmin"      | "5172e4ab61a1a680300244cf2a2ffde1ed271498" | ServiceProvider.GITLAB
 //        "https://github.com/davidsowerby/hal-kotlin"       | "a35241d1f0c4e619e337499e351a45cb1abd6db2" | ServiceProvider.GITHUB
 //        "https://github.com/davidsowerby/kaytee-test"      | "7ac2e38d98118837fd65fea5f32e2ef8b49cca53" | ServiceProvider.GITHUB // all pass
 //        "https://github.com/davidsowerby/hal-kotlin"       | "db324765d4bb7298336db94661ff89717ce25836" | ServiceProvider.GITHUB
